@@ -1,0 +1,21 @@
+{
+    "name": "db-benchmarks",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "benchmark:all": "node src/run-all.js",
+        "benchmark:insert": "node src/insert-benchmark.js",
+        "benchmark:select": "node src/select-benchmark.js",
+        "benchmark:transactions": "node src/transaction-benchmark.js",
+        "benchmark:analytics": "node src/analytics-benchmark.js"
+    },
+    "dependencies": {
+        "pg": "^8.11.3",
+        "mysql2": "^3.6.5",
+        "mongodb": "^6.3.0",
+        "dotenv": "^16.3.1",
+        "uuid": "^9.0.1",
+        "cli-progress": "^3.12.0",
+        "chalk": "^4.1.2"
+    }
+}
