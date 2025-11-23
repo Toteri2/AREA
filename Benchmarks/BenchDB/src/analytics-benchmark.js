@@ -165,6 +165,9 @@ async function benchmarkMongo() {
     const userId = uuidv4();
     await db.collection('users').insertOne({ _id: userId, email: 'bench@test.com', name: 'Bench User', password: 'password123' });
 
+    await db.collection('triggers').createIndex({ flow_id: 1 });
+    await db.collection('actions').createIndex({ flow_id: 1 });
+
     console.log('  Setting up test data (500 flows)...');
     for (let i = 0; i < 500; i++) {
         const flowId = uuidv4();
