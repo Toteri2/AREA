@@ -8,4 +8,4 @@ import { AuthModule } from '../auth/auth.module'
   controllers: [GithubController],
   providers: [GithubService],
 })
-export class GithubModule {}
+export class GithubModule { }

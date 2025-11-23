@@ -3,10 +3,10 @@ import { UsersService } from './users.service'
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Post()
-  create(@Body() user: {email: string, password: string}) {
+  create(@Body() user: { email: string, password: string }) {
     return this.usersService.create(user.email, user.password)
   }
 

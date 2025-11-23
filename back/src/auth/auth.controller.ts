@@ -5,7 +5,7 @@ import { JwtSessionGuard } from './guards/jwt-session.guard'
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   async register(@Body() body: { email: string; password: string; name: string }) {
@@ -30,7 +30,7 @@ export class AuthController {
 
   @Get('github')
   @UseGuards(JwtSessionGuard, AuthGuard('github'))
-  async githubAuth(@Req() req) {}
+  async githubAuth(@Req() req) { }
 
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
