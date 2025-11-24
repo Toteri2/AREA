@@ -3,6 +3,6 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class AppService {
   getHello(): string {
-    return 'Bienvenue sur l\'AREA, par contre va sur le front stp';
+    return 'Welcome to AREA, but please use the frontend. If you want to see the API docs, go to /api-docs';
   }
 }
