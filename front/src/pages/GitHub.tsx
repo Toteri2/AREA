@@ -50,7 +50,7 @@ export function GitHub() {
       const dto: CreateWebhookDto = {
         owner: selectedRepo.owner.login,
         repo: selectedRepo.name,
-        url: webhookUrl,
+        webhookUrl,
         events: webhookEvents,
         secret: webhookSecret || undefined,
       }
