@@ -3,7 +3,9 @@ import { AuthGuard } from '@nestjs/passport'
 import { GithubService } from './github.service'
 import { CreateWebhookDto } from './dto/create_git_webhook.dto'
 import { AuthService } from '../auth/auth.service'
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
+@ApiTags('github')
 @Controller('github')
 export class GithubController {
   constructor(
@@ -12,11 +14,15 @@ export class GithubController {
   ) { }
 
   @Post('webhook')
+  @ApiOperation({ summary: 'Handle GitHub webhook events' })
+  @ApiResponse({ status: 200, description: 'Webhook event received successfully.' })
   async webhook(@Body() body: any) {
     console.log(body)
   }
 
   @Post('create-webhook')
+  @ApiOperation({ summary: 'Create a GitHub webhook' })
+  @ApiResponse({ status: 201, description: 'The webhook has been successfully created.' })
   @UseGuards(AuthGuard('jwt'))
   async createWebhook(@Req() req, @Body() createWebhookDto: CreateWebhookDto) {
     const provider = await this.authService.getGithubProvider(req.user.id)
@@ -26,6 +32,8 @@ export class GithubController {
   }
 
   @Get('repositories')
+  @ApiOperation({ summary: 'List user GitHub repositories' })
+  @ApiResponse({ status: 200, description: 'List of repositories retrieved successfully.' })
   @UseGuards(AuthGuard('jwt'))
   async listRepositories(@Req() req) {
     const provider = await this.authService.getGithubProvider(req.user.id)
@@ -35,6 +43,8 @@ export class GithubController {
   }
 
   @Get('repositories/:owner/:repo/webhooks')
+  @ApiOperation({ summary: 'List webhooks for a GitHub repository' })
+  @ApiResponse({ status: 200, description: 'List of webhooks retrieved successfully.' })
   @UseGuards(AuthGuard('jwt'))
   async listWebhooks(@Req() req, @Param('owner') owner: string, @Param('repo') repo: string) {
     const provider = await this.authService.getGithubProvider(req.user.id)
