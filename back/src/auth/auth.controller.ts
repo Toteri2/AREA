@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Req, Options } from '@nestjs/common'
+import { Controller, Post, Get, Body, UseGuards, Req, Query, Res } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { AuthService } from './auth.service'
 import { JwtSessionGuard } from './guards/jwt-session.guard'
@@ -37,22 +37,26 @@ export class AuthController {
     return { id: req.user.id, email: req.user.email, name: req.user.name }
   }
 
-  @Get('github')
-  @ApiOperation({ summary: 'Link GitHub account' })
-  @ApiResponse({ status: 302, description: 'Redirect to GitHub for authentication.' })
-  @UseGuards(JwtSessionGuard, AuthGuard('github'))
-  async githubAuth(@Req() req) { }
-
-  @Get('github/callback')
-  @ApiOperation({ summary: 'GitHub authentication callback' })
-  @ApiResponse({ status: 200, description: 'GitHub account linked successfully.' })
-  @UseGuards(AuthGuard('github'))
-  async githubAuthCallback(@Req() req) {
-    const { githubId, username, accessToken, refreshToken } = req.user
+  @Get('github/state')
+  @ApiOperation({ summary: 'GitHub authentication state handler. Depreciated (Not to use anymore)' })
+  @ApiResponse({ status: 200, description: 'GitHub authentication state received.' })
+  @UseGuards(JwtSessionGuard)
+  async githubAuthState(@Req() req) {
     const userId = req.session.userId
+    const state = await this.authService.createOAuthStateToken(userId)
+    return state
+  }
+
+  @Get('github/validate')
+  @ApiOperation({ summary: 'GitHub authentication callback. Is going to validate the GitHub account and link it to the user' })
+  @ApiResponse({ status: 200, description: 'GitHub account linked successfully.' })
+  async githubAuthCallback(@Query('code') code: string, @Query('state') state: string, @Res() res) {
+    const userId = await this.authService.validateOAuthState(state)
+    console.log('GitHub auth callback for user ID:', userId)
     if (!userId)
       throw new Error('No session found')
-    await this.authService.linkGithubAccount(userId, githubId, accessToken, refreshToken, username)
-    return { message: 'GitHub account linked successfully', username }
+    const access_token = await this.authService.getGithubToken(code)
+    await this.authService.linkGithubAccount(userId, access_token)
+    return res.redirect('http://localhost:5173/profile')
   }
 }

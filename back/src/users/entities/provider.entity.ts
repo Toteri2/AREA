@@ -27,17 +27,8 @@ export class Provider {
   @Column({ type: 'enum', enum: ProviderType })
   provider: ProviderType
 
-  @Column({ name: 'provider_user_id' })
-  providerUserId: string
-
   @Column({ name: 'access_token', nullable: true })
   accessToken: string
-
-  @Column({ name: 'refresh_token', nullable: true })
-  refreshToken: string
-
-  @Column({ nullable: true })
-  username: string
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date

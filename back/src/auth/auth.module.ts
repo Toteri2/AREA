@@ -9,11 +9,12 @@ import { JwtStrategy } from './strategies/jwt.strategy'
 import { GithubStrategy } from './strategies/github.strategy'
 import { User } from '../users/entities/user.entity'
 import { Provider } from '../users/entities/provider.entity'
+import { OAuthState } from './entities/oauthstates.entity'
 
 @Module({
   imports: [
     PassportModule,
-    TypeOrmModule.forFeature([User, Provider]),
+    TypeOrmModule.forFeature([User, Provider, OAuthState]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
