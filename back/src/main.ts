@@ -6,16 +6,31 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
 
+  const corsOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
+
+  const isProduction = process.env.NODE_ENV === 'production'
+
+  if (isProduction)
+    app.getHttpAdapter().getInstance().set('trust proxy', 1)
+
+  app.enableCors({
+    origin: corsOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  })
+
   app.use(session({
     secret: process.env.SESSION_SECRET || 'secret',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 86400000 }
+    cookie: {
+      maxAge: 86400000,
+      sameSite: isProduction ? 'none' : 'lax',
+      secure: isProduction,
+      httpOnly: true
+    }
   }))
-
-  app.enableCors({
-    origin: '*',
-  })
 
   const config = new DocumentBuilder()
     .setTitle('API AREA')
