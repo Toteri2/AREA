@@ -18,19 +18,25 @@ export const authApi = {
   },
 
   getGithubAuthUrl: async (): Promise<string> => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-    const token = localStorage.getItem('token');
+    const api_url = import.meta.env.VITE_API_URL
+    const client_id = import.meta.env.VITE_GITHUB_CLIENT_ID
+    const redirect_uri = import.meta.env.VITE_GITHUB_REDIRECT_URI
+    const token = localStorage.getItem('token')
 
-    const response = await fetch(`${apiUrl}/auth/github`, {
-      method: "GET",
+    const jwt_state = await fetch(`${api_url}/auth/github/state`, {
+      method: 'GET',
       headers: {
-        "Authorization": `Bearer ${token}`
-      }
-    });
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.text())
+      .catch((err) => {
+        console.error('Error fetching JWT state:', err)
+        return ''
+      })
 
-    console.log(response);
-    const data = await response.json();
-    return data.url;
+    const authorizeUrl = `https://github.com/login/oauth/authorize?client_id=${client_id}&state=${jwt_state}&redirect_uri=${redirect_uri}&scope=user:email repo write:repo_hook`
+    return authorizeUrl
   },
 }
 
