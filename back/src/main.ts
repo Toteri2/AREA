@@ -1,36 +1,37 @@
-import { NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
-import session from 'express-session'
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import session from 'express-session';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(AppModule);
 
-  const corsOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
+  const corsOrigins = process.env.FRONTEND_URL || 'http://localhost:5173';
 
-  const isProduction = process.env.NODE_ENV === 'production'
+  const isProduction = process.env.NODE_ENV === 'production';
 
-  if (isProduction)
-    app.getHttpAdapter().getInstance().set('trust proxy', 1)
+  if (isProduction) app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
   app.enableCors({
     origin: corsOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-  })
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  });
 
-  app.use(session({
-    secret: process.env.SESSION_SECRET || 'secret',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      maxAge: 86400000,
-      sameSite: isProduction ? 'none' : 'lax',
-      secure: isProduction,
-      httpOnly: true
-    }
-  }))
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || 'secret',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        maxAge: 86400000,
+        sameSite: isProduction ? 'none' : 'lax',
+        secure: isProduction,
+        httpOnly: true,
+      },
+    })
+  );
 
   const config = new DocumentBuilder()
     .setTitle('API AREA')
@@ -41,6 +42,6 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);
-  await app.listen(process.env.PORT ?? 8080)
+  await app.listen(process.env.PORT ?? 8080);
 }
-bootstrap()
+bootstrap();

@@ -1,15 +1,15 @@
-import { Module } from '@nestjs/common'
-import { JwtModule } from '@nestjs/jwt'
-import { PassportModule } from '@nestjs/passport'
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { ConfigModule, ConfigService } from '@nestjs/config'
-import { AuthService } from './auth.service'
-import { AuthController } from './auth.controller'
-import { JwtStrategy } from './strategies/jwt.strategy'
-import { GithubStrategy } from './strategies/github.strategy'
-import { User } from '../users/entities/user.entity'
-import { Provider } from '../users/entities/provider.entity'
-import { OAuthState } from './entities/oauthstates.entity'
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Provider } from '../users/entities/provider.entity';
+import { User } from '../users/entities/user.entity';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { OAuthState } from './entities/oauthstates.entity';
+import { GithubStrategy } from './strategies/github.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -19,13 +19,13 @@ import { OAuthState } from './entities/oauthstates.entity'
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '7d' }
+        signOptions: { expiresIn: '7d' },
       }),
-      inject: [ConfigService]
-    })
+      inject: [ConfigService],
+    }),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, GithubStrategy],
   exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}

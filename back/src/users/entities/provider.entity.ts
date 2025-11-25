@@ -1,12 +1,12 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  ManyToOne,
+  Entity,
   JoinColumn,
-} from 'typeorm'
-import { User } from './user.entity'
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { User } from './user.entity';
 
 export enum ProviderType {
   GITHUB = 'github',
@@ -15,21 +15,21 @@ export enum ProviderType {
 @Entity('providers')
 export class Provider {
   @PrimaryGeneratedColumn()
-  id: number
+  id: number;
 
   @Column({ name: 'user_id' })
-  userId: number
+  userId: number;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: User
+  user: User;
 
   @Column({ type: 'enum', enum: ProviderType })
-  provider: ProviderType
+  provider: ProviderType;
 
   @Column({ name: 'access_token', nullable: true })
-  accessToken: string
+  accessToken: string;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date
+  createdAt: Date;
 }

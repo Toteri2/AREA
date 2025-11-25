@@ -1,24 +1,24 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-} from 'typeorm'
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
-  id: number
+  id: number;
 
   @Column({ type: 'text', unique: true })
-  email: string
+  email: string;
 
   @Column({ type: 'text' })
-  name: string
+  name: string;
 
   @Column({ type: 'text' })
-  password: string
+  password: string;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date
+  createdAt: Date;
 }

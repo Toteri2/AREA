@@ -1,5 +1,5 @@
-import { IsString, IsArray, IsOptional, IsUrl } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsOptional, IsString, IsUrl } from 'class-validator';
 
 export class CreateWebhookDto {
   @IsString()
@@ -15,7 +15,10 @@ export class CreateWebhookDto {
   webhookUrl: string;
 
   @IsArray()
-  @ApiProperty({ description: 'The events that trigger the webhook', type: [String] })
+  @ApiProperty({
+    description: 'The events that trigger the webhook',
+    type: [String],
+  })
   events: string[];
 
   @IsString()
