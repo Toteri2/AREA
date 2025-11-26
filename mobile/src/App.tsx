@@ -1,22 +1,22 @@
-import { View, ActivityIndicator, StyleSheet } from 'react-native'
-import { NavigationContainer } from '@react-navigation/native'
-import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { SafeAreaProvider } from 'react-native-safe-area-context'
-import { AuthProvider, useAuth } from './context/AuthContext'
-import { Login, Register, Dashboard, Profile, GitHub } from './pages'
-import type { RootStackParamList } from './navigation'
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import type { RootStackParamList } from './navigation';
+import { Dashboard, GitHub, Login, Profile, Register } from './pages';
 
-const Stack = createNativeStackNavigator<RootStackParamList>()
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppNavigator() {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#e94560" />
+        <ActivityIndicator size='large' color='#e94560' />
       </View>
-    )
+    );
   }
 
   return (
@@ -37,17 +37,17 @@ function AppNavigator() {
       {isAuthenticated ? (
         <>
           <Stack.Screen
-            name="Dashboard"
+            name='Dashboard'
             component={Dashboard}
             options={{ title: 'Dashboard' }}
           />
           <Stack.Screen
-            name="Profile"
+            name='Profile'
             component={Profile}
             options={{ title: 'Profile' }}
           />
           <Stack.Screen
-            name="GitHub"
+            name='GitHub'
             component={GitHub}
             options={{ title: 'GitHub' }}
           />
@@ -55,19 +55,19 @@ function AppNavigator() {
       ) : (
         <>
           <Stack.Screen
-            name="Login"
+            name='Login'
             component={Login}
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="Register"
+            name='Register'
             component={Register}
             options={{ headerShown: false }}
           />
         </>
       )}
     </Stack.Navigator>
-  )
+  );
 }
 
 function App() {
@@ -79,7 +79,7 @@ function App() {
         </NavigationContainer>
       </AuthProvider>
     </SafeAreaProvider>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -89,6 +89,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#1a1a2e',
   },
-})
+});
 
-export default App
+export default App;

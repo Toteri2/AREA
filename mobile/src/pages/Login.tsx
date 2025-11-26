@@ -1,52 +1,55 @@
-import { useState } from 'react'
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from 'react-native'
-import { useNavigation } from '@react-navigation/native'
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import { useAuth } from '../context/AuthContext'
-import type { RootStackParamList } from '../navigation'
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useAuth } from '../context/AuthContext';
+import type { RootStackParamList } from '../navigation';
 
-type LoginNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>
+type LoginNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Login'
+>;
 
 export function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuth()
-  const navigation = useNavigation<LoginNavigationProp>()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const navigation = useNavigation<LoginNavigationProp>();
 
   const handleSubmit = async () => {
     if (!email || !password) {
-      setError('Please fill in all fields')
-      return
+      setError('Please fill in all fields');
+      return;
     }
 
-    setError('')
-    setIsLoading(true)
+    setError('');
+    setIsLoading(true);
 
     try {
-      await login(email, password)
+      await login(email, password);
       navigation.reset({
         index: 0,
         routes: [{ name: 'Dashboard' }],
-      })
+      });
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed'
-      setError(errorMessage)
+      const errorMessage = err instanceof Error ? err.message : 'Login failed';
+      setError(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -65,11 +68,11 @@ export function Login() {
               style={styles.input}
               value={email}
               onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
+              keyboardType='email-address'
+              autoCapitalize='none'
               autoCorrect={false}
-              placeholder="Enter your email"
-              placeholderTextColor="#888"
+              placeholder='Enter your email'
+              placeholderTextColor='#888'
             />
           </View>
 
@@ -80,8 +83,8 @@ export function Login() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
-              placeholder="Enter your password"
-              placeholderTextColor="#888"
+              placeholder='Enter your password'
+              placeholderTextColor='#888'
             />
           </View>
 
@@ -91,7 +94,7 @@ export function Login() {
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color='#fff' />
             ) : (
               <Text style={styles.buttonText}>Login</Text>
             )}
@@ -106,7 +109,7 @@ export function Login() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -189,4 +192,4 @@ const styles = StyleSheet.create({
     color: '#e94560',
     fontWeight: '500',
   },
-})
+});

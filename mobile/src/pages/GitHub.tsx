@@ -1,60 +1,62 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react';
 import {
-  View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native'
-import { githubApi } from '../api'
-import type { Repository, Webhook, CreateWebhookDto } from '../types'
+  View,
+} from 'react-native';
+import { githubApi } from '../api';
+import type { CreateWebhookDto, Repository, Webhook } from '../types';
 
 export function GitHub() {
-  const [repositories, setRepositories] = useState<Repository[]>([])
-  const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null)
-  const [webhooks, setWebhooks] = useState<Webhook[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [showCreateForm, setShowCreateForm] = useState(false)
-  const [webhookUrl, setWebhookUrl] = useState('')
-  const [webhookEvents, setWebhookEvents] = useState<string[]>(['push'])
-  const [webhookSecret, setWebhookSecret] = useState('')
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null);
+  const [webhooks, setWebhooks] = useState<Webhook[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [webhookUrl, setWebhookUrl] = useState('');
+  const [webhookEvents, setWebhookEvents] = useState<string[]>(['push']);
+  const [webhookSecret, setWebhookSecret] = useState('');
 
   useEffect(() => {
-    loadRepositories()
-  }, [])
+    loadRepositories();
+  }, []);
 
   const loadRepositories = async () => {
     try {
-      setIsLoading(true)
-      const repos = await githubApi.listRepositories()
-      setRepositories(Array.isArray(repos) ? repos : [])
-    } catch (err) {
-      setError('Failed to load repositories. Make sure your GitHub account is linked.')
+      setIsLoading(true);
+      const repos = await githubApi.listRepositories();
+      setRepositories(Array.isArray(repos) ? repos : []);
+    } catch (_err) {
+      setError(
+        'Failed to load repositories. Make sure your GitHub account is linked.'
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const loadWebhooks = async (owner: string, repo: string) => {
     try {
-      const hooks = await githubApi.listWebhooks(owner, repo)
-      setWebhooks(hooks)
-    } catch (err) {
-      setWebhooks([])
+      const hooks = await githubApi.listWebhooks(owner, repo);
+      setWebhooks(hooks);
+    } catch (_err) {
+      setWebhooks([]);
     }
-  }
+  };
 
   const handleSelectRepo = async (repo: Repository) => {
-    setSelectedRepo(repo)
-    setShowCreateForm(false)
-    await loadWebhooks(repo.owner.login, repo.name)
-  }
+    setSelectedRepo(repo);
+    setShowCreateForm(false);
+    await loadWebhooks(repo.owner.login, repo.name);
+  };
 
   const handleCreateWebhook = async () => {
-    if (!selectedRepo || !webhookUrl) return
+    if (!selectedRepo || !webhookUrl) return;
 
     try {
       const dto: CreateWebhookDto = {
@@ -63,33 +65,40 @@ export function GitHub() {
         webhookUrl,
         events: webhookEvents,
         secret: webhookSecret || undefined,
-      }
-      await githubApi.createWebhook(dto)
-      await loadWebhooks(selectedRepo.owner.login, selectedRepo.name)
-      setShowCreateForm(false)
-      setWebhookUrl('')
-      setWebhookSecret('')
-      setWebhookEvents(['push'])
-    } catch (err) {
-      setError('Failed to create webhook')
+      };
+      await githubApi.createWebhook(dto);
+      await loadWebhooks(selectedRepo.owner.login, selectedRepo.name);
+      setShowCreateForm(false);
+      setWebhookUrl('');
+      setWebhookSecret('');
+      setWebhookEvents(['push']);
+    } catch (_err) {
+      setError('Failed to create webhook');
     }
-  }
+  };
 
-  const availableEvents = ['push', 'pull_request', 'issues', 'create', 'delete', 'release']
+  const availableEvents = [
+    'push',
+    'pull_request',
+    'issues',
+    'create',
+    'delete',
+    'release',
+  ];
 
   const toggleEvent = (event: string) => {
     setWebhookEvents((prev) =>
       prev.includes(event) ? prev.filter((e) => e !== event) : [...prev, event]
-    )
-  }
+    );
+  };
 
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#e94560" />
+        <ActivityIndicator size='large' color='#e94560' />
         <Text style={styles.loadingText}>Loading repositories...</Text>
       </View>
-    )
+    );
   }
 
   if (error && repositories.length === 0) {
@@ -103,7 +112,7 @@ export function GitHub() {
           </Text>
         </View>
       </View>
-    )
+    );
   }
 
   return (
@@ -158,10 +167,10 @@ export function GitHub() {
                   style={styles.input}
                   value={webhookUrl}
                   onChangeText={setWebhookUrl}
-                  placeholder="https://example.com/webhook"
-                  placeholderTextColor="#888"
-                  autoCapitalize="none"
-                  keyboardType="url"
+                  placeholder='https://example.com/webhook'
+                  placeholderTextColor='#888'
+                  autoCapitalize='none'
+                  keyboardType='url'
                 />
               </View>
 
@@ -171,9 +180,9 @@ export function GitHub() {
                   style={styles.input}
                   value={webhookSecret}
                   onChangeText={setWebhookSecret}
-                  placeholder="Webhook secret"
-                  placeholderTextColor="#888"
-                  autoCapitalize="none"
+                  placeholder='Webhook secret'
+                  placeholderTextColor='#888'
+                  autoCapitalize='none'
                 />
               </View>
 
@@ -185,14 +194,16 @@ export function GitHub() {
                       key={event}
                       style={[
                         styles.eventChip,
-                        webhookEvents.includes(event) && styles.eventChipSelected,
+                        webhookEvents.includes(event) &&
+                          styles.eventChipSelected,
                       ]}
                       onPress={() => toggleEvent(event)}
                     >
                       <Text
                         style={[
                           styles.eventChipText,
-                          webhookEvents.includes(event) && styles.eventChipTextSelected,
+                          webhookEvents.includes(event) &&
+                            styles.eventChipTextSelected,
                         ]}
                       >
                         {event}
@@ -224,7 +235,9 @@ export function GitHub() {
                     <View
                       style={[
                         styles.statusBadge,
-                        webhook.active ? styles.statusActive : styles.statusInactive,
+                        webhook.active
+                          ? styles.statusActive
+                          : styles.statusInactive,
                       ]}
                     >
                       <Text style={styles.statusText}>
@@ -246,7 +259,7 @@ export function GitHub() {
         </View>
       )}
     </ScrollView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -458,4 +471,4 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 12,
   },
-})
+});

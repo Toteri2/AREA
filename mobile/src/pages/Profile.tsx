@@ -1,23 +1,31 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Linking, Alert } from 'react-native'
-import { useAuth } from '../context/AuthContext'
-import { authApi } from '../api'
+import {
+  Alert,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { authApi } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 export function Profile() {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
   const handleLinkGithub = async () => {
     try {
-      const url = await authApi.getGithubAuthUrl()
-      const canOpen = await Linking.canOpenURL(url)
+      const url = await authApi.getGithubAuthUrl();
+      const canOpen = await Linking.canOpenURL(url);
       if (canOpen) {
-        await Linking.openURL(url)
+        await Linking.openURL(url);
       } else {
-        Alert.alert('Error', 'Cannot open GitHub authentication URL')
+        Alert.alert('Error', 'Cannot open GitHub authentication URL');
       }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to get GitHub authentication URL')
+    } catch (_error) {
+      Alert.alert('Error', 'Failed to get GitHub authentication URL');
     }
-  }
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -41,13 +49,16 @@ export function Profile() {
 
         <View style={styles.actionsSection}>
           <Text style={styles.sectionTitle}>Connected Services</Text>
-          <TouchableOpacity style={styles.githubButton} onPress={handleLinkGithub}>
+          <TouchableOpacity
+            style={styles.githubButton}
+            onPress={handleLinkGithub}
+          >
             <Text style={styles.githubButtonText}>Link GitHub Account</Text>
           </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -108,4 +119,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-})
+});
