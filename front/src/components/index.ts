@@ -1,2 +1,2 @@
-export { Navbar } from './Navbar'
-export { ProtectedRoute } from './ProtectedRoute'
+export { Navbar } from './Navbar';
+export { ProtectedRoute } from './ProtectedRoute';

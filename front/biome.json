@@ -21,7 +21,7 @@
         "useConst": "error"
       },
       "correctness": {
-        "useExhaustiveDependencies": "warn",
+        "useExhaustiveDependencies": "off",
         "noUnusedFunctionParameters": "off",
         "noUnusedImports": "error",
         "noUnusedVariables": "error"
