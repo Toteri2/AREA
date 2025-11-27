@@ -5,8 +5,8 @@ import { CreateWebhookDto } from './dto/create_git_webhook.dto';
 export class GithubService {
   private readonly baseUrl = 'https://api.github.com';
 
-  async createWebhook(userAccessToken: string, dto: CreateWebhookDto) {
-    const { owner, repo, webhookUrl, events, secret } = dto;
+  async createWebhook(userAccessToken: string, dto: CreateWebhookDto, webhookUrl: string) {
+    const { owner, repo, events, secret } = dto;
     const response = await fetch(
       `${this.baseUrl}/repos/${owner}/${repo}/hooks`,
       {

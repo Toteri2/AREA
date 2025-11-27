@@ -10,10 +10,6 @@ export class CreateWebhookDto {
   @ApiProperty({ description: 'The name of the repository' })
   repo: string;
 
-  @IsUrl()
-  @ApiProperty({ description: 'The URL of the webhook' })
-  webhookUrl: string;
-
   @IsArray()
   @ApiProperty({
     description: 'The events that trigger the webhook',
