@@ -41,10 +41,12 @@ export class GithubController {
   @UseGuards(AuthGuard('jwt'))
   async createWebhook(@Req() req, @Body() createWebhookDto: CreateWebhookDto) {
     const provider = await this.authService.getGithubProvider(req.user.id);
+    const webhookUrl = process.env.GITHUB_WEBHOOK_URL ?? '';
     if (!provider) throw new UnauthorizedException('GitHub account not linked');
     return this.githubService.createWebhook(
       provider.accessToken,
-      createWebhookDto
+      createWebhookDto,
+      webhookUrl,
     );
   }
 
