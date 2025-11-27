@@ -3,8 +3,13 @@ import type { User, AuthResponse } from '../types'
 
 export const authApi = {
   register: async (email: string, password: string, name: string): Promise<User> => {
-    const response = await api.post('/auth/register', { email, password, name })
-    return response.data
+    try {
+      const response = await api.post('/auth/register', { email, password, name })
+      return response.data
+    } catch (error: any) {
+      const message = error.response?.data?.message
+      throw new Error(message)
+    }
   },
 
   login: async (email: string, password: string): Promise<AuthResponse> => {
