@@ -44,13 +44,12 @@ export function GitHub() {
   }
 
   const handleCreateWebhook = async () => {
-    if (!selectedRepo || !webhookUrl) return
+    if (!selectedRepo) return
 
     try {
       const dto: CreateWebhookDto = {
         owner: selectedRepo.owner.login,
         repo: selectedRepo.name,
-        webhookUrl,
         events: webhookEvents,
         secret: webhookSecret || undefined,
       }
@@ -118,15 +117,6 @@ export function GitHub() {
             {showCreateForm && (
               <div className="webhook-form">
                 <h3>Create New Webhook</h3>
-                <div className="form-group">
-                  <label>Payload URL</label>
-                  <input
-                    type="url"
-                    value={webhookUrl}
-                    onChange={(e) => setWebhookUrl(e.target.value)}
-                    placeholder="https://example.com/webhook"
-                  />
-                </div>
                 <div className="form-group">
                   <label>Secret (optional)</label>
                   <input

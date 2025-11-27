@@ -36,7 +36,6 @@ export interface Webhook {
 export interface CreateWebhookDto {
   owner: string
   repo: string
-  webhookUrl: string
   events: string[]
   secret?: string
 }
