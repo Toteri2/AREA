@@ -24,15 +24,31 @@ export class AuthController {
     status: 201,
     description: 'The user has been successfully registered.',
   })
+  @ApiResponse({
+    status: 409,
+    description: 'Credentials already in use.',
+  })
   async register(
-    @Body() body: { email: string; password: string; name: string }
+    @Body() body: { email: string; password: string; name: string },
+    @Res() res
   ) {
-    const user = await this.authService.register(
-      body.email,
-      body.password,
-      body.name
-    );
-    return { id: user.id, email: user.email, name: user.name };
+    try {
+      const user = await this.authService.register(
+        body.email,
+        body.password,
+        body.name
+      );
+      console.log('Registered user:', user);
+      return res
+        .status(201)
+        .send({ id: user.id, email: user.email, name: user.name });
+    } catch (error) {
+      console.log('Registration error with code:', error.code);
+      if (error.code === '23505') {
+        return res.status(409).send({ message: 'Credentials already in use' });
+      }
+      throw error;
+    }
   }
 
   @Post('login')
@@ -41,12 +57,17 @@ export class AuthController {
     status: 200,
     description: 'The user has been successfully logged in.',
   })
-  async login(@Body() body: { email: string; password: string }) {
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid credentials.',
+  })
+  async login(@Body() body: { email: string; password: string }, @Res() res) {
     const user = await this.authService.validateUser(body.email, body.password);
     if (!user) {
-      throw new Error('Invalid credentials');
+      return res.status(401).send({ message: 'Invalid credentials' });
     }
-    return this.authService.login(user);
+    const token = await this.authService.login(user);
+    return res.status(200).send(token);
   }
 
   @Get('me')

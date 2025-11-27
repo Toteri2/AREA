@@ -46,7 +46,7 @@ export class GithubController {
     return this.githubService.createWebhook(
       provider.accessToken,
       createWebhookDto,
-      webhookUrl,
+      webhookUrl
     );
   }
 
