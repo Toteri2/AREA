@@ -11,6 +11,7 @@ import { User } from './user.entity';
 export enum ProviderType {
   GITHUB = 'github',
   MICROSOFT = 'microsoft',
+  DISCORD = 'discord',
 }
 
 @Entity('providers')

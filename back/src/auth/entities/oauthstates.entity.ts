@@ -6,12 +6,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ProviderType } from '../../users/entities/provider.entity';
 import { User } from '../../users/entities/user.entity';
-
-export enum ProviderType {
-  GITHUB = 'github',
-  MICROSOFT = 'microsoft',
-}
 
 @Entity('oauth_states')
 export class OAuthState {
@@ -28,12 +24,15 @@ export class OAuthState {
   @Column({ unique: true })
   state: string;
 
-  @Column({ name: 'provider' })
+  @Column({
+    type: 'enum',
+    enum: ProviderType,
+  })
   provider: ProviderType;
 
-  @Column({ name: 'expires_at' })
+  @Column({ name: 'expires_at', type: 'timestamp' })
   expiresAt: Date;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }
