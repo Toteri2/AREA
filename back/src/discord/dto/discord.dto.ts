@@ -7,9 +7,9 @@ import {
     IsString,
 } from 'class-validator';
 
-/**
- * DTO pour l'action "send_message"
- */
+/*
+ DTO pour l'action "send_message"
+*/
 export class SendMessageDto {
     @IsString()
     @IsNotEmpty()
@@ -31,9 +31,9 @@ export class SendMessageDto {
     embeds?: any[];
 }
 
-/**
- * DTO pour l'action "add_role_to_user"
- */
+/*
+ DTO pour l'action "add_role_to_user"
+*/
 export class AddRoleDto {
     @IsString()
     @IsNotEmpty()
@@ -51,9 +51,9 @@ export class AddRoleDto {
     roleId: string;
 }
 
-/**
- * DTO pour l'action "create_private_channel"
- */
+/*
+ DTO pour l'action "create_private_channel"
+*/
 export class CreatePrivateChannelDto {
     @IsString()
     @IsNotEmpty()
