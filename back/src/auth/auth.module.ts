@@ -8,6 +8,7 @@ import { Provider } from 'src/shared/entities/provider.entity';
 import { User } from 'src/shared/entities/user.entity';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { DiscordStrategy } from './strategies/discord.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
@@ -24,7 +25,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, DiscordStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

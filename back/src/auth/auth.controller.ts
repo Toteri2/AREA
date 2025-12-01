@@ -158,4 +158,41 @@ export class AuthController {
     await this.authService.linkMicrosoftAccount(req.user.id, body.code);
     return { success: true, user: req.user.name };
   }
+
+  @Get('discord/state')
+  @ApiOperation({
+    summary: 'Discord authentication state handler',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Discord authentication state received.',
+  })
+  @UseGuards(JwtSessionGuard)
+  async discordAuthState(@Req() req) {
+    const userId = req.session.userId;
+    const state = await this.authService.createOAuthStateToken(userId);
+    return state;
+  }
+
+  @Get('discord/validate')
+  @ApiOperation({
+    summary:
+      'Discord authentication callback. Is going to validate the Discord account and link it to the user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Discord account linked successfully.',
+  })
+  async discordAuthCallback(
+    @Query('code') code: string,
+    @Query('state') state: string,
+    @Res() res
+  ) {
+    const userId = await this.authService.validateOAuthState(state);
+    console.log('Discord auth callback for user ID:', userId);
+    if (!userId) throw new Error('No session found');
+    const access_token = await this.authService.getDiscordToken(code);
+    await this.authService.linkDiscordAccount(userId, access_token);
+    return res.redirect('http://localhost:5173/profile');
+  }
 }
