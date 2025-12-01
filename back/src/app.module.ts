@@ -4,6 +4,7 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { DiscordModule } from './discord/discord.module';
 import { GithubModule } from './github/github.module';
 import { MicrosoftModule } from './microsoft/microsoft.module';
 import { UserModule } from './users/users.module';
@@ -31,6 +32,7 @@ import { UserModule } from './users/users.module';
     }),
     UserModule,
     GithubModule,
+    DiscordModule,
     AuthModule,
     MicrosoftModule,
   ],
