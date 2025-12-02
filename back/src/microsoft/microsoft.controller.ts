@@ -10,12 +10,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProviderType } from 'src/auth/auth.controller';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateMicrosoftDto } from 'src/microsoft/dto/create_microsoft_dto';
 import { MicrosoftService } from './microsoft.service';
 
 @Controller('microsoft')
+@ApiTags('microsoft')
 export class MicrosoftController {
   constructor(
     private readonly microsoftService: MicrosoftService,
@@ -23,6 +25,11 @@ export class MicrosoftController {
   ) {}
 
   @Post('webhook')
+  @ApiOperation({ summary: 'Handle Microsoft webhook events' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook event received successfully.',
+  })
   async webhook(
     @Body() body: any,
     @Res() res,
@@ -42,6 +49,11 @@ export class MicrosoftController {
   }
 
   @Get('webhooks')
+  @ApiOperation({ summary: 'List user Microsoft webhooks' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of webhooks retrieved successfully.',
+  })
   @UseGuards(AuthGuard('jwt'))
   async listUserWebhooks(@Req() req) {
     return this.microsoftService.listUserWebhooks(
@@ -55,6 +67,11 @@ export class MicrosoftController {
   }
 
   @Post('create-webhook')
+  @ApiOperation({ summary: 'Create a Microsoft webhook' })
+  @ApiResponse({
+    status: 201,
+    description: 'The webhook has been successfully created.',
+  })
   @UseGuards(AuthGuard('jwt'))
   async createWebhook(@Req() req, @Body() body: CreateMicrosoftDto) {
     const webhookUrl = process.env.MICROSOFT_WEBHOOK_URL ?? '';
@@ -71,6 +88,11 @@ export class MicrosoftController {
   }
 
   @Delete('webhook')
+  @ApiOperation({ summary: 'Delete a Microsoft subscription' })
+  @ApiResponse({
+    status: 200,
+    description: 'The subscription has been successfully deleted.',
+  })
   @UseGuards(AuthGuard('jwt'))
   async deleteSubscription(@Req() req, @Res() res, @Query('id') id: string) {
     try {

@@ -130,6 +130,11 @@ export class AuthController {
   }
 
   @Get('microsoft/url')
+  @ApiOperation({ summary: 'Get Microsoft authentication URL' })
+  @ApiResponse({
+    status: 200,
+    description: 'Microsoft authentication URL retrieved successfully.',
+  })
   async microsoftAuthUrl() {
     return this.authService.getMicrosoftAuthUrl();
   }
