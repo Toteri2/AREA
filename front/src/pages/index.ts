@@ -1,5 +1,5 @@
-export { Login } from './Login'
-export { Register } from './Register'
-export { Dashboard } from './Dashboard'
-export { Profile } from './Profile'
-export { GitHub } from './GitHub'
+export { Dashboard } from './Dashboard';
+export { GitHub } from './GitHub';
+export { Login } from './Login';
+export { Profile } from './Profile';
+export { Register } from './Register';
