@@ -8,7 +8,6 @@ import { User } from '../users/entities/user.entity';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { OAuthState } from './entities/oauthstates.entity';
-import { GithubStrategy } from './strategies/github.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
@@ -25,7 +24,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GithubStrategy],
+  providers: [AuthService, JwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

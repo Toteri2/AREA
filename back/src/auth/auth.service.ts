@@ -1,9 +1,11 @@
+import { ConfidentialClientApplication } from '@azure/msal-node';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
+import { Configuration } from 'node_modules/@azure/msal-node/dist/config/Configuration';
 import { Repository } from 'typeorm';
 import { Provider, ProviderType } from '../users/entities/provider.entity';
 import { User } from '../users/entities/user.entity';
@@ -11,6 +13,18 @@ import { OAuthState } from './entities/oauthstates.entity';
 
 @Injectable()
 export class AuthService {
+  private msalConfig: Configuration = {
+    auth: {
+      clientId: process.env.MICROSOFT_CLIENT_ID || '',
+      authority: 'https://login.microsoftonline.com/common',
+      clientSecret: process.env.MICROSOFT_CLIENT_SECRET || '',
+    },
+  };
+  private scopes = [
+    'https://graph.microsoft.com/Mail.Read',
+    'https://graph.microsoft.com/User.Read',
+    'offline_access',
+  ];
   constructor(
     @InjectRepository(Provider)
     private providerRepository: Repository<Provider>,
@@ -20,6 +34,19 @@ export class AuthService {
     private oauthStatesRepository: Repository<OAuthState>,
     private jwtService: JwtService
   ) {}
+
+  private getMsalClient() {
+    return new ConfidentialClientApplication(this.msalConfig);
+  }
+
+  async getMicrosoftAuthUrl(): Promise<string> {
+    const client = this.getMsalClient();
+    const authUrl = await client.getAuthCodeUrl({
+      scopes: this.scopes,
+      redirectUri: process.env.MICROSOFT_CALLBACK_URL || '',
+    });
+    return authUrl;
+  }
 
   async register(email: string, password: string, name: string): Promise<User> {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -71,6 +98,13 @@ export class AuthService {
     });
   }
 
+  async getMicrosoftProvider(userId: number): Promise<Provider | null> {
+    return this.providerRepository.findOneBy({
+      userId,
+      provider: ProviderType.MICROSOFT,
+    });
+  }
+
   async verifyToken(token: string): Promise<any> {
     try {
       return this.jwtService.verify(token);
@@ -79,7 +113,10 @@ export class AuthService {
     }
   }
 
-  async createOAuthStateToken(userId: number): Promise<string> {
+  async createOAuthStateToken(
+    userId: number,
+    provider: ProviderType
+  ): Promise<string> {
     const state = randomBytes(16).toString('hex');
     const user = await this.userRepository.findOneBy({ id: userId });
     if (!user) return '';
@@ -87,37 +124,115 @@ export class AuthService {
       userId,
       state,
       expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      provider,
     });
     await this.oauthStatesRepository.save(stateVal);
     return state;
   }
 
-  async validateOAuthState(state: string): Promise<number | null> {
+  async validateOAuthState(
+    state: string,
+    provider: ProviderType
+  ): Promise<number | null> {
     const data = await this.oauthStatesRepository.findOneBy({ state });
     const date = Date.now();
     if (!data || +data.expiresAt < date) {
-      await this.oauthStatesRepository.delete({ state });
+      await this.oauthStatesRepository.delete({ state, provider });
       return null;
     }
-    await this.oauthStatesRepository.delete({ state });
+    await this.oauthStatesRepository.delete({ state, provider });
     return data.userId;
   }
 
-  async getGithubToken(code: string): Promise<string> {
-    const res = await axios.get('https://github.com/login/oauth/access_token', {
-      params: {
-        client_id: process.env.GITHUB_CLIENT_ID,
-        client_secret: process.env.GITHUB_CLIENT_SECRET,
-        code: code,
-        redirect_uri: process.env.GITHUB_CALLBACK_URL,
-      },
-      headers: {
-        Accept: 'application/json',
-        'Accept-Encoding': 'application/json',
-      },
+  async findOauthState(
+    state: string,
+    provider: ProviderType
+  ): Promise<boolean> {
+    const stateFound = await this.oauthStatesRepository.findOneBy({
+      state,
+      provider,
     });
+    if (!stateFound) {
+      return false;
+    }
+    return true;
+  }
+
+  async getGithubToken(code: string): Promise<string> {
+    const res = await axios.post(
+      'https://github.com/login/oauth/access_token',
+      {
+        params: {
+          client_id: process.env.GITHUB_CLIENT_ID,
+          client_secret: process.env.GITHUB_CLIENT_SECRET,
+          code: code,
+          redirect_uri: process.env.GITHUB_CALLBACK_URL,
+        },
+        headers: {
+          Accept: 'application/json',
+          'Accept-Encoding': 'application/json',
+        },
+      }
+    );
     const access_token = res.data.access_token;
     console.log(res);
     return access_token;
+  }
+
+  async linkMicrosoftAccount(userId: number, code: string) {
+    const client = this.getMsalClient();
+    await client.acquireTokenByCode({
+      code: code,
+      scopes: this.scopes,
+      redirectUri: process.env.MICROSOFT_CALLBACK_URL ?? '',
+    });
+    const cache = client.getTokenCache().serialize();
+    let provider = await this.providerRepository.findOne({
+      where: { userId, provider: ProviderType.MICROSOFT },
+    });
+    if (provider) {
+      provider.accessToken = cache;
+    } else {
+      provider = this.providerRepository.create({
+        userId: userId,
+        user: { id: userId } as User,
+        provider: ProviderType.MICROSOFT,
+        accessToken: cache,
+      });
+    }
+    return this.providerRepository.save(provider);
+  }
+
+  async getMicrosoftToken(userId: number): Promise<string> {
+    const provider = await this.providerRepository.findOneBy({
+      userId,
+      provider: ProviderType.MICROSOFT,
+    });
+    if (!provider || !provider.accessToken) {
+      throw new Error('Microsoft account not linked');
+    }
+
+    const client = this.getMsalClient();
+    client.getTokenCache().deserialize(provider.accessToken);
+    const accounts = await client.getTokenCache().getAllAccounts();
+    if (accounts.length === 0) {
+      throw new Error('No Microsoft account found');
+    }
+
+    const result = await client.acquireTokenSilent({
+      account: accounts[0],
+      scopes: this.scopes,
+    });
+    if (!result) {
+      throw new Error('Could not acquire token');
+    }
+
+    const newCache = client.getTokenCache().serialize();
+    if (newCache !== provider.accessToken) {
+      console.log('Updating Microsoft token cache for user:', userId);
+      provider.accessToken = newCache;
+      await this.providerRepository.save(provider);
+    }
+    return result.accessToken;
   }
 }
