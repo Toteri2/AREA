@@ -45,7 +45,7 @@ export function GitHub() {
   };
 
   const handleCreateWebhook = async () => {
-    if (!selectedRepo) return
+    if (!selectedRepo) return;
 
     try {
       const dto: CreateWebhookDto = {
@@ -132,8 +132,8 @@ export function GitHub() {
             {showCreateForm && (
               <div className='webhook-form'>
                 <h3>Create New Webhook</h3>
-                <div className="form-group">
-                  <label>Secret (optional)</label>
+                <div className='form-group'>
+                  <label htmlFor='webhook-secret'>Secret (optional)</label>
                   <input
                     id='webhook-secret'
                     type='text'
