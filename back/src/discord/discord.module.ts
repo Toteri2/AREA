@@ -5,9 +5,9 @@ import { DiscordService } from './discord.service';
 import { DiscordWebhookService } from './discord-webhook.service';
 
 @Module({
-    imports: [AuthModule],
-    controllers: [DiscordController],
-    providers: [DiscordService, DiscordWebhookService],
-    exports: [DiscordService, DiscordWebhookService],
+  imports: [AuthModule],
+  controllers: [DiscordController],
+  providers: [DiscordService, DiscordWebhookService],
+  exports: [DiscordService, DiscordWebhookService],
 })
-export class DiscordModule { }
+export class DiscordModule {}
