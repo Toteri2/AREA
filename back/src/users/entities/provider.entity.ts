@@ -10,6 +10,7 @@ import { User } from './user.entity';
 
 export enum ProviderType {
   GITHUB = 'github',
+  MICROSOFT = 'microsoft',
 }
 
 @Entity('providers')
@@ -27,7 +28,7 @@ export class Provider {
   @Column({ type: 'enum', enum: ProviderType })
   provider: ProviderType;
 
-  @Column({ name: 'access_token', nullable: true })
+  @Column({ name: 'access_token', nullable: true, type: 'text' })
   accessToken: string;
 
   @CreateDateColumn({ name: 'created_at' })

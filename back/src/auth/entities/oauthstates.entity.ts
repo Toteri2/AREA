@@ -8,6 +8,11 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
+export enum ProviderType {
+  GITHUB = 'github',
+  MICROSOFT = 'microsoft',
+}
+
 @Entity('oauth_states')
 export class OAuthState {
   @PrimaryGeneratedColumn()
@@ -22,6 +27,9 @@ export class OAuthState {
 
   @Column({ unique: true })
   state: string;
+
+  @Column({ name: 'provider' })
+  provider: ProviderType;
 
   @Column({ name: 'expires_at' })
   expiresAt: Date;

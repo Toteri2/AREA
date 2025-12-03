@@ -13,6 +13,11 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { JwtSessionGuard } from './guards/jwt-session.guard';
 
+export enum ProviderType {
+  GITHUB = 'github',
+  MICROSOFT = 'microsoft',
+}
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -83,8 +88,7 @@ export class AuthController {
 
   @Get('github/state')
   @ApiOperation({
-    summary:
-      'GitHub authentication state handler. Depreciated (Not to use anymore)',
+    summary: 'GitHub authentication state handler.',
   })
   @ApiResponse({
     status: 200,
@@ -93,7 +97,10 @@ export class AuthController {
   @UseGuards(JwtSessionGuard)
   async githubAuthState(@Req() req) {
     const userId = req.session.userId;
-    const state = await this.authService.createOAuthStateToken(userId);
+    const state = await this.authService.createOAuthStateToken(
+      userId,
+      ProviderType.GITHUB
+    );
     return state;
   }
 
@@ -111,11 +118,39 @@ export class AuthController {
     @Query('state') state: string,
     @Res() res
   ) {
-    const userId = await this.authService.validateOAuthState(state);
+    const userId = await this.authService.validateOAuthState(
+      state,
+      ProviderType.GITHUB
+    );
     console.log('GitHub auth callback for user ID:', userId);
     if (!userId) throw new Error('No session found');
     const access_token = await this.authService.getGithubToken(code);
     await this.authService.linkGithubAccount(userId, access_token);
     return res.redirect('http://localhost:5173/profile');
+  }
+
+  @Get('microsoft/url')
+  @ApiOperation({ summary: 'Get Microsoft authentication URL' })
+  @ApiResponse({
+    status: 200,
+    description: 'Microsoft authentication URL retrieved successfully.',
+  })
+  async microsoftAuthUrl() {
+    return this.authService.getMicrosoftAuthUrl();
+  }
+
+  @Post('microsoft/validate')
+  @ApiOperation({
+    summary:
+      'Microsoft authentication callback. Is going to validate the Microsoft account and link it to the user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Microsoft account linked successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async microsoftAuthValidate(@Body() body: { code: string }, @Req() req) {
+    await this.authService.linkMicrosoftAccount(req.user.id, body.code);
+    return { success: true, user: req.user.name };
   }
 }
