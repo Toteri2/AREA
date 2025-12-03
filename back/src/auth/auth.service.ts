@@ -1,11 +1,10 @@
-import { ConfidentialClientApplication } from '@azure/msal-node';
+import { ConfidentialClientApplication, Configuration } from '@azure/msal-node';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import { Configuration } from 'node_modules/@azure/msal-node/dist/config/Configuration';
 import { Repository } from 'typeorm';
 import { Provider, ProviderType } from '../users/entities/provider.entity';
 import { User } from '../users/entities/user.entity';
