@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Param,
   Post,
   Req,
@@ -10,6 +11,10 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ReactionsService } from 'src/reactions/reactions.service';
+import { Hook } from 'src/users/entities/hook.entity';
+import { Repository } from 'typeorm';
 import { AuthService } from '../auth/auth.service';
 import { CreateWebhookDto } from './dto/create_git_webhook.dto';
 import { GithubService } from './github.service';
@@ -19,7 +24,10 @@ import { GithubService } from './github.service';
 export class GithubController {
   constructor(
     private readonly githubService: GithubService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly reactionsService: ReactionsService,
+    @InjectRepository(Hook)
+    private hooksRepository: Repository<Hook>
   ) {}
 
   @Post('webhook')
@@ -28,8 +36,38 @@ export class GithubController {
     status: 200,
     description: 'Webhook event received successfully.',
   })
-  async webhook(@Body() body: any) {
-    console.log(body);
+  async webhook(
+    @Body() body: any,
+    @Headers('x-github-delivery') deliveryId: string
+  ) {
+    console.log('GitHub webhook received:', deliveryId);
+    console.log('Payload:', body);
+
+    if (body.repository) {
+      const _repoFullName = body.repository.full_name;
+
+      const hooks = await this.hooksRepository.find({
+        // where: { service: 'github' }
+      });
+
+      for (const hook of hooks) {
+        const reactions = await this.reactionsService.findByHookId(hook.id);
+
+        for (const reaction of reactions) {
+          try {
+            await this.reactionsService.executeReaction(
+              reaction,
+              body,
+              hook.userId
+            );
+          } catch (error) {
+            console.error(`Failed to execute reaction ${reaction.id}:`, error);
+          }
+        }
+      }
+    }
+
+    return { success: true };
   }
 
   @Post('create-webhook')

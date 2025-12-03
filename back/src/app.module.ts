@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { GithubModule } from './github/github.module';
 import { MicrosoftModule } from './microsoft/microsoft.module';
+import { ReactionsModule } from './reactions/reactions.module';
 import { UserModule } from './users/users.module';
 
 @Module({
@@ -33,6 +34,7 @@ import { UserModule } from './users/users.module';
     GithubModule,
     AuthModule,
     MicrosoftModule,
+    ReactionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
