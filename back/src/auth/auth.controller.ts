@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Post,
-  Query,
   Req,
   Res,
   UseGuards,
@@ -11,7 +10,6 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { JwtSessionGuard } from './guards/jwt-session.guard';
 
 export enum ProviderType {
   GITHUB = 'github',
@@ -86,25 +84,22 @@ export class AuthController {
     return { id: req.user.id, email: req.user.email, name: req.user.name };
   }
 
-  @Get('github/state')
+  @Get('github/url')
   @ApiOperation({
-    summary: 'GitHub authentication state handler.',
+    summary: 'GitHub authentication url handler.',
   })
   @ApiResponse({
     status: 200,
-    description: 'GitHub authentication state received.',
+    description: 'GitHub authentication url received.',
   })
-  @UseGuards(JwtSessionGuard)
-  async githubAuthState(@Req() req) {
-    const userId = req.session.userId;
-    const state = await this.authService.createOAuthStateToken(
-      userId,
-      ProviderType.GITHUB
-    );
-    return state;
+  async githubAuthUrl() {
+    const client_id = process.env.GITHUB_CLIENT_ID;
+    const redirect_uri = process.env.GITHUB_CALLBACK_URL;
+    const authorizeUrl = `https://github.com/login/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&scope=user:email repo write:repo_hook`;
+    return authorizeUrl;
   }
 
-  @Get('github/validate')
+  @Post('github/validate')
   @ApiOperation({
     summary:
       'GitHub authentication callback. Is going to validate the GitHub account and link it to the user',
@@ -113,20 +108,15 @@ export class AuthController {
     status: 200,
     description: 'GitHub account linked successfully.',
   })
-  async githubAuthCallback(
-    @Query('code') code: string,
-    @Query('state') state: string,
-    @Res() res
-  ) {
-    const userId = await this.authService.validateOAuthState(
-      state,
-      ProviderType.GITHUB
-    );
+  @UseGuards(AuthGuard('jwt'))
+  async githubAuthCallback(@Body() body: { code: string }, @Req() req) {
+    const userId = req.user.id;
     console.log('GitHub auth callback for user ID:', userId);
     if (!userId) throw new Error('No session found');
-    const access_token = await this.authService.getGithubToken(code);
+    console.log('Received code:', body.code);
+    const access_token = await this.authService.getGithubToken(body.code);
     await this.authService.linkGithubAccount(userId, access_token);
-    return res.redirect('http://localhost:5173/profile');
+    return { success: true, user: req.user.name };
   }
 
   @Get('microsoft/url')

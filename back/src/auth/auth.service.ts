@@ -83,6 +83,7 @@ export class AuthService {
     } else {
       provider = this.providerRepository.create({
         userId,
+        user: { id: userId } as User,
         provider: ProviderType.GITHUB,
         accessToken,
       });
@@ -161,20 +162,18 @@ export class AuthService {
     const res = await axios.post(
       'https://github.com/login/oauth/access_token',
       {
-        params: {
-          client_id: process.env.GITHUB_CLIENT_ID,
-          client_secret: process.env.GITHUB_CLIENT_SECRET,
-          code: code,
-          redirect_uri: process.env.GITHUB_CALLBACK_URL,
-        },
+        client_id: process.env.GITHUB_CLIENT_ID,
+        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        code: code,
+        redirect_uri: process.env.GITHUB_CALLBACK_URL,
+      },
+      {
         headers: {
           Accept: 'application/json',
-          'Accept-Encoding': 'application/json',
         },
       }
     );
     const access_token = res.data.access_token;
-    console.log(res);
     return access_token;
   }
 
