@@ -34,7 +34,7 @@ export class AuthService {
     @InjectRepository(OAuthState)
     private oauthStatesRepository: Repository<OAuthState>,
     private jwtService: JwtService
-  ) {}
+  ) { }
 
   private getMsalClient() {
     return new ConfidentialClientApplication(this.msalConfig);
@@ -263,12 +263,15 @@ export class AuthService {
     return result.accessToken;
   }
   async getDiscordToken(code: string): Promise<string> {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const redirectUri = `${frontendUrl}/discord/callback`;
+
     const params = new URLSearchParams();
     params.append('client_id', process.env.DISCORD_CLIENT_ID || '');
     params.append('client_secret', process.env.DISCORD_CLIENT_SECRET || '');
     params.append('grant_type', 'authorization_code');
     params.append('code', code);
-    params.append('redirect_uri', process.env.DISCORD_CALLBACK_URL || '');
+    params.append('redirect_uri', redirectUri);
 
     const res = await axios.post(
       'https://discord.com/api/oauth2/token',

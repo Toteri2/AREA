@@ -78,7 +78,7 @@ export class DiscordService {
       `${this.baseUrl}/channels/${channelId}/messages`,
       {
         method: 'POST',
-        headers: this.getHeaders(userAccessToken),
+        headers: this.getBotHeaders(),
         body: JSON.stringify(body),
       }
     );
