@@ -20,8 +20,9 @@ export class AuthService {
     },
   };
   private scopes = [
-    'https://graph.microsoft.com/Mail.Read',
+    'https://graph.microsoft.com/Mail.ReadWrite',
     'https://graph.microsoft.com/User.Read',
+    'https://graph.microsoft.com/Mail.Send',
     'offline_access',
   ];
   constructor(
