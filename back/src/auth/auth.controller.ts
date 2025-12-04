@@ -19,7 +19,7 @@ export enum ProviderType {
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
@@ -144,6 +144,26 @@ export class AuthController {
     return { success: true, user: req.user.name };
   }
 
+  @Get('discord/url')
+  @ApiOperation({
+    summary: 'Get Discord OAuth URL',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Discord OAuth URL generated successfully.',
+  })
+  @UseGuards(JwtSessionGuard)
+  async getDiscordAuthUrl(@Req() req) {
+    const userId = req.session.userId;
+    const state = await this.authService.createOAuthStateToken(userId);
+    const clientId = process.env.DISCORD_CLIENT_ID;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const redirectUri = encodeURIComponent(`${frontendUrl}/discord/callback`);
+    const scope = encodeURIComponent('identify email guilds guilds.members.read');
+    const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`;
+    return url;
+  }
+
   @Get('discord/state')
   @ApiOperation({
     summary: 'Discord authentication state handler',
@@ -159,25 +179,29 @@ export class AuthController {
     return state;
   }
 
-  @Get('discord/validate')
+  @Post('discord/validate')
   @ApiOperation({
     summary:
-      'Discord authentication callback. Is going to validate the Discord account and link it to the user',
+      'Discord authentication callback. Validates the code and links the Discord account to the user',
   })
   @ApiResponse({
     status: 200,
     description: 'Discord account linked successfully.',
   })
   async discordAuthCallback(
-    @Query('code') code: string,
-    @Query('state') state: string,
-    @Res() res
+    @Body() body: { code: string; state: string }
   ) {
-    const userId = await this.authService.validateOAuthState(state);
-    console.log('Discord auth callback for user ID:', userId);
-    if (!userId) throw new Error('No session found');
-    const access_token = await this.authService.getDiscordToken(code);
-    await this.authService.linkDiscordAccount(userId, access_token);
-    return res.redirect('http://localhost:5173/profile');
+    try {
+      const { code, state } = body;
+      const userId = await this.authService.validateOAuthState(state);
+      console.log('Discord auth callback for user ID:', userId);
+      if (!userId) throw new Error('Invalid or expired state token');
+      const access_token = await this.authService.getDiscordToken(code);
+      await this.authService.linkDiscordAccount(userId, access_token);
+      return { success: true, message: 'Discord account linked successfully' };
+    } catch (error) {
+      console.error('Discord auth callback error:', error);
+      throw error;
+    }
   }
 }

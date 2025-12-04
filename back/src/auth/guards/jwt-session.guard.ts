@@ -8,7 +8,7 @@ import { AuthService } from '../auth.service';
 
 @Injectable()
 export class JwtSessionGuard implements CanActivate {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -22,6 +22,9 @@ export class JwtSessionGuard implements CanActivate {
 
     if (!decoded) throw new UnauthorizedException('Invalid token');
 
+    if (!request.session) {
+      request.session = {};
+    }
     request.session.userId = decoded.sub;
     return true;
   }
