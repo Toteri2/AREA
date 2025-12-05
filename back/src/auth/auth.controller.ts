@@ -10,12 +10,14 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtSessionGuard } from 'src/auth/guards/jwt-session.guard';
+import { ProviderType } from 'src/users/entities/provider.entity';
 import { AuthService } from './auth.service';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
@@ -170,11 +172,16 @@ export class AuthController {
   @UseGuards(JwtSessionGuard)
   async getDiscordAuthUrl(@Req() req) {
     const userId = req.session.userId;
-    const state = await this.authService.createOAuthStateToken(userId);
+    const state = await this.authService.createOAuthStateToken(
+      userId,
+      ProviderType.DISCORD
+    );
     const clientId = process.env.DISCORD_CLIENT_ID;
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const redirectUri = encodeURIComponent(`${frontendUrl}/discord/callback`);
-    const scope = encodeURIComponent('identify email guilds guilds.members.read');
+    const scope = encodeURIComponent(
+      'identify email guilds guilds.members.read'
+    );
     const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`;
     return url;
   }
@@ -190,7 +197,10 @@ export class AuthController {
   @UseGuards(JwtSessionGuard)
   async discordAuthState(@Req() req) {
     const userId = req.session.userId;
-    const state = await this.authService.createOAuthStateToken(userId);
+    const state = await this.authService.createOAuthStateToken(
+      userId,
+      ProviderType.DISCORD
+    );
     return state;
   }
 
@@ -203,12 +213,13 @@ export class AuthController {
     status: 200,
     description: 'Discord account linked successfully.',
   })
-  async discordAuthCallback(
-    @Body() body: { code: string; state: string }
-  ) {
+  async discordAuthCallback(@Body() body: { code: string; state: string }) {
     try {
       const { code, state } = body;
-      const userId = await this.authService.validateOAuthState(state);
+      const userId = await this.authService.validateOAuthState(
+        state,
+        ProviderType.DISCORD
+      );
       console.log('Discord auth callback for user ID:', userId);
       if (!userId) throw new Error('Invalid or expired state token');
       const access_token = await this.authService.getDiscordToken(code);

@@ -34,7 +34,7 @@ export class AuthService {
     @InjectRepository(OAuthState)
     private oauthStatesRepository: Repository<OAuthState>,
     private jwtService: JwtService
-  ) { }
+  ) {}
 
   private getMsalClient() {
     return new ConfidentialClientApplication(this.msalConfig);
