@@ -86,11 +86,11 @@ export class AuthController {
   })
   async githubAuthUrl(@Query('mobile') mobile: string) {
     const client_id = process.env.GITHUB_CLIENT_ID;
-    const redirect_uri = process.env.GITHUB_CALLBACK_URL; // Always your Web URL
+    const redirect_uri = process.env.GITHUB_CALLBACK_URL;
 
     const stateData = {
       platform: mobile === "true" ? "mobile" : "web",
-      nonce: Math.random().toString(36).substring(7), // Security random string
+      nonce: Math.random().toString(36).substring(7),
     };
 
     const state = Buffer.from(JSON.stringify(stateData)).toString("base64");
@@ -126,11 +126,11 @@ export class AuthController {
   })
   async microsoftAuthUrl(@Query('mobile') mobile: string) {
     const client_id = process.env.MICROSOFT_CLIENT_ID;
-    const redirect_uri = process.env.MICROSOFT_CALLBACK_URL; // YOUR WEB FRONTEND URL
+    const redirect_uri = process.env.MICROSOFT_CALLBACK_URL;
 
     const stateData = {
       platform: mobile === 'true' ? 'mobile' : 'web',
-      nonce: Math.random().toString(36).substring(7)
+      nonce: Math.random().toString(36).substring(7),
     };
     const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
     return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${client_id}&response_type=code&redirect_uri=${redirect_uri}&response_mode=query&scope=offline_access user.read mail.read&state=${state}`;
