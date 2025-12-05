@@ -1,0 +1,98 @@
+services:
+  # Android APK Build
+  android-build:
+    build:
+      context: ./mobile
+      dockerfile: Dockerfile
+    container_name: area-android-build
+    restart: "no"
+    env_file:
+      - .env
+    environment:
+      KEYSTORE_FILE: android/app/release.keystore
+      KEYSTORE_PASSWORD: ${KEYSTORE_PASSWORD}
+      KEY_ALIAS: ${KEY_ALIAS}
+      KEY_PASSWORD: ${KEY_PASSWORD}
+    volumes:
+      - shared-client-volume:/shared
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: area-postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # NestJS Backend
+  backend:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: area-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      JWT_SECRET: ${JWT_SECRET}
+      SESSION_SECRET: ${SESSION_SECRET}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+    ports:
+      - "${PORT}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./back:/app/back
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # React + Vite Frontend
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+    container_name: area-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT}:8081"
+    volumes:
+      - shared-client-volume:/shared
+    depends_on:
+      backend:
+        condition: service_healthy
+      android-build:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
+  shared-client-volume:
