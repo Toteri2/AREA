@@ -54,6 +54,7 @@ export class MicrosoftService {
     const hook = this.hookRepository.create({
       userId: userId,
       webhookId: valid.id,
+      service: 'microsoft',
     });
     await this.hookRepository.save(hook);
 

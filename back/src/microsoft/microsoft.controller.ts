@@ -57,7 +57,7 @@ export class MicrosoftController {
       const subscriptionId = body.value?.[0]?.subscriptionId;
       if (subscriptionId) {
         const hook = await this.hooksRepository.findOne({
-          where: { webhookId: subscriptionId },
+          where: { webhookId: subscriptionId, service: 'microsoft' },
         });
 
         if (hook) {

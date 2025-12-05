@@ -21,4 +21,7 @@ export class Hook {
 
   @Column({ name: 'webhook_id' })
   webhookId: string;
+
+  @Column({ name: 'service' })
+  service: string;
 }

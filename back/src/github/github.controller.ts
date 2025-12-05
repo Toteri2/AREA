@@ -47,7 +47,7 @@ export class GithubController {
       const _repoFullName = body.repository.full_name;
 
       const hooks = await this.hooksRepository.find({
-        // where: { service: 'github' }
+        where: { webhookId: body.id, service: 'github' },
       });
 
       for (const hook of hooks) {
@@ -81,11 +81,19 @@ export class GithubController {
     const provider = await this.authService.getGithubProvider(req.user.id);
     const webhookUrl = process.env.GITHUB_WEBHOOK_URL ?? '';
     if (!provider) throw new UnauthorizedException('GitHub account not linked');
-    return this.githubService.createWebhook(
+    const result = await this.githubService.createWebhook(
       provider.accessToken,
       createWebhookDto,
       webhookUrl
     );
+    console.log('Storing GitHub webhook with ID raaaaaah:', result.id);
+    const hook = this.hooksRepository.create({
+      userId: req.user.id,
+      webhookId: result.id,
+      service: 'github',
+    });
+    await this.hooksRepository.save(hook);
+    return result;
   }
 
   @Get('repositories')

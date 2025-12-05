@@ -21,6 +21,9 @@ export class ReactionsService {
     reactionType: ReactionType,
     config: Record<string, any>
   ): Promise<Reaction> {
+    //console.log('Creating reaction with config:', config);
+    //console.log('For hook ID:', hookId, 'and user ID:', userId);
+    //console.log('Reaction type:', reactionType);
     const hook = await this.hooksRepository.findOne({
       where: { id: hookId, userId },
     });
