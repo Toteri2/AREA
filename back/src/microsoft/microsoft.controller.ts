@@ -11,9 +11,9 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ProviderType } from 'src/auth/auth.controller';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateMicrosoftDto } from 'src/microsoft/dto/create_microsoft_dto';
+import { ProviderType } from 'src/users/entities/provider.entity';
 import { MicrosoftService } from './microsoft.service';
 
 @Controller('microsoft')
