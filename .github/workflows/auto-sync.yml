@@ -38,241 +38,241 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.EPITECH_SYNC_TOKEN }}
 
-#       - name: Configure Git
-#         run: |
-#           git config user.name "Mamborea Bot"
-#           git config user.email "bot@mamborea.com"
-#           git config --global credential.helper store
-#           echo "https://${{ secrets.EPITECH_SYNC_TOKEN }}@github.com" > ~/.git-credentials
+      - name: Configure Git
+        run: |
+          git config user.name "Mamborea Bot"
+          git config user.email "bot@mamborea.com"
+          git config --global credential.helper store
+          echo "https://${{ secrets.EPITECH_SYNC_TOKEN }}@github.com" > ~/.git-credentials
 
-#       - name: Wait for Josh proxy
-#         continue-on-error: true
-#         id: josh-check
-#         run: |
-#           echo "Waiting for Josh proxy to be ready..."
-#           echo "This may take up to 2 minutes..."
+      - name: Wait for Josh proxy
+        continue-on-error: true
+        id: josh-check
+        run: |
+          echo "Waiting for Josh proxy to be ready..."
+          echo "This may take up to 2 minutes..."
 
-#           for i in {1..60}; do
-#             # Try multiple methods to check if service is available
-#             if curl -f http://localhost:8000/ 2>/dev/null; then
-#               echo "✓ Josh proxy is ready (via curl)"
-#               echo "JOSH_AVAILABLE=true" >> $GITHUB_OUTPUT
-#               exit 0
-#             elif wget --spider http://localhost:8000/ 2>/dev/null; then
-#               echo "✓ Josh proxy is ready (via wget)"
-#               echo "JOSH_AVAILABLE=true" >> $GITHUB_OUTPUT
-#               exit 0
-#             elif nc -z localhost 8000 2>/dev/null; then
-#               echo "✓ Josh proxy port is open (via nc)"
-#               # Give it a few more seconds for the service to fully initialize
-#               sleep 5
-#               echo "JOSH_AVAILABLE=true" >> $GITHUB_OUTPUT
-#               exit 0
-#             fi
+          for i in {1..60}; do
+            # Try multiple methods to check if service is available
+            if curl -f http://localhost:8000/ 2>/dev/null; then
+              echo "✓ Josh proxy is ready (via curl)"
+              echo "JOSH_AVAILABLE=true" >> $GITHUB_OUTPUT
+              exit 0
+            elif wget --spider http://localhost:8000/ 2>/dev/null; then
+              echo "✓ Josh proxy is ready (via wget)"
+              echo "JOSH_AVAILABLE=true" >> $GITHUB_OUTPUT
+              exit 0
+            elif nc -z localhost 8000 2>/dev/null; then
+              echo "✓ Josh proxy port is open (via nc)"
+              # Give it a few more seconds for the service to fully initialize
+              sleep 5
+              echo "JOSH_AVAILABLE=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
 
-#             if [ $((i % 10)) -eq 0 ]; then
-#               echo "Still waiting... ($i/60)"
-#             fi
-#             sleep 2
-#           done
+            if [ $((i % 10)) -eq 0 ]; then
+              echo "Still waiting... ($i/60)"
+            fi
+            sleep 2
+          done
 
-#           echo "⚠ Josh proxy not available - will use direct GitHub fallback"
-#           echo "JOSH_AVAILABLE=false" >> $GITHUB_OUTPUT
-#           echo "Checking if container is running..."
-#           docker ps -a | grep josh || true
-#           exit 0
+          echo "⚠ Josh proxy not available - will use direct GitHub fallback"
+          echo "JOSH_AVAILABLE=false" >> $GITHUB_OUTPUT
+          echo "Checking if container is running..."
+          docker ps -a | grep josh || true
+          exit 0
 
-#       - name: Sync repositories via Josh
-#         env:
-#           PAT: ${{ secrets.EPITECH_SYNC_TOKEN }}
-#           JOSH_PROXY: http://localhost:8000
-#         run: |
-#           echo "════════════════════════════════════════════════════════════"
-#           echo "Starting Josh-based sync process..."
-#           echo "════════════════════════════════════════════════════════════"
-#           echo ""
+      - name: Sync repositories via Josh
+        env:
+          PAT: ${{ secrets.EPITECH_SYNC_TOKEN }}
+          JOSH_PROXY: http://localhost:8000
+        run: |
+          echo "════════════════════════════════════════════════════════════"
+          echo "Starting Josh-based sync process..."
+          echo "════════════════════════════════════════════════════════════"
+          echo ""
 
-#           # Define repository mappings (repo_name:target_directory)
-#           declare -A REPOS=(
-#               ["BenchMobile"]="Benchmarks/BenchMobile"
-#               ["BenchFront"]="Benchmarks/BenchFront"
-#               ["BenchBack"]="Benchmarks/BenchBack"
-#               ["BenchDB"]="Benchmarks/BenchDB"
-#               ["AREA-mobile"]="mobile"
-#               ["AREA-front"]="front"
-#               ["AREA-back"]="back"
-#           )
+          # Define repository mappings (repo_name:target_directory)
+          declare -A REPOS=(
+              ["BenchMobile"]="Benchmarks/BenchMobile"
+              ["BenchFront"]="Benchmarks/BenchFront"
+              ["BenchBack"]="Benchmarks/BenchBack"
+              ["BenchDB"]="Benchmarks/BenchDB"
+              ["AREA-mobile"]="mobile"
+              ["AREA-front"]="front"
+              ["AREA-back"]="back"
+          )
 
-#           # Function to sync a repository using Josh
-#           sync_repo_with_josh() {
-#             local repo_name=$1
-#             local target_dir=$2
-#             local josh_filter=":prefix=${target_dir}"
-#             local source_url="${GITHUB_ORG}/${repo_name}.git"
-#             local josh_url="${JOSH_PROXY}/${source_url}${josh_filter}.git"
-#             local remote_name="josh-${repo_name}"
+          # Function to sync a repository using Josh
+          sync_repo_with_josh() {
+            local repo_name=$1
+            local target_dir=$2
+            local josh_filter=":prefix=${target_dir}"
+            local source_url="${GITHUB_ORG}/${repo_name}.git"
+            local josh_url="${JOSH_PROXY}/${source_url}${josh_filter}.git"
+            local remote_name="josh-${repo_name}"
 
-#             echo "═══════════════════════════════════════════════════════════"
-#             echo "→ Syncing: ${repo_name} → ${target_dir}"
-#             echo "═══════════════════════════════════════════════════════════"
-#             echo "  Josh filter: ${josh_filter}"
-#             echo "  Source: ${source_url}"
+            echo "═══════════════════════════════════════════════════════════"
+            echo "→ Syncing: ${repo_name} → ${target_dir}"
+            echo "═══════════════════════════════════════════════════════════"
+            echo "  Josh filter: ${josh_filter}"
+            echo "  Source: ${source_url}"
 
-#             # Add josh-filtered remote with authentication
-#             echo "  [1/5] Configuring Josh remote..."
-#             local josh_url_auth=$(echo "${josh_url}" | sed "s|http://|http://${PAT}@|")
-#             git remote add "${remote_name}" "${josh_url_auth}" 2>/dev/null || \
-#               git remote set-url "${remote_name}" "${josh_url_auth}"
+            # Add josh-filtered remote with authentication
+            echo "  [1/5] Configuring Josh remote..."
+            local josh_url_auth=$(echo "${josh_url}" | sed "s|http://|http://${PAT}@|")
+            git remote add "${remote_name}" "${josh_url_auth}" 2>/dev/null || \
+              git remote set-url "${remote_name}" "${josh_url_auth}"
 
-#             # Fetch through Josh proxy
-#             echo "  [2/5] Fetching through Josh proxy..."
-#             if ! git fetch "${remote_name}" --tags 2>&1; then
-#               echo "  ⚠ Fetch failed, trying direct GitHub fetch as fallback..."
-#               # Fallback to direct fetch if Josh proxy fails
-#               local direct_url="https://${PAT}@github.com/${GITHUB_ORG}/${repo_name}.git"
-#               git remote set-url "${remote_name}" "${direct_url}"
-#               git fetch "${remote_name}" --tags
+            # Fetch through Josh proxy
+            echo "  [2/5] Fetching through Josh proxy..."
+            if ! git fetch "${remote_name}" --tags 2>&1; then
+              echo "  ⚠ Fetch failed, trying direct GitHub fetch as fallback..."
+              # Fallback to direct fetch if Josh proxy fails
+              local direct_url="https://${PAT}@github.com/${GITHUB_ORG}/${repo_name}.git"
+              git remote set-url "${remote_name}" "${direct_url}"
+              git fetch "${remote_name}" --tags
 
-#               # Manually apply prefix filter
-#               echo "  [3/5] Manually applying directory prefix..."
-#               local default_branch=$(git remote show "${remote_name}" | grep 'HEAD branch' | cut -d' ' -f5)
-#               local temp_branch="temp-${repo_name}-$(date +%s)"
+              # Manually apply prefix filter
+              echo "  [3/5] Manually applying directory prefix..."
+              local default_branch=$(git remote show "${remote_name}" | grep 'HEAD branch' | cut -d' ' -f5)
+              local temp_branch="temp-${repo_name}-$(date +%s)"
 
-#               git checkout -b "${temp_branch}" "${remote_name}/${default_branch}"
+              git checkout -b "${temp_branch}" "${remote_name}/${default_branch}"
 
-#               # Create target directory structure
-#               mkdir -p "${target_dir}"
+              # Create target directory structure
+              mkdir -p "${target_dir}"
 
-#               # Move all files to target directory
-#               for item in $(ls -A); do
-#                 if [ "$item" != ".git" ] && [ "$item" != "${target_dir%%/*}" ]; then
-#                   git mv "$item" "${target_dir}/" 2>/dev/null || mv "$item" "${target_dir}/"
-#                 fi
-#               done
+              # Move all files to target directory
+              for item in $(ls -A); do
+                if [ "$item" != ".git" ] && [ "$item" != "${target_dir%%/*}" ]; then
+                  git mv "$item" "${target_dir}/" 2>/dev/null || mv "$item" "${target_dir}/"
+                fi
+              done
 
-#               git add -A
-#               git commit -m "Apply prefix filter: ${target_dir} [$(date +'%Y-%m-%d %H:%M:%S')]" --allow-empty
+              git add -A
+              git commit -m "Apply prefix filter: ${target_dir} [$(date +'%Y-%m-%d %H:%M:%S')]" --allow-empty
 
-#               # Merge into main
-#               echo "  [4/5] Merging changes..."
-#               git checkout main
-#               git merge "${temp_branch}" --allow-unrelated-histories \
-#                 -m "Merge ${repo_name} into ${target_dir} via Josh [$(date +'%Y-%m-%d %H:%M:%S')]"
+              # Merge into main
+              echo "  [4/5] Merging changes..."
+              git checkout main
+              git merge "${temp_branch}" --allow-unrelated-histories \
+                -m "Merge ${repo_name} into ${target_dir} via Josh [$(date +'%Y-%m-%d %H:%M:%S')]"
 
-#               git branch -D "${temp_branch}"
-#             else
-#               # Josh proxy worked - merge filtered branch
-#               echo "  [3/5] Detecting default branch..."
-#               local default_branch=$(git remote show "${remote_name}" | grep 'HEAD branch' | cut -d' ' -f5)
-#               echo "      Default branch: ${default_branch}"
+              git branch -D "${temp_branch}"
+            else
+              # Josh proxy worked - merge filtered branch
+              echo "  [3/5] Detecting default branch..."
+              local default_branch=$(git remote show "${remote_name}" | grep 'HEAD branch' | cut -d' ' -f5)
+              echo "      Default branch: ${default_branch}"
 
-#               echo "  [4/5] Merging filtered history..."
-#               git merge "${remote_name}/${default_branch}" --allow-unrelated-histories \
-#                 -m "Merge ${repo_name} into ${target_dir} via Josh [$(date +'%Y-%m-%d %H:%M:%S')]" || {
-#                 echo "  ⚠ Merge conflict detected, attempting automatic resolution..."
-#                 git checkout --ours .
-#                 git add -A
-#                 git commit -m "Merge ${repo_name} into ${target_dir} (resolved) [$(date +'%Y-%m-%d %H:%M:%S')]"
-#               }
-#             fi
+              echo "  [4/5] Merging filtered history..."
+              git merge "${remote_name}/${default_branch}" --allow-unrelated-histories \
+                -m "Merge ${repo_name} into ${target_dir} via Josh [$(date +'%Y-%m-%d %H:%M:%S')]" || {
+                echo "  ⚠ Merge conflict detected, attempting automatic resolution..."
+                git checkout --ours .
+                git add -A
+                git commit -m "Merge ${repo_name} into ${target_dir} (resolved) [$(date +'%Y-%m-%d %H:%M:%S')]"
+              }
+            fi
 
-#             # Cleanup
-#             echo "  [5/5] Cleaning up..."
-#             git remote remove "${remote_name}"
+            # Cleanup
+            echo "  [5/5] Cleaning up..."
+            git remote remove "${remote_name}"
 
-#             echo "✓ Successfully synced ${repo_name}"
-#             echo ""
-#           }
+            echo "✓ Successfully synced ${repo_name}"
+            echo ""
+          }
 
-#           # Sync all repositories
-#           for repo_name in "${!REPOS[@]}"; do
-#             target_dir="${REPOS[$repo_name]}"
-#             sync_repo_with_josh "$repo_name" "$target_dir"
-#           done
+          # Sync all repositories
+          for repo_name in "${!REPOS[@]}"; do
+            target_dir="${REPOS[$repo_name]}"
+            sync_repo_with_josh "$repo_name" "$target_dir"
+          done
 
-#           echo "════════════════════════════════════════════════════════════"
-#           echo "✓ All repositories synced via Josh"
-#           echo "════════════════════════════════════════════════════════════"
+          echo "════════════════════════════════════════════════════════════"
+          echo "✓ All repositories synced via Josh"
+          echo "════════════════════════════════════════════════════════════"
 
-#       - name: Push to destination
-#         env:
-#           PAT: ${{ secrets.EPITECH_SYNC_TOKEN }}
-#           DEST_REPO: ${{ secrets.DESTINATION_REPO }}
-#         run: |
-#           echo "════════════════════════════════════════════════════════════"
-#           echo "Pushing to destination repository"
-#           echo "════════════════════════════════════════════════════════════"
+      - name: Push to destination
+        env:
+          PAT: ${{ secrets.EPITECH_SYNC_TOKEN }}
+          DEST_REPO: ${{ secrets.DESTINATION_REPO }}
+        run: |
+          echo "════════════════════════════════════════════════════════════"
+          echo "Pushing to destination repository"
+          echo "════════════════════════════════════════════════════════════"
 
-#           # Create destination URL with authentication
-#           destination_url=$(echo "$DEST_REPO" | sed "s|https://github.com|https://${PAT}@github.com|")
+          # Create destination URL with authentication
+          destination_url=$(echo "$DEST_REPO" | sed "s|https://github.com|https://${PAT}@github.com|")
 
-#           # Configure destination remote
-#           git remote add destination "$destination_url" 2>/dev/null || \
-#             git remote set-url destination "$destination_url"
+          # Configure destination remote
+          git remote add destination "$destination_url" 2>/dev/null || \
+            git remote set-url destination "$destination_url"
 
-#           current_branch=$(git branch --show-current)
-#           echo "→ Current branch: $current_branch"
+          current_branch=$(git branch --show-current)
+          echo "→ Current branch: $current_branch"
 
-#           # Fetch destination to update remote tracking info
-#           echo "→ Fetching from destination to update tracking info..."
-#           git fetch destination "$current_branch" || true
+          # Fetch destination to update remote tracking info
+          echo "→ Fetching from destination to update tracking info..."
+          git fetch destination "$current_branch" || true
 
-#           # Check if we're ahead, behind, or diverged
-#           LOCAL=$(git rev-parse HEAD)
-#           REMOTE=$(git rev-parse "destination/$current_branch" 2>/dev/null || echo "")
+          # Check if we're ahead, behind, or diverged
+          LOCAL=$(git rev-parse HEAD)
+          REMOTE=$(git rev-parse "destination/$current_branch" 2>/dev/null || echo "")
 
-#           if [ -z "$REMOTE" ]; then
-#             echo "→ Destination branch doesn't exist yet, creating it..."
-#             git push destination "$current_branch"
-#           elif [ "$LOCAL" = "$REMOTE" ]; then
-#             echo "✓ Already up to date, nothing to push"
-#           else
-#             # Check if we can fast-forward
-#             MERGE_BASE=$(git merge-base HEAD "destination/$current_branch" 2>/dev/null || echo "")
+          if [ -z "$REMOTE" ]; then
+            echo "→ Destination branch doesn't exist yet, creating it..."
+            git push destination "$current_branch"
+          elif [ "$LOCAL" = "$REMOTE" ]; then
+            echo "✓ Already up to date, nothing to push"
+          else
+            # Check if we can fast-forward
+            MERGE_BASE=$(git merge-base HEAD "destination/$current_branch" 2>/dev/null || echo "")
 
-#             if [ "$MERGE_BASE" = "$REMOTE" ]; then
-#               echo "→ Fast-forward push possible"
-#               git push destination "$current_branch"
-#             else
-#               echo "⚠ Diverged histories detected"
-#               echo "→ Remote has commits we don't have, using force push..."
+            if [ "$MERGE_BASE" = "$REMOTE" ]; then
+              echo "→ Fast-forward push possible"
+              git push destination "$current_branch"
+            else
+              echo "⚠ Diverged histories detected"
+              echo "→ Remote has commits we don't have, using force push..."
 
-#               # Show what we're about to overwrite
-#               echo "→ Commits that will be overwritten:"
-#               git log --oneline "$LOCAL".."destination/$current_branch" 2>/dev/null || echo "  (none or unable to determine)"
+              # Show what we're about to overwrite
+              echo "→ Commits that will be overwritten:"
+              git log --oneline "$LOCAL".."destination/$current_branch" 2>/dev/null || echo "  (none or unable to determine)"
 
-#               # Force push (this is a sync operation, so we want our changes to win)
-#               git push destination "$current_branch" --force
-#             fi
-#           fi
+              # Force push (this is a sync operation, so we want our changes to win)
+              git push destination "$current_branch" --force
+            fi
+          fi
 
-#           echo "✓ Successfully pushed to destination"
+          echo "✓ Successfully pushed to destination"
 
-#       - name: Create summary
-#         if: always()
-#         run: |
-#           echo "## 🔄 Josh-Based Sync Summary" >> $GITHUB_STEP_SUMMARY
-#           echo "" >> $GITHUB_STEP_SUMMARY
-#           echo "✅ **Sync completed using Josh proxy**" >> $GITHUB_STEP_SUMMARY
-#           echo "" >> $GITHUB_STEP_SUMMARY
-#           echo "### Synced Repositories:" >> $GITHUB_STEP_SUMMARY
-#           echo "" >> $GITHUB_STEP_SUMMARY
-#           echo "| Repository | Target Directory |" >> $GITHUB_STEP_SUMMARY
-#           echo "|------------|------------------|" >> $GITHUB_STEP_SUMMARY
-#           echo "| BenchMobile | Benchmarks/BenchMobile |" >> $GITHUB_STEP_SUMMARY
-#           echo "| BenchFront | Benchmarks/BenchFront |" >> $GITHUB_STEP_SUMMARY
-#           echo "| BenchBack | Benchmarks/BenchBack |" >> $GITHUB_STEP_SUMMARY
-#           echo "| BenchDB | Benchmarks/BenchDB |" >> $GITHUB_STEP_SUMMARY
-#           echo "| AREA-mobile | mobile |" >> $GITHUB_STEP_SUMMARY
-#           echo "| AREA-front | front |" >> $GITHUB_STEP_SUMMARY
-#           echo "| AREA-back | back |" >> $GITHUB_STEP_SUMMARY
-#           echo "" >> $GITHUB_STEP_SUMMARY
-#           echo "### How it works:" >> $GITHUB_STEP_SUMMARY
-#           echo "" >> $GITHUB_STEP_SUMMARY
-#           echo "- **Josh Proxy**: Acts as a filtering layer for git operations" >> $GITHUB_STEP_SUMMARY
-#           echo "- **Prefix Filter**: Each repo is fetched with `:prefix=<target_dir>` filter" >> $GITHUB_STEP_SUMMARY
-#           echo "- **History Preservation**: All commit history is maintained through filtered views" >> $GITHUB_STEP_SUMMARY
-#           echo "- **Bidirectional Sync**: Changes can flow both ways through the Josh proxy" >> $GITHUB_STEP_SUMMARY
-#           echo "" >> $GITHUB_STEP_SUMMARY
-#           echo "---" >> $GITHUB_STEP_SUMMARY
-#           echo "_Last sync: $(date)_" >> $GITHUB_STEP_SUMMARY
+      - name: Create summary
+        if: always()
+        run: |
+          echo "## 🔄 Josh-Based Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Sync completed using Josh proxy**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Synced Repositories:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Repository | Target Directory |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|------------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| BenchMobile | Benchmarks/BenchMobile |" >> $GITHUB_STEP_SUMMARY
+          echo "| BenchFront | Benchmarks/BenchFront |" >> $GITHUB_STEP_SUMMARY
+          echo "| BenchBack | Benchmarks/BenchBack |" >> $GITHUB_STEP_SUMMARY
+          echo "| BenchDB | Benchmarks/BenchDB |" >> $GITHUB_STEP_SUMMARY
+          echo "| AREA-mobile | mobile |" >> $GITHUB_STEP_SUMMARY
+          echo "| AREA-front | front |" >> $GITHUB_STEP_SUMMARY
+          echo "| AREA-back | back |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### How it works:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Josh Proxy**: Acts as a filtering layer for git operations" >> $GITHUB_STEP_SUMMARY
+          echo "- **Prefix Filter**: Each repo is fetched with `:prefix=<target_dir>` filter" >> $GITHUB_STEP_SUMMARY
+          echo "- **History Preservation**: All commit history is maintained through filtered views" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bidirectional Sync**: Changes can flow both ways through the Josh proxy" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "_Last sync: $(date)_" >> $GITHUB_STEP_SUMMARY
