@@ -11,9 +11,13 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ProviderType } from 'src/auth/auth.controller';
+import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateMicrosoftDto } from 'src/microsoft/dto/create_microsoft_dto';
+import { ReactionsService } from 'src/reactions/reactions.service';
+import { Hook } from 'src/shared/entities/hook.entity';
+import { ProviderType } from 'src/shared/enums/provider.enum';
+import { Repository } from 'typeorm';
 import { MicrosoftService } from './microsoft.service';
 
 @Controller('microsoft')
@@ -21,7 +25,10 @@ import { MicrosoftService } from './microsoft.service';
 export class MicrosoftController {
   constructor(
     private readonly microsoftService: MicrosoftService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly reactionsService: ReactionsService,
+    @InjectRepository(Hook)
+    private hooksRepository: Repository<Hook>
   ) {}
 
   @Post('webhook')
@@ -38,14 +45,43 @@ export class MicrosoftController {
     if (token) {
       return res.send(token);
     }
-    if (
-      await this.authService.findOauthState(
-        body.value.clientState,
-        ProviderType.MICROSOFT
-      )
-    ) {
-      console.log(body);
+
+    const oauthState = await this.authService.findOauthState(
+      body.value?.[0]?.clientState,
+      ProviderType.MICROSOFT
+    );
+
+    if (oauthState) {
+      console.log('Microsoft webhook received:', body);
+
+      const subscriptionId = body.value?.[0]?.subscriptionId;
+      if (subscriptionId) {
+        const hook = await this.hooksRepository.findOne({
+          where: { webhookId: subscriptionId, service: 'microsoft' },
+        });
+
+        if (hook) {
+          const reactions = await this.reactionsService.findByHookId(hook.id);
+
+          for (const reaction of reactions) {
+            try {
+              await this.reactionsService.executeReaction(
+                reaction,
+                body,
+                hook.userId
+              );
+            } catch (error) {
+              console.error(
+                `Failed to execute reaction ${reaction.id}:`,
+                error
+              );
+            }
+          }
+        }
+      }
     }
+
+    return res.status(200).send();
   }
 
   @Get('webhooks')

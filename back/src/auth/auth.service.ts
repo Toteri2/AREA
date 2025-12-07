@@ -5,10 +5,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
+import { OAuthState } from 'src/shared/entities/oauthstates.entity';
+import { Provider } from 'src/shared/entities/provider.entity';
+import { User } from 'src/shared/entities/user.entity';
+import { ProviderType } from 'src/shared/enums/provider.enum';
 import { Repository } from 'typeorm';
-import { Provider, ProviderType } from '../users/entities/provider.entity';
-import { User } from '../users/entities/user.entity';
-import { OAuthState } from './entities/oauthstates.entity';
 
 @Injectable()
 export class AuthService {
@@ -20,8 +21,9 @@ export class AuthService {
     },
   };
   private scopes = [
-    'https://graph.microsoft.com/Mail.Read',
+    'https://graph.microsoft.com/Mail.ReadWrite',
     'https://graph.microsoft.com/User.Read',
+    'https://graph.microsoft.com/Mail.Send',
     'offline_access',
   ];
   constructor(

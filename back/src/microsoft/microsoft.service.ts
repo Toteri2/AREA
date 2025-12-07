@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateMicrosoftDto } from 'src/microsoft/dto/create_microsoft_dto';
-import { Hook } from 'src/users/entities/hook.entity';
+import { Hook } from 'src/shared/entities/hook.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -54,6 +54,7 @@ export class MicrosoftService {
     const hook = this.hookRepository.create({
       userId: userId,
       webhookId: valid.id,
+      service: 'microsoft',
     });
     await this.hookRepository.save(hook);
 

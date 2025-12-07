@@ -29,7 +29,8 @@ export class GithubService {
         }),
       }
     );
-    return this.handleResponse(response);
+    const result = await this.handleResponse(response);
+    return result;
   }
 
   async listUserRepositories(userAccessToken: string) {

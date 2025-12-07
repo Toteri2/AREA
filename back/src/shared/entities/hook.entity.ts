@@ -1,4 +1,4 @@
-import { User } from 'src/users/entities/user.entity';
+import { User } from 'src/shared/entities/user.entity';
 import {
   Column,
   Entity,
@@ -21,4 +21,7 @@ export class Hook {
 
   @Column({ name: 'webhook_id' })
   webhookId: string;
+
+  @Column({ name: 'service' })
+  service: string;
 }

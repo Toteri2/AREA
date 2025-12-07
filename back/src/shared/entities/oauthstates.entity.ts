@@ -1,3 +1,5 @@
+import { User } from 'src/shared/entities/user.entity';
+import { ProviderType } from 'src/shared/enums/provider.enum';
 import {
   Column,
   CreateDateColumn,
@@ -6,15 +8,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from './user.entity';
 
-export enum ProviderType {
-  GITHUB = 'github',
-  MICROSOFT = 'microsoft',
-}
-
-@Entity('providers')
-export class Provider {
+@Entity('oauth_states')
+export class OAuthState {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -25,12 +21,15 @@ export class Provider {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ type: 'enum', enum: ProviderType })
+  @Column({ unique: true })
+  state: string;
+
+  @Column({ name: 'provider' })
   provider: ProviderType;
 
-  @Column({ name: 'access_token', nullable: true, type: 'text' })
-  accessToken: string;
+  @Column({ name: 'expires_at' })
+  expiresAt: Date;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 }

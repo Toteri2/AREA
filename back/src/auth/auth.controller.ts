@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -10,11 +11,6 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-
-export enum ProviderType {
-  GITHUB = 'github',
-  MICROSOFT = 'microsoft',
-}
 
 @ApiTags('auth')
 @Controller('auth')
@@ -42,9 +38,13 @@ export class AuthController {
         body.name
       );
       console.log('Registered user:', user);
-      return res
-        .status(201)
-        .send({ id: user.id, email: user.email, name: user.name });
+      const token = await this.authService.login(user);
+      return res.status(201).send({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        token: token.access_token,
+      });
     } catch (error) {
       console.log('Registration error with code:', error.code);
       if (error.code === '23505') {
@@ -92,11 +92,18 @@ export class AuthController {
     status: 200,
     description: 'GitHub authentication url received.',
   })
-  async githubAuthUrl() {
+  async githubAuthUrl(@Query('mobile') mobile: string) {
     const client_id = process.env.GITHUB_CLIENT_ID;
     const redirect_uri = process.env.GITHUB_CALLBACK_URL;
-    const authorizeUrl = `https://github.com/login/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&scope=user:email repo write:repo_hook`;
-    return authorizeUrl;
+
+    const stateData = {
+      platform: mobile === 'true' ? 'mobile' : 'web',
+      nonce: Math.random().toString(36).substring(7),
+    };
+
+    const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
+
+    return `https://github.com/login/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&scope=user:email repo write:repo_hook&state=${state}`;
   }
 
   @Post('github/validate')
@@ -125,8 +132,16 @@ export class AuthController {
     status: 200,
     description: 'Microsoft authentication URL retrieved successfully.',
   })
-  async microsoftAuthUrl() {
-    return this.authService.getMicrosoftAuthUrl();
+  async microsoftAuthUrl(@Query('mobile') mobile: string) {
+    const client_id = process.env.MICROSOFT_CLIENT_ID;
+    const redirect_uri = process.env.MICROSOFT_CALLBACK_URL;
+
+    const stateData = {
+      platform: mobile === 'true' ? 'mobile' : 'web',
+      nonce: Math.random().toString(36).substring(7),
+    };
+    const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
+    return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${client_id}&response_type=code&redirect_uri=${redirect_uri}&response_mode=query&scope=offline_access user.read mail.read&state=${state}`;
   }
 
   @Post('microsoft/validate')
