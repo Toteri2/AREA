@@ -159,6 +159,30 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['MicrosoftSubscriptions'],
     }),
+    listReactions: builder.query<Reaction[], void>({
+      query: () => '/reactions',
+      providesTags: ['Reactions'],
+    }),
+    createReaction: builder.mutation<Reaction, CreateReactionDto>({
+      query: (dto) => ({
+        url: '/reactions',
+        method: 'POST',
+        body: dto,
+      }),
+      invalidatesTags: ['Reactions'],
+    }),
+    deleteReaction: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/reactions/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Reactions'],
+    }),
+
+    listUserWebhooks: builder.query<Webhook[], void>({
+      query: () => '/users/webhooks',
+      providesTags: ['Webhooks'],
+    }),
   }),
 });
 
@@ -178,4 +202,8 @@ export const {
   useListMicrosoftWebhooksQuery,
   useCreateMicrosoftSubscriptionMutation,
   useDeleteMicrosoftSubscriptionMutation,
+  useListReactionsQuery,
+  useCreateReactionMutation,
+  useDeleteReactionMutation,
+  useListUserWebhooksQuery,
 } = apiSlice;

@@ -3,3 +3,4 @@ export { GitHub } from './GitHub';
 export { Login } from './Login';
 export { Profile } from './Profile';
 export { Register } from './Register';
+export { Reactions } from './Reactions';

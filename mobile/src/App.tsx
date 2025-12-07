@@ -11,7 +11,7 @@ import {
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 import type { RootStackParamList } from './navigation';
-import { Dashboard, GitHub, Login, Profile, Register } from './pages';
+import { Dashboard, GitHub, Login, Profile, Register, Reactions } from './pages';
 import {
   store,
   useAppSelector,
@@ -74,6 +74,7 @@ function AppNavigator() {
           <Stack.Screen name='Dashboard' component={Dashboard} />
           <Stack.Screen name='Profile' component={Profile} />
           <Stack.Screen name='GitHub' component={GitHub} />
+          <Stack.Screen name='Reactions' component={Reactions} />
         </>
       ) : (
         <>
