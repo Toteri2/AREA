@@ -123,6 +123,28 @@ Let's see what numbers we get from benchmarking the Vue.js application :
 
 We can see that Vue.js has the smallest bundle size and fastest initial load time, followed by React and then Angular.
 
+## Security
+
+This is a comparison between the security languages CVE during the last 2 years.
+
+### Angular
+- Recent CVEs:
+  - **CVE-2025-66412**: Stored XSS in template compiler.
+  - **CVE-2025-59052**: SSR race condition causing data leakage.
+  - **CVE-2025-62427**: SSR URL resolution issue (SSRF risk).
+- Main risks: SSR, template sanitization, third-party modules.
+
+### React
+- Recent CVEs:
+  - **CVE-2025-55182**: Remote Code Execution in React Server Components.
+- Main risks: Server Components, unsafe deserialization, third-party libraries.
+
+### Vue.js
+- Recent CVEs:
+  - **CVE-2024-9506**: ReDoS in template parsing.
+  - **CVE-2024-52809**: XSS in i18n library.
+- Main risks: Template parsing, `v-html` usage, plugin ecosystem.
+
 ## Conclusion
 
 These benchmarks show that Angular, while being the most complete framework, is also the heaviest. It is best suited for large enterprise applications where the structure and conventions it provides outweigh the initial overhead.
