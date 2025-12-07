@@ -5,4 +5,5 @@ export { Login } from './Login';
 export { Microsoft } from './Microsoft';
 export { MicrosoftCallback } from './MicrosoftCallback';
 export { Profile } from './Profile';
+export { Reactions } from './Reactions';
 export { Register } from './Register';

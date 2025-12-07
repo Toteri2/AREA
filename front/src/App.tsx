@@ -15,6 +15,7 @@ import {
   Microsoft,
   MicrosoftCallback,
   Profile,
+  Reactions,
   Register,
 } from './pages';
 import './App.css';
@@ -55,6 +56,7 @@ function App() {
                 <Route path='/profile' element={<Profile />} />
                 <Route path='/github' element={<GitHub />} />
                 <Route path='/microsoft' element={<Microsoft />} />
+                <Route path='/reactions' element={<Reactions />} />
                 <Route path='/github/callback' element={<GitHubCallback />} />
                 <Route
                   path='/microsoft/callback'
