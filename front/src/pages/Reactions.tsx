@@ -6,17 +6,17 @@ import {
   useListUserWebhooksQuery,
 } from '../shared/src/web';
 
-interface Reaction {
-  id: number;
-  hookId: number;
-  reactionType: number;
-  config: {
-    to?: string;
-    subject?: string;
-    body?: string;
-    [key: string]: any;
-  };
-}
+// interface Reaction {
+//   id: number;
+//   hookId: number;
+//   reactionType: number;
+//   config: {
+//     to?: string;
+//     subject?: string;
+//     body?: string;
+//     [key: string]: any;
+//   };
+// }
 
 const REACTION_TYPES = [
   {
@@ -52,7 +52,7 @@ export function Reactions() {
     body: '',
   });
 
-  const { data: webhooks = [], isLoading: isLoadingWebhooks } =
+  const { data: webhooks = [] /*, isLoading: isLoadingWebhooks*/ } =
     useListUserWebhooksQuery();
   const { data: reactions = [], isLoading: isLoadingReactions } =
     useListReactionsQuery();
@@ -174,7 +174,7 @@ export function Reactions() {
                   <option value=''>-- Select a webhook --</option>
                   {webhooks.map((webhook) => (
                     <option key={webhook.id} value={webhook.id}>
-                      Webhook #{webhook.id} - {webhook.config.url}
+                      Webhook #{webhook.id}
                     </option>
                   ))}
                 </select>
