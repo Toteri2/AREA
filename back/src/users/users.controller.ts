@@ -6,7 +6,10 @@ import {
   Param,
   Post,
   Put,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 
@@ -14,6 +17,19 @@ import { UsersService } from './users.service';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get('webhooks')
+  @ApiOperation({ summary: 'Get user webhooks' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of user webhooks retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  getUserWebhooks(@Req() req) {
+    const hooks = this.usersService.getUserWebhooks(req.user.id);
+    console.log('Retrieved user webhooks:', hooks);
+    return hooks;
+  }
 
   @Post()
   @ApiOperation({ summary: 'Create a new user' })

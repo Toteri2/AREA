@@ -86,14 +86,13 @@ export class GithubController {
       createWebhookDto,
       webhookUrl
     );
-    console.log('Storing GitHub webhook with ID raaaaaah:', result.id);
     const hook = this.hooksRepository.create({
       userId: req.user.id,
       webhookId: result.id,
       service: 'github',
     });
-    await this.hooksRepository.save(hook);
-    return result;
+    const savedHook = await this.hooksRepository.save(hook);
+    return { result, hookId: savedHook.id };
   }
 
   @Get('repositories')
