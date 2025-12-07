@@ -12,7 +12,7 @@ export function GitHub() {
   const [webhookUrl, setWebhookUrl] = useState('');
   const [webhookEvents, setWebhookEvents] = useState<string[]>(['push']);
   const [webhookSecret, setWebhookSecret] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [_errorMessage, setErrorMessage] = useState('');
 
   const {
     data: repositories = [],
@@ -121,21 +121,6 @@ export function GitHub() {
 
             {showCreateForm && (
               <form className='webhook-form' onSubmit={handleCreateWebhook}>
-                <h3>Create New Webhook</h3>
-                {errorMessage && (
-                  <div className='error-message'>{errorMessage}</div>
-                )}
-                <div className='form-group'>
-                  <label htmlFor='webhook-url'>Payload URL</label>
-                  <input
-                    id='webhook-url'
-                    type='url'
-                    value={webhookUrl}
-                    onChange={(e) => setWebhookUrl(e.target.value)}
-                    placeholder='https://example.com/webhook'
-                    required
-                  />
-                </div>
                 <div className='form-group'>
                   <label htmlFor='webhook-secret'>Secret (optional)</label>
                   <input
