@@ -1,22 +1,11 @@
 import { useState } from 'react';
+import type { Webhook } from '../shared/src/types';
 import {
   useCreateReactionMutation,
   useDeleteReactionMutation,
   useListReactionsQuery,
   useListUserWebhooksQuery,
 } from '../shared/src/web';
-
-// interface Reaction {
-//   id: number;
-//   hookId: number;
-//   reactionType: number;
-//   config: {
-//     to?: string;
-//     subject?: string;
-//     body?: string;
-//     [key: string]: any;
-//   };
-// }
 
 const REACTION_TYPES = [
   {
@@ -52,7 +41,7 @@ export function Reactions() {
     body: '',
   });
 
-  const { data: webhooks = [] /*, isLoading: isLoadingWebhooks*/ } =
+  const { data: webhooks = [], isLoading: isLoadingWebhooks } =
     useListUserWebhooksQuery();
   const { data: reactions = [], isLoading: isLoadingReactions } =
     useListReactionsQuery();
@@ -104,8 +93,14 @@ export function Reactions() {
     }
   };
 
-  const handleReactionTypeChange = (typeValue: number) => {
+  const handleReactionTypeChange = (typeValue: number | '') => {
     setSelectedReactionType(typeValue);
+
+    if (typeValue === '') {
+      setConfigFields({});
+      return;
+    }
+
     const type = REACTION_TYPES.find((t) => t.value === typeValue);
 
     if (type) {
@@ -127,6 +122,18 @@ export function Reactions() {
     return (
       REACTION_TYPES.find((t) => t.value === typeValue)?.label || 'Unknown'
     );
+  };
+
+  const getWebhookDisplayName = (
+    webhook: Pick<Webhook, 'id' | 'name' | 'config'>
+  ) => {
+    if (webhook.config?.url) {
+      return `Webhook #${webhook.id} - ${webhook.config.url}`;
+    }
+    if (webhook.name) {
+      return `Webhook #${webhook.id} - ${webhook.name}`;
+    }
+    return `Webhook #${webhook.id}`;
   };
 
   return (
@@ -168,13 +175,23 @@ export function Reactions() {
                 <select
                   id='webhook-select'
                   value={selectedHookId}
-                  onChange={(e) => setSelectedHookId(Number(e.target.value))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSelectedHookId(value === '' ? '' : Number(value));
+                  }}
+                  disabled={isLoadingWebhooks || webhooks.length === 0}
                   required
                 >
-                  <option value=''>-- Select a webhook --</option>
+                  <option value=''>
+                    {isLoadingWebhooks
+                      ? 'Loading webhooks...'
+                      : webhooks.length > 0
+                        ? '-- Select a webhook --'
+                        : 'No webhooks available'}
+                  </option>
                   {webhooks.map((webhook) => (
                     <option key={webhook.id} value={webhook.id}>
-                      Webhook #{webhook.id}
+                      {getWebhookDisplayName(webhook)}
                     </option>
                   ))}
                 </select>
@@ -185,9 +202,10 @@ export function Reactions() {
                 <select
                   id='reaction-type'
                   value={selectedReactionType}
-                  onChange={(e) =>
-                    handleReactionTypeChange(Number(e.target.value))
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    handleReactionTypeChange(value === '' ? '' : Number(value));
+                  }}
                   required
                 >
                   <option value=''>-- Select a reaction type --</option>
