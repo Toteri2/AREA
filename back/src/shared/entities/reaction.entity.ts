@@ -10,6 +10,9 @@ import {
 
 export enum ReactionType {
   SEND_EMAIL_OUTLOOK = 1,
+  DISCORD_SEND_MESSAGE = 2,
+  DISCORD_CREATE_CHANNEL = 3,
+  DISCORD_ADD_ROLE = 4,
 }
 
 @Entity('reactions')

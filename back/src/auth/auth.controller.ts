@@ -11,7 +11,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtSessionGuard } from 'src/auth/guards/jwt-session.guard';
-import { ProviderType } from 'src/users/entities/provider.entity';
+import { ProviderType } from 'src/shared/enums/provider.enum';
 import { AuthService } from './auth.service';
 
 @ApiTags('auth')
