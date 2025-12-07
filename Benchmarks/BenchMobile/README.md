@@ -127,6 +127,41 @@ Let's see what numbers we get from benchmarking the Kotlin app :
 
 Native Kotlin shows the best raw performance, as expected from a native solution.
 
+## Security
+
+This is a comparison between the security CVEs of Mobile / Native‑App Frameworks during the last 2 years.
+
+
+### Flutter
+- Recent / known vulnerabilities / security‑relevant findings:
+  - **CVE‑2024-54462**: Path‑traversal / filename‑sanitization bug in the `image_picker` Flutter package: filenames constructed internally lacked proper sanitization, potentially allowing a malicious document provider to override internal cache files. :contentReference[oaicite:3]{index=3}  
+  - According to a 2025 academic study of mobile‑app security risks, apps built with cross‑platform frameworks (including Flutter) were found — via binary / manifest / certificate / permission analysis — to suffer frequent misconfigurations or security‑relevant issues (e.g. manifest/permission over‑privileging, insecure network config, incorrect certificate handling). :contentReference[oaicite:4]{index=4}  
+- Main risks / threat surface:
+  - **Insecure third‑party packages / plugins** (e.g. file‑picker, image picker): improper sanitization can lead to path‑traversal, file overwrite, unauthorized file access or manipulation.  
+  - **App configuration / packaging issues** — cross‑platform frameworks sometimes yield misconfigurations (permissions, manifest, certificate, network security settings) that broaden attack surface. :contentReference[oaicite:5]{index=5}  
+  - **Dependence on native engine and platform security** — security ultimately relies on underlying OS (Android / iOS) and native engines being secure, which adds external dependencies. :contentReference[oaicite:6]{index=6}  
+
+### React Native
+- Recent CVEs / vulnerabilities:
+  - **CVE‑2024-25466**: Directory‑traversal vulnerability in `react-native-document-picker` (Android), before version 9.1.1. A maliciously crafted script (via a document provider) could lead to arbitrary code execution / privilege escalation. :contentReference[oaicite:7]{index=7}  
+  - **CVE‑2024-21668**: In `react-native-mmkv` (a popular local‑storage library for React Native), prior to version 2.11.0 the optional encryption key was logged to Android system logs — if ADB debugging is enabled, an attacker could retrieve the key and compromise encrypted data. :contentReference[oaicite:8]{index=8}  
+  - (Less direct but relevant) The underlying JS-engine used by React Native (e.g. via engines like `Hermes`) has had historical code‑execution vulnerabilities in past years — which indicates that engine vulnerabilities remain relevant when JS engines are used in mobile contexts. :contentReference[oaicite:9]{index=9}  
+- Main risks / threat surface:
+  - **Plugin / module vulnerabilities** — many security issues come from third‑party or auxiliary libraries (storage, document picking, keys management).  
+  - **Sensitive info leakage via logging / insecure storage** — e.g. logging cryptographic keys, insecure defaults in storage or database libraries.  
+  - **Interaction with native code / native modules** — React Native bridges JS and native Android/iOS code, which introduces potential native‑code risks (especially if native modules use unsafe code). :contentReference[oaicite:10]{index=10}  
+  - **Dependence on JS-engine security** — since React Native runs JS via engines (which have historically had vulnerabilities), the engine layer remains a potential attack surface.  
+
+### Kotlin (for Android / native Android apps)
+- Recent security‑relevant observations / structural risks (less “framework CVEs”, more platform / ecosystem risks):
+  - Many Android apps written in Kotlin (or Java) rely on **native libraries** (C/C++) for performance, graphics, cryptography, etc. These native libraries can carry typical memory‑safety risks (buffer overflows, use‑after‑free, etc.), which remain a major concern. :contentReference[oaicite:11]{index=11}  
+  - According to recent research, a significant fraction of Android apps include such native libraries — making them vulnerable to memory‑safety bugs, even if the Kotlin / Java portion is “memory‑safe.” :contentReference[oaicite:12]{index=12}  
+  - The “hidden security flaws” in Kotlin-based apps often come not from Kotlin itself, but from dependencies — especially native‑code libraries or other binary modules — underscoring the risk that “your app is only as safe as what you pull in.” :contentReference[oaicite:13]{index=13}  
+- Main risks / threat surface:
+  - **Native‑code vulnerabilities** — when the app uses C/C++ libraries via JNI/NDK (common for advanced tasks: media, cryptography, graphics), buffer overflows, memory corruption, or other native‑code bugs can lead to arbitrary code execution, data leaks, or crashes. :contentReference[oaicite:14]{index=14}  
+  - **Dependency / library risk** — even if your Kotlin code is safe, dependencies (especially native ones) may not be. Regular auditing of libraries / dependencies is crucial. :contentReference[oaicite:15]{index=15}  
+  - **Platform / ecosystem risk** — overall app security depends on Android OS security, native library security, correct integration of external libs, resource handling, etc.  
+
 ## Conclusion
 
 These benchmarks show that while Kotlin offers the best raw performance for Android, it only targets a single platform which doubles the development effort for cross-platform apps.
