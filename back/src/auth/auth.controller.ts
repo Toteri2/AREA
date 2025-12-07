@@ -39,14 +39,12 @@ export class AuthController {
       );
       console.log('Registered user:', user);
       const token = await this.authService.login(user);
-      return res
-        .status(201)
-        .send({
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          token: token.access_token,
-        });
+      return res.status(201).send({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        token: token.access_token,
+      });
     } catch (error) {
       console.log('Registration error with code:', error.code);
       if (error.code === '23505') {

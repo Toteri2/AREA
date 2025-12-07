@@ -5,11 +5,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
+import { OAuthState } from 'src/shared/entities/oauthstates.entity';
 import { Provider } from 'src/shared/entities/provider.entity';
 import { User } from 'src/shared/entities/user.entity';
 import { ProviderType } from 'src/shared/enums/provider.enum';
 import { Repository } from 'typeorm';
-import { OAuthState } from 'src/shared/entities/oauthstates.entity';
 
 @Injectable()
 export class AuthService {
