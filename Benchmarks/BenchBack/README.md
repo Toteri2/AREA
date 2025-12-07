@@ -131,6 +131,33 @@ Let's see what numbers we get from benchmarking the Fastify server :
 
 We can see that Fastify really is the fastest framework between those three, it is faster everywhere except for the /users endpoint where it is tied with NestJS.
 
+## Security
+
+This is a comparison between the security CVEs of popular web frameworks during the last 2 years.
+
+### Django
+- Recent CVEs:
+  - **CVE-2025-64459**: SQL injection via dictionary-expansion in `QuerySet.filter()/exclude()/get()`.
+  - **CVE-2025-64458**: DoS via redirects (`HttpResponseRedirect`/`redirect`) on Windows due to slow Unicode normalization.
+  - **CVE-2025-27556**: DoS via Unicode normalization in auth/i18n views.
+  - **CVE-2024-42005**: SQL injection in `QuerySet.values()/values_list()` for `JSONField`.
+  - **CVE-2024-45231**: User enumeration in password-reset flow.
+- Main risks: SQL injection, DoS via input/resource exhaustion, information leakage, Unicode/encoding issues.
+
+### NestJS
+- Recent CVEs:
+  - **CVE-2025-54782**: RCE in `@nestjs/devtools-integration` via unsafe JS sandbox.
+  - **CVE-2024-29409**: Code-injection in file upload handling (`@nestjs/common`) via `Content-Type` header manipulation.
+- Main risks: Unsafe dev-tools, file-upload validation flaws, dependency/plugin vulnerabilities.
+
+### Fastify
+- Recent CVEs:
+  - **CVE-2025-32442**: Content-type parsing bypass in core Fastify.
+  - **CVE-2025-24033**: Resource leak in `@fastify/multipart` when requests are cancelled.
+  - **CVE-2024-31999**: Session cookie reuse vulnerability in secure-session plugins.
+  - **CVE-2025-66415**: Proxy/route bypass in `@fastify/reply-from` plugin.
+- Main risks: Input validation bypass, resource exhaustion (multipart/uploads), session handling flaws, plugin misuse.
+
 ## Conclusion
 
 These benchmarks show that even tho Django is the easiest framework to use for web backend development, being the slowest out of the three frameworks, it is just not a good option for the AREA where we may have to handle heavy load.
