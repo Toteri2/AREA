@@ -1,3 +1,4 @@
+import { Picker } from '@react-native-picker/picker';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -11,14 +12,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import type { Webhook } from '../shared/src/types';
 import {
   useCreateReactionMutation,
   useDeleteReactionMutation,
   useListReactionsQuery,
   useListUserWebhooksQuery,
 } from '../shared/src/native';
+import type { Webhook } from '../shared/src/types';
 
 const REACTION_TYPES = [
   {
@@ -364,7 +364,10 @@ export function Reactions() {
             )}
 
             <TouchableOpacity
-              style={[styles.button, isCreatingReaction && styles.buttonDisabled]}
+              style={[
+                styles.button,
+                isCreatingReaction && styles.buttonDisabled,
+              ]}
               onPress={handleCreateReaction}
               disabled={isCreatingReaction}
             >

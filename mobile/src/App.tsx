@@ -11,7 +11,14 @@ import {
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 import type { RootStackParamList } from './navigation';
-import { Dashboard, GitHub, Login, Profile, Register, Reactions } from './pages';
+import {
+  Dashboard,
+  GitHub,
+  Login,
+  Profile,
+  Reactions,
+  Register,
+} from './pages';
 import {
   store,
   useAppSelector,
