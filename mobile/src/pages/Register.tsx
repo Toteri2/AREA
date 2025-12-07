@@ -13,8 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useAuth } from '../context/AuthContext';
 import type { RootStackParamList } from '../navigation';
+import { useRegisterMutation } from '../shared/src/native';
 
 type RegisterNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -26,36 +26,34 @@ export function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { register } = useAuth();
+  const [errorMessage, setErrorMessage] = useState('');
   const navigation = useNavigation<RegisterNavigationProp>();
+
+  const [register, { isLoading }] = useRegisterMutation();
 
   const handleSubmit = async () => {
     if (!name || !email || !password || !confirmPassword) {
-      setError('Please fill in all fields');
+      setErrorMessage('Please fill in all fields');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setErrorMessage('Passwords do not match');
       return;
     }
 
-    setError('');
-    setIsLoading(true);
+    setErrorMessage('');
 
     try {
-      await register(email, password, name);
+      await register({ email, password, name }).unwrap();
       Alert.alert('Success', 'Registration successful! Please login.', [
         { text: 'OK', onPress: () => navigation.navigate('Login') },
       ]);
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Registration failed';
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      const apiError = err as { data?: { message: string } };
+      const message = apiError.data?.message || 'An unexpected error occurred.';
+      setErrorMessage(message);
+      console.error('Failed to register:', err);
     }
   };
 
@@ -68,7 +66,9 @@ export function Register() {
         <View style={styles.card}>
           <Text style={styles.title}>Register</Text>
 
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {errorMessage ? (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          ) : null}
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>Name</Text>

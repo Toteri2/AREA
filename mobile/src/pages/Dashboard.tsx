@@ -7,8 +7,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useAuth } from '../context/AuthContext';
 import type { RootStackParamList } from '../navigation';
+import {
+  apiSlice,
+  clearToken,
+  logout,
+  useAppDispatch,
+  useAppSelector,
+} from '../shared/src/native';
 
 type DashboardNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -16,11 +22,18 @@ type DashboardNavigationProp = NativeStackNavigationProp<
 >;
 
 export function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
   const navigation = useNavigation<DashboardNavigationProp>();
 
   const handleLogout = async () => {
-    await logout();
+    // Clear token from storage
+    await dispatch(clearToken());
+    // Reset API cache to clear all cached data
+    dispatch(apiSlice.util.resetApiState());
+    // Clear auth state
+    dispatch(logout());
+    // Navigate to login
     navigation.reset({
       index: 0,
       routes: [{ name: 'Login' }],

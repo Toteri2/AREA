@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -8,51 +8,42 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { githubApi } from '../api';
-import type { CreateWebhookDto, Repository, Webhook } from '../types';
+import type { CreateWebhookDto, Repository } from '../shared/src';
+import {
+  useCreateWebhookMutation,
+  useListRepositoriesQuery,
+  useListWebhooksQuery,
+} from '../shared/src/native';
 
 export function GitHub() {
-  const [repositories, setRepositories] = useState<Repository[]>([]);
   const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null);
-  const [webhooks, setWebhooks] = useState<Webhook[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState('');
   const [webhookEvents, setWebhookEvents] = useState<string[]>(['push']);
   const [webhookSecret, setWebhookSecret] = useState('');
 
-  useEffect(() => {
-    loadRepositories();
-  }, []);
+  const {
+    data: repositories = [],
+    isLoading: isLoadingRepos,
+    error: reposError,
+  } = useListRepositoriesQuery();
 
-  const loadRepositories = async () => {
-    try {
-      setIsLoading(true);
-      const repos = await githubApi.listRepositories();
-      setRepositories(Array.isArray(repos) ? repos : []);
-    } catch (_err) {
-      setError(
-        'Failed to load repositories. Make sure your GitHub account is linked.'
-      );
-    } finally {
-      setIsLoading(false);
+  const { data: webhooks = [] } = useListWebhooksQuery(
+    {
+      owner: selectedRepo?.owner.login || '',
+      repo: selectedRepo?.name || '',
+    },
+    {
+      skip: !selectedRepo,
     }
-  };
+  );
 
-  const loadWebhooks = async (owner: string, repo: string) => {
-    try {
-      const hooks = await githubApi.listWebhooks(owner, repo);
-      setWebhooks(hooks);
-    } catch (_err) {
-      setWebhooks([]);
-    }
-  };
+  const [createWebhook, { isLoading: isCreatingWebhook }] =
+    useCreateWebhookMutation();
 
-  const handleSelectRepo = async (repo: Repository) => {
+  const handleSelectRepo = (repo: Repository) => {
     setSelectedRepo(repo);
     setShowCreateForm(false);
-    await loadWebhooks(repo.owner.login, repo.name);
   };
 
   const handleCreateWebhook = async () => {
@@ -66,14 +57,13 @@ export function GitHub() {
         events: webhookEvents,
         secret: webhookSecret || undefined,
       };
-      await githubApi.createWebhook(dto);
-      await loadWebhooks(selectedRepo.owner.login, selectedRepo.name);
+      await createWebhook(dto).unwrap();
       setShowCreateForm(false);
       setWebhookUrl('');
       setWebhookSecret('');
       setWebhookEvents(['push']);
-    } catch (_err) {
-      setError('Failed to create webhook');
+    } catch (err) {
+      console.error('Failed to create webhook:', err);
     }
   };
 
@@ -92,7 +82,7 @@ export function GitHub() {
     );
   };
 
-  if (isLoading) {
+  if (isLoadingRepos) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size='large' color='#e94560' />
@@ -101,12 +91,15 @@ export function GitHub() {
     );
   }
 
-  if (error && repositories.length === 0) {
+  if (reposError) {
     return (
       <View style={styles.container}>
         <Text style={styles.title}>GitHub Integration</Text>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorText}>
+            Failed to load repositories. Make sure your GitHub account is
+            linked.
+          </Text>
           <Text style={styles.errorHint}>
             Please link your GitHub account from your profile page.
           </Text>
@@ -214,10 +207,18 @@ export function GitHub() {
               </View>
 
               <TouchableOpacity
-                style={styles.submitButton}
+                style={[
+                  styles.submitButton,
+                  isCreatingWebhook && styles.buttonDisabled,
+                ]}
                 onPress={handleCreateWebhook}
+                disabled={isCreatingWebhook}
               >
-                <Text style={styles.submitButtonText}>Create</Text>
+                {isCreatingWebhook ? (
+                  <ActivityIndicator color='#fff' />
+                ) : (
+                  <Text style={styles.submitButtonText}>Create</Text>
+                )}
               </TouchableOpacity>
             </View>
           )}
@@ -410,6 +411,9 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   submitButtonText: {
     color: '#fff',

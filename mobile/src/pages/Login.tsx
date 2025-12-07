@@ -12,8 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useAuth } from '../context/AuthContext';
 import type { RootStackParamList } from '../navigation';
+import { useLoginMutation } from '../shared/src/native';
 
 type LoginNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -23,31 +23,26 @@ type LoginNavigationProp = NativeStackNavigationProp<
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const [errorMessage, setErrorMessage] = useState('');
   const navigation = useNavigation<LoginNavigationProp>();
 
-  const handleSubmit = async () => {
-    if (!email || !password) {
-      setError('Please fill in all fields');
-      return;
-    }
+  const [login, { isLoading }] = useLoginMutation();
 
-    setError('');
-    setIsLoading(true);
+  const handleSubmit = async () => {
+    if (!email || !password) return;
+    setErrorMessage('');
 
     try {
-      await login(email, password);
+      await login({ email, password }).unwrap();
       navigation.reset({
         index: 0,
         routes: [{ name: 'Dashboard' }],
       });
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed';
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      const apiError = err as { data?: { message: string } };
+      const message = apiError.data?.message || 'An unexpected error occurred.';
+      setErrorMessage(message);
+      console.error('Failed to login:', err);
     }
   };
 
@@ -60,7 +55,9 @@ export function Login() {
         <View style={styles.card}>
           <Text style={styles.title}>Login</Text>
 
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {errorMessage ? (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          ) : null}
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>Email</Text>

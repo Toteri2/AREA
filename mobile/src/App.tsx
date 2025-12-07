@@ -1,15 +1,56 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useEffect } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { Provider } from 'react-redux';
 import type { RootStackParamList } from './navigation';
 import { Dashboard, GitHub, Login, Profile, Register } from './pages';
+import {
+  store,
+  useAppSelector,
+  useGetProfileQuery,
+  useValidateGithubMutation,
+  useValidateMicrosoftMutation,
+} from './shared/src/native';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppNavigator() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, token } = useAppSelector((state) => state.auth);
+  const { isLoading } = useGetProfileQuery(undefined, { skip: !token });
+  const [validateGithub] = useValidateGithubMutation();
+  const [validateMicrosoft] = useValidateMicrosoftMutation();
+
+  useEffect(() => {
+    const handleDeepLink = async ({ url }: { url: string }) => {
+      const codeMatch = url.match(/[?&]code=([^&]+)/);
+      const code = codeMatch ? codeMatch[1] : null;
+
+      if (!code) return;
+
+      try {
+        if (url.includes('auth/github')) {
+          await validateGithub({ code }).unwrap();
+          Alert.alert('Success', 'GitHub account linked successfully!');
+        } else if (url.includes('auth/microsoft')) {
+          await validateMicrosoft({ code }).unwrap();
+          Alert.alert('Success', 'Microsoft account linked successfully!');
+        }
+      } catch (_error) {
+        Alert.alert('Error', 'Failed to link account. Please try again.');
+      }
+    };
+
+    const sub = Linking.addEventListener('url', handleDeepLink);
+    return () => sub.remove();
+  }, [validateGithub, validateMicrosoft]);
 
   if (isLoading) {
     return (
@@ -22,35 +63,17 @@ function AppNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: {
-          backgroundColor: '#16213e',
-        },
+        headerStyle: { backgroundColor: '#16213e' },
         headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: '600',
-        },
-        contentStyle: {
-          backgroundColor: '#1a1a2e',
-        },
+        headerTitleStyle: { fontWeight: '600' },
+        contentStyle: { backgroundColor: '#1a1a2e' },
       }}
     >
       {isAuthenticated ? (
         <>
-          <Stack.Screen
-            name='Dashboard'
-            component={Dashboard}
-            options={{ title: 'Dashboard' }}
-          />
-          <Stack.Screen
-            name='Profile'
-            component={Profile}
-            options={{ title: 'Profile' }}
-          />
-          <Stack.Screen
-            name='GitHub'
-            component={GitHub}
-            options={{ title: 'GitHub' }}
-          />
+          <Stack.Screen name='Dashboard' component={Dashboard} />
+          <Stack.Screen name='Profile' component={Profile} />
+          <Stack.Screen name='GitHub' component={GitHub} />
         </>
       ) : (
         <>
@@ -72,13 +95,13 @@ function AppNavigator() {
 
 function App() {
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
+    <Provider store={store}>
+      <SafeAreaProvider>
         <NavigationContainer>
           <AppNavigator />
         </NavigationContainer>
-      </AuthProvider>
-    </SafeAreaProvider>
+      </SafeAreaProvider>
+    </Provider>
   );
 }
 
