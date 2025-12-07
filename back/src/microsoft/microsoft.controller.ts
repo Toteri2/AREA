@@ -12,11 +12,11 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProviderType } from 'src/auth/auth.controller';
+import { ProviderType } from 'src/shared/enums/provider.enum';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateMicrosoftDto } from 'src/microsoft/dto/create_microsoft_dto';
 import { ReactionsService } from 'src/reactions/reactions.service';
-import { Hook } from 'src/users/entities/hook.entity';
+import { Hook } from 'src/shared/entities/hook.entity';
 import { Repository } from 'typeorm';
 import { MicrosoftService } from './microsoft.service';
 

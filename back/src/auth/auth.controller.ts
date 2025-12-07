@@ -1,12 +1,16 @@
-import { Body, Controller, Get, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
-import { AuthGuard } from "@nestjs/passport";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { AuthService } from "./auth.service";
-
-export enum ProviderType {
-  GITHUB = 'github',
-  MICROSOFT = 'microsoft',
-}
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AuthService } from './auth.service';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -34,9 +38,15 @@ export class AuthController {
         body.name
       );
       console.log('Registered user:', user);
+      const token = await this.authService.login(user);
       return res
         .status(201)
-        .send({ id: user.id, email: user.email, name: user.name });
+        .send({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          token: token.access_token,
+        });
     } catch (error) {
       console.log('Registration error with code:', error.code);
       if (error.code === '23505') {
@@ -89,11 +99,11 @@ export class AuthController {
     const redirect_uri = process.env.GITHUB_CALLBACK_URL;
 
     const stateData = {
-      platform: mobile === "true" ? "mobile" : "web",
+      platform: mobile === 'true' ? 'mobile' : 'web',
       nonce: Math.random().toString(36).substring(7),
     };
 
-    const state = Buffer.from(JSON.stringify(stateData)).toString("base64");
+    const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
 
     return `https://github.com/login/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&scope=user:email repo write:repo_hook&state=${state}`;
   }

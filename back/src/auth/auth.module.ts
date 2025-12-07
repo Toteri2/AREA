@@ -3,11 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Provider } from '../users/entities/provider.entity';
-import { User } from '../users/entities/user.entity';
+import { Provider } from 'src/shared/entities/provider.entity';
+import { User } from 'src/shared/entities/user.entity';
+import { OAuthState } from 'src/shared/entities/oauthstates.entity';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { OAuthState } from './entities/oauthstates.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({

@@ -13,7 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ReactionsService } from 'src/reactions/reactions.service';
-import { Hook } from 'src/users/entities/hook.entity';
+import { Hook } from 'src/shared/entities/hook.entity';
 import { Repository } from 'typeorm';
 import { AuthService } from '../auth/auth.service';
 import { CreateWebhookDto } from './dto/create_git_webhook.dto';

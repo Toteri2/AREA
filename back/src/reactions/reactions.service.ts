@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
-import { Hook } from 'src/users/entities/hook.entity';
-import { Reaction, ReactionType } from 'src/users/entities/reaction.entity';
+import { Hook } from 'src/shared/entities/hook.entity';
+import { Reaction, ReactionType } from 'src/shared/entities/reaction.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()

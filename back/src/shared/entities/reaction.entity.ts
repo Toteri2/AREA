@@ -1,5 +1,5 @@
-import { Hook } from 'src/users/entities/hook.entity';
-import { User } from 'src/users/entities/user.entity';
+import { Hook } from 'src/shared/entities/hook.entity';
+import { User } from 'src/shared/entities/user.entity';
 import {
   Column,
   Entity,

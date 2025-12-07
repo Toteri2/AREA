@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNumber, IsObject } from 'class-validator';
-import { ReactionType } from 'src/users/entities/reaction.entity';
+import { ReactionType } from 'src/shared/entities/reaction.entity';
 
 export class CreateReactionDto {
   @ApiProperty({

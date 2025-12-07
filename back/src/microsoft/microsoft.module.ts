@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { ReactionsModule } from 'src/reactions/reactions.module';
-import { Hook } from 'src/users/entities/hook.entity';
+import { Hook } from 'src/shared/entities/hook.entity';
 import { MicrosoftController } from './microsoft.controller';
 import { MicrosoftService } from './microsoft.service';
 
