@@ -1,12 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { logout, useAppDispatch, useAppSelector } from '../shared/src/web';
 
 export function Navbar() {
-  const { user, logout } = useAuth();
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
     navigate('/login');
   };
 
@@ -16,10 +17,11 @@ export function Navbar() {
         <Link to='/'>AREA</Link>
       </div>
       <div className='navbar-menu'>
-        {user ? (
+        {isAuthenticated ? (
           <>
             <Link to='/dashboard'>Dashboard</Link>
             <Link to='/github'>GitHub</Link>
+            <Link to='/microsoft'>Microsoft</Link>
             <Link to='/profile'>Profile</Link>
             <button type='button' onClick={handleLogout} className='btn-logout'>
               Logout

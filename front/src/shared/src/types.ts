@@ -1,13 +1,27 @@
+// User & Auth Types
+
 export interface User {
   id: number;
   email: string;
   name: string;
 }
 
-export interface AuthResponse {
+// /auth/login API endpoint
+
+export interface ApiAuthResponse {
   access_token: string;
   user: User;
 }
+
+// Auth state Redux
+
+export interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+}
+
+// GitHub Types
 
 export interface Repository {
   id: number;
@@ -36,6 +50,17 @@ export interface Webhook {
 export interface CreateWebhookDto {
   owner: string;
   repo: string;
+  webhookUrl: string;
   events: string[];
   secret?: string;
+}
+
+//Microsoft type
+
+export interface MicrosoftSubscription {
+  id: string;
+  resource: string;
+  changeType: string;
+  clientState: string;
+  expirationDateTime: string;
 }

@@ -1,5 +1,8 @@
 export { Dashboard } from './Dashboard';
 export { GitHub } from './GitHub';
+export { GitHubCallback } from './GitHubCallback';
 export { Login } from './Login';
+export { Microsoft } from './Microsoft';
+export { MicrosoftCallback } from './MicrosoftCallback';
 export { Profile } from './Profile';
 export { Register } from './Register';

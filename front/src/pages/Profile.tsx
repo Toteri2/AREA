@@ -1,13 +1,120 @@
-import { authApi } from '../api';
-import { useAuth } from '../context/AuthContext';
+import {
+  useAppSelector,
+  useGetGithubAuthUrlQuery,
+  useGetMicrosoftAuthUrlQuery,
+  useListMicrosoftWebhooksQuery,
+  useListRepositoriesQuery,
+} from '../shared/src/web';
 
-export function Profile() {
-  const { user } = useAuth();
+function GitHubLinker() {
+  const { refetch: getAuthUrl } = useGetGithubAuthUrlQuery(undefined);
+  const { isLoading, isSuccess, isError } = useListRepositoriesQuery();
 
   const handleLinkGithub = async () => {
-    const url = await authApi.getGithubAuthUrl();
-    window.location.href = url;
+    try {
+      const result = await getAuthUrl();
+      if (result.data?.url) {
+        window.location.href = result.data.url;
+      } else if (result.error) {
+        console.error('Failed to fetch GitHub auth URL:', result.error);
+        alert('Failed to connect to GitHub. Please try again later.');
+      } else {
+        console.warn('No URL returned from GitHub auth endpoint');
+        alert('Unable to initiate GitHub authentication. Please try again.');
+      }
+    } catch (error) {
+      console.error('Unexpected error during GitHub auth:', error);
+      alert('An unexpected error occurred. Please try again.');
+    }
   };
+
+  if (isLoading) {
+    return <div className='loading-spinner'>Loading...</div>;
+  }
+
+  if (isError) {
+    return (
+      <button type='button' onClick={handleLinkGithub} className='btn-github'>
+        Link GitHub Account
+      </button>
+    );
+  }
+
+  if (isSuccess) {
+    return (
+      <div className='service-linked'>
+        <p className='linked-status'>✓ GitHub Account Linked</p>
+        <button
+          type='button'
+          onClick={handleLinkGithub}
+          className='btn-github-change'
+        >
+          Change Account
+        </button>
+      </div>
+    );
+  }
+  return null;
+}
+
+function MicrosoftLinker() {
+  const { refetch: getAuthUrl } = useGetMicrosoftAuthUrlQuery(undefined);
+  const { isLoading, isSuccess, isError } = useListMicrosoftWebhooksQuery();
+
+  const handleLinkMicrosoft = async () => {
+    try {
+      const result = await getAuthUrl();
+      if (result.data?.url) {
+        window.location.href = result.data.url;
+      } else if (result.error) {
+        console.error('Failed to fetch Microsoft auth URL:', result.error);
+        alert('Failed to connect to Microsoft. Please try again later.');
+      } else {
+        console.warn('No URL returned from Microsoft auth endpoint');
+        alert('Unable to initiate Microsoft authentication. Please try again.');
+      }
+    } catch (error) {
+      console.error('Unexpected error during Microsoft auth:', error);
+      alert('An unexpected error occurred. Please try again.');
+    }
+  };
+
+  if (isLoading) {
+    return <div className='loading-spinner'>Loading...</div>;
+  }
+
+  if (isError) {
+    return (
+      <button
+        type='button'
+        onClick={handleLinkMicrosoft}
+        className='btn-microsoft'
+      >
+        Link Microsoft Account
+      </button>
+    );
+  }
+
+  if (isSuccess) {
+    return (
+      <div className='service-linked'>
+        <p className='linked-status'>✓ Microsoft Account Linked</p>
+        <button
+          type='button'
+          onClick={handleLinkMicrosoft}
+          className='btn-microsoft-change'
+        >
+          Change Account
+        </button>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+export function Profile() {
+  const { user } = useAppSelector((state) => state.auth);
 
   return (
     <div className='profile'>
@@ -29,13 +136,8 @@ export function Profile() {
         </div>
         <div className='profile-actions'>
           <h3>Connected Services</h3>
-          <button
-            type='button'
-            onClick={handleLinkGithub}
-            className='btn-github'
-          >
-            Link GitHub Account
-          </button>
+          <GitHubLinker />
+          <MicrosoftLinker />
         </div>
       </div>
     </div>
