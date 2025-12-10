@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { Hook } from 'src/shared/entities/hook.entity';
 import { User } from 'src/shared/entities/user.entity';
 import { Repository } from 'typeorm';
 
@@ -8,7 +9,9 @@ import { Repository } from 'typeorm';
 export class UsersService {
   constructor(
     @InjectRepository(User)
-    private usersRepository: Repository<User>
+    private usersRepository: Repository<User>,
+    @InjectRepository(Hook)
+    private hooksRepository: Repository<Hook>
   ) {}
 
   async create(email: string, password: string): Promise<User> {
@@ -39,5 +42,9 @@ export class UsersService {
 
   async checkPass(user: User, password: string): Promise<boolean> {
     return bcrypt.compare(password, user);
+  }
+
+  async getUserWebhooks(userId: number): Promise<Hook[]> {
+    return this.hooksRepository.find({ where: { userId: userId } });
   }
 }

@@ -38,7 +38,8 @@ export class GithubController {
   })
   async webhook(
     @Body() body: any,
-    @Headers('x-github-delivery') deliveryId: string
+    @Headers('x-github-delivery') deliveryId: string,
+    @Headers('x-github-hook-id') hookId: string
   ) {
     console.log('GitHub webhook received:', deliveryId);
     console.log('Payload:', body);
@@ -47,7 +48,7 @@ export class GithubController {
       const _repoFullName = body.repository.full_name;
 
       const hooks = await this.hooksRepository.find({
-        where: { webhookId: body.id, service: 'github' },
+        where: { webhookId: hookId, service: 'github' },
       });
 
       for (const hook of hooks) {
@@ -86,14 +87,13 @@ export class GithubController {
       createWebhookDto,
       webhookUrl
     );
-    console.log('Storing GitHub webhook with ID raaaaaah:', result.id);
     const hook = this.hooksRepository.create({
       userId: req.user.id,
       webhookId: result.id,
       service: 'github',
     });
-    await this.hooksRepository.save(hook);
-    return result;
+    const savedHook = await this.hooksRepository.save(hook);
+    return { result, hookId: savedHook.id };
   }
 
   @Get('repositories')

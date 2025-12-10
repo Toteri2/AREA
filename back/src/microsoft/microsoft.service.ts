@@ -58,7 +58,7 @@ export class MicrosoftService {
     });
     await this.hookRepository.save(hook);
 
-    return valid;
+    return { valid, hookId: hook.id };
   }
 
   getHeaders(access_token: string) {
