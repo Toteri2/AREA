@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Hook } from '../shared/entities/hook.entity';
+import { User } from '../shared/entities/user.entity';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { User } from '../shared/entities/user.entity';
-import { Hook } from '../shared/entities/hook.entity';
 
 describe('UsersController', () => {
   let controller: UsersController;

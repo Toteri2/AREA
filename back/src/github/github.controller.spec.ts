@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GithubController } from './github.controller';
-import { GithubService } from './github.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Hook } from '../shared/entities/hook.entity';
 import { AuthService } from '../auth/auth.service';
 import { ReactionsService } from '../reactions/reactions.service';
+import { Hook } from '../shared/entities/hook.entity';
+import { GithubController } from './github.controller';
+import { GithubService } from './github.service';
 
 describe('GithubController', () => {
   let controller: GithubController;

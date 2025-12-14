@@ -16,7 +16,9 @@ describe('AppController', () => {
 
   describe('root', () => {
     it('should return welcome message', () => {
-      expect(appController.getHello()).toBe('Welcome to AREA, but please use the frontend. If you want to see the API docs, go to /api-docs');
+      expect(appController.getHello()).toBe(
+        'Welcome to AREA, but please use the frontend. If you want to see the API docs, go to /api-docs'
+      );
     });
   });
 });

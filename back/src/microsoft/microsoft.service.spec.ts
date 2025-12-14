@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MicrosoftService } from './microsoft.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Hook } from '../shared/entities/hook.entity';
+import { MicrosoftService } from './microsoft.service';
 
 describe('MicrosoftService', () => {
   let service: MicrosoftService;
