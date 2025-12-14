@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
-
 @Injectable()
 export class GmailService {
-
   findAll() {
     return `This action returns all gmail`;
   }

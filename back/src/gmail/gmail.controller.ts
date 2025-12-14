@@ -3,5 +3,5 @@ import { GmailService } from './gmail.service';
 
 @Controller('gmail')
 export class GmailController {
-  constructor(private readonly gmailService: GmailService) {}
+  constructor(readonly _gmailService: GmailService) {}
 }
