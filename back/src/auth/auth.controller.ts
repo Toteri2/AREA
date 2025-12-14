@@ -158,4 +158,45 @@ export class AuthController {
     await this.authService.linkMicrosoftAccount(req.user.id, body.code);
     return { success: true, user: req.user.name };
   }
+
+  @Get('gmail/url')
+  @ApiOperation({
+    summary: 'Gmail authentication url handler.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Gmail authentication url received.',
+  })
+  async gmailAuthUrl(@Query('mobile') mobile: string) {
+    const client_id = process.env.GMAIL_CLIENT_ID;
+    const redirect_uri = process.env.GMAIL_CALLBACK_URL;
+
+    const stateData = {
+      platform: mobile === 'true' ? 'mobile' : 'web',
+      nonce: Math.random().toString(36).substring(7),
+    };
+
+    const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=https://www.googleapis.com/auth/gmail.modify&state=${state}`;
+    return url;
+  }
+
+  @Post('gmail/validate')
+  @ApiOperation({
+    summary: 'Gmail authentication callback. Is going to validate the Gmail account and link it to the user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Gmail account linked successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async gmailAuthCallback(@Body() body: { code: string }, @Req() req) {
+    const userId = req.user.id;
+    console.log('Gmail auth callback for user ID:', userId);
+    if (!userId) throw new Error('No session found');
+    console.log('Received code:', body.code);
+    const access_token = await this.authService.getGmailToken(body.code);
+    await this.authService.linkGmailAccount(userId, access_token);
+    return { success: true, user: req.user.name };
+  }
 }

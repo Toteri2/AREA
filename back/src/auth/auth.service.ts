@@ -235,4 +235,43 @@ export class AuthService {
     }
     return result.accessToken;
   }
+
+  async getGmailToken(code: string): Promise<string> {
+    try {
+      const response = await axios.post('https://oauth2.googleapis.com/token', {
+        client_id: process.env.GMAIL_CLIENT_ID,
+        client_secret: process.env.GMAIL_CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: process.env.GMAIL_CALLBACK_URL,
+      });
+      return response.data.access_token;
+    } catch (error) {
+      console.error(
+        'Error getting Gmail token:',
+        error.response?.data || error.message
+      );
+      throw new Error('Failed to get Gmail access token');
+    }
+  }
+
+  async linkGmailAccount(
+    userId: number,
+    accessToken: string
+  ): Promise<Provider> {
+    let provider = await this.providerRepository.findOne({
+      where: { userId, provider: ProviderType.GMAIL },
+    });
+    if (provider) {
+      provider.accessToken = accessToken;
+    } else {
+      provider = this.providerRepository.create({
+        userId,
+        user: { id: userId } as User,
+        provider: ProviderType.GMAIL,
+        accessToken,
+      });
+    }
+    return this.providerRepository.save(provider);
+  }
 }

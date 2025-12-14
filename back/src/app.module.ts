@@ -8,6 +8,7 @@ import { GithubModule } from './github/github.module';
 import { MicrosoftModule } from './microsoft/microsoft.module';
 import { ReactionsModule } from './reactions/reactions.module';
 import { UserModule } from './users/users.module';
+import { GmailModule } from './gmail/gmail.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { UserModule } from './users/users.module';
     AuthModule,
     MicrosoftModule,
     ReactionsModule,
+    GmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
