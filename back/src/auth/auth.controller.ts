@@ -183,7 +183,8 @@ export class AuthController {
 
   @Post('gmail/validate')
   @ApiOperation({
-    summary: 'Gmail authentication callback. Is going to validate the Gmail account and link it to the user',
+    summary:
+      'Gmail authentication callback. Is going to validate the Gmail account and link it to the user',
   })
   @ApiResponse({
     status: 200,

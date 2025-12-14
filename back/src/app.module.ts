@@ -5,10 +5,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { GithubModule } from './github/github.module';
+import { GmailModule } from './gmail/gmail.module';
 import { MicrosoftModule } from './microsoft/microsoft.module';
 import { ReactionsModule } from './reactions/reactions.module';
 import { UserModule } from './users/users.module';
-import { GmailModule } from './gmail/gmail.module';
 
 @Module({
   imports: [
