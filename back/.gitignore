@@ -26,3 +26,4 @@ lerna-debug.log*
 docker*
 Docker*
 *spec*
+coverage
