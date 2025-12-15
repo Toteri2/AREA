@@ -1,5 +1,6 @@
 import { ConfidentialClientApplication, Configuration } from '@azure/msal-node';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
@@ -33,7 +34,8 @@ export class AuthService {
     private userRepository: Repository<User>,
     @InjectRepository(OAuthState)
     private oauthStatesRepository: Repository<OAuthState>,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private configService: ConfigService
   ) {}
 
   private getMsalClient() {
@@ -263,18 +265,17 @@ export class AuthService {
     return result.accessToken;
   }
   async getDiscordToken(code: string): Promise<string> {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const redirectUri = `${frontendUrl}/discord/callback`;
+    const redirectUri = this.configService.get<string>('DISCORD_CALLBACK_URL');
 
     const params = new URLSearchParams();
-    params.append('client_id', process.env.DISCORD_CLIENT_ID || '');
-    params.append('client_secret', process.env.DISCORD_CLIENT_SECRET || '');
+    params.append('client_id', this.configService.getOrThrow('DISCORD_CLIENT_ID'));
+    params.append('client_secret', this.configService.getOrThrow('DISCORD_CLIENT_SECRET'));
     params.append('grant_type', 'authorization_code');
     params.append('code', code);
-    params.append('redirect_uri', redirectUri);
+    params.append('redirect_uri', this.configService.getOrThrow('DISCORD_CALLBACK_URL'));
 
     const res = await axios.post(
-      'https://discord.com/api/oauth2/token',
+      'https://discord.com/api/v10/oauth2/token',
       params,
       {
         headers: {
@@ -282,8 +283,6 @@ export class AuthService {
         },
       }
     );
-    const access_token = res.data.access_token;
-    console.log(res);
-    return access_token;
+    return res.data.access_token;
   }
 }
