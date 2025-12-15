@@ -1,5 +1,6 @@
 import { ConfidentialClientApplication, Configuration } from '@azure/msal-node';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
@@ -33,7 +34,8 @@ export class AuthService {
     private userRepository: Repository<User>,
     @InjectRepository(OAuthState)
     private oauthStatesRepository: Repository<OAuthState>,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private configService: ConfigService
   ) {}
 
   private getMsalClient() {
@@ -107,6 +109,32 @@ export class AuthService {
     });
   }
 
+  async linkDiscordAccount(
+    userId: number,
+    accessToken: string
+  ): Promise<Provider> {
+    let provider = await this.providerRepository.findOne({
+      where: { userId, provider: ProviderType.DISCORD },
+    });
+    if (provider) {
+      provider.accessToken = accessToken;
+    } else {
+      provider = this.providerRepository.create({
+        userId,
+        provider: ProviderType.DISCORD,
+        accessToken,
+      });
+    }
+    return this.providerRepository.save(provider);
+  }
+
+  async getDiscordProvider(userId: number): Promise<Provider | null> {
+    return this.providerRepository.findOneBy({
+      userId,
+      provider: ProviderType.DISCORD,
+    });
+  }
+
   async verifyToken(token: string): Promise<any> {
     try {
       return this.jwtService.verify(token);
@@ -123,10 +151,11 @@ export class AuthService {
     const user = await this.userRepository.findOneBy({ id: userId });
     if (!user) return '';
     const stateVal = this.oauthStatesRepository.create({
-      userId,
-      state,
+      userId: userId,
+      user: user,
+      state: state,
       expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-      provider,
+      provider: provider,
     });
     await this.oauthStatesRepository.save(stateVal);
     return state;
@@ -234,5 +263,26 @@ export class AuthService {
       await this.providerRepository.save(provider);
     }
     return result.accessToken;
+  }
+  async getDiscordToken(code: string): Promise<string> {
+    const redirectUri = this.configService.get<string>('DISCORD_CALLBACK_URL');
+
+    const params = new URLSearchParams();
+    params.append('client_id', this.configService.getOrThrow('DISCORD_CLIENT_ID'));
+    params.append('client_secret', this.configService.getOrThrow('DISCORD_CLIENT_SECRET'));
+    params.append('grant_type', 'authorization_code');
+    params.append('code', code);
+    params.append('redirect_uri', this.configService.getOrThrow('DISCORD_CALLBACK_URL'));
+
+    const res = await axios.post(
+      'https://discord.com/api/v10/oauth2/token',
+      params,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
+    return res.data.access_token;
   }
 }

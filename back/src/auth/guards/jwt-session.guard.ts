@@ -22,6 +22,9 @@ export class JwtSessionGuard implements CanActivate {
 
     if (!decoded) throw new UnauthorizedException('Invalid token');
 
+    if (!request.session) {
+      request.session = {};
+    }
     request.session.userId = decoded.sub;
     return true;
   }

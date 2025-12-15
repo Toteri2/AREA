@@ -1,0 +1,21 @@
+# Docker
+node_modules
+npm-debug.log
+dist
+.env
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+
+# Test
+coverage
+.nyc_output
+
+# Misc
+*.log
+.DS_Store

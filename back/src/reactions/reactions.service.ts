@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
+import { DiscordService } from 'src/discord/discord.service';
 import { Hook } from 'src/shared/entities/hook.entity';
 import { Reaction, ReactionType } from 'src/shared/entities/reaction.entity';
 import { Repository } from 'typeorm';
@@ -12,7 +13,8 @@ export class ReactionsService {
     private reactionsRepository: Repository<Reaction>,
     @InjectRepository(Hook)
     private hooksRepository: Repository<Hook>,
-    private authService: AuthService
+    private authService: AuthService,
+    private discordService: DiscordService
   ) {}
 
   async create(
@@ -76,6 +78,19 @@ export class ReactionsService {
       case ReactionType.SEND_EMAIL_OUTLOOK:
         return this.sendEmailOutlook(reaction.config, webhookPayload, userId);
 
+      case ReactionType.DISCORD_SEND_MESSAGE:
+        return this.sendDiscordMessage(reaction.config, webhookPayload, userId);
+
+      case ReactionType.DISCORD_CREATE_CHANNEL:
+        return this.createDiscordChannel(
+          reaction.config,
+          webhookPayload,
+          userId
+        );
+
+      case ReactionType.DISCORD_ADD_ROLE:
+        return this.addDiscordRole(reaction.config, webhookPayload, userId);
+
       default:
         throw new Error(`Unknown reaction type: ${reaction.reactionType}`);
     }
@@ -132,6 +147,104 @@ export class ReactionsService {
       return { success: true, message: 'Email sent successfully' };
     } catch (error) {
       console.error('Error sending email via Outlook:', error);
+      throw error;
+    }
+  }
+
+  private async sendDiscordMessage(
+    config: any,
+    webhookPayload: any,
+    userId: number
+  ): Promise<any> {
+    try {
+      const provider = await this.authService.getDiscordProvider(userId);
+
+      if (!provider) {
+        throw new Error('Discord account not linked');
+      }
+
+      const processedConfig = this.replaceVariables(config, webhookPayload);
+
+      const embeds = Array.isArray(processedConfig.embeds)
+        ? processedConfig.embeds
+        : typeof processedConfig.embeds === 'string'
+          ? JSON.parse(processedConfig.embeds)
+          : undefined;
+
+      return await this.discordService.sendMessage(provider.accessToken, {
+        channelId: processedConfig.channelId,
+        content: processedConfig.content,
+        embeds: embeds,
+      });
+    } catch (error) {
+      console.error('Error sending Discord message:', error);
+      throw error;
+    }
+  }
+
+  private async createDiscordChannel(
+    config: any,
+    webhookPayload: any,
+    userId: number
+  ): Promise<any> {
+    try {
+      const provider = await this.authService.getDiscordProvider(userId);
+
+      if (!provider) {
+        throw new Error('Discord account not linked');
+      }
+
+      const processedConfig = this.replaceVariables(config, webhookPayload);
+
+      const permissionOverwrites = Array.isArray(
+        processedConfig.permissionOverwrites
+      )
+        ? processedConfig.permissionOverwrites
+        : typeof processedConfig.permissionOverwrites === 'string'
+          ? JSON.parse(processedConfig.permissionOverwrites)
+          : undefined;
+
+      const channelType =
+        typeof processedConfig.type === 'string'
+          ? parseInt(processedConfig.type, 10)
+          : processedConfig.type || 0;
+
+      return await this.discordService.createPrivateChannel(
+        provider.accessToken,
+        {
+          guildId: processedConfig.guildId,
+          name: processedConfig.name,
+          type: channelType,
+          permissionOverwrites: permissionOverwrites,
+        }
+      );
+    } catch (error) {
+      console.error('Error creating Discord channel:', error);
+      throw error;
+    }
+  }
+
+  private async addDiscordRole(
+    config: any,
+    webhookPayload: any,
+    userId: number
+  ): Promise<any> {
+    try {
+      const provider = await this.authService.getDiscordProvider(userId);
+
+      if (!provider) {
+        throw new Error('Discord account not linked');
+      }
+
+      const processedConfig = this.replaceVariables(config, webhookPayload);
+
+      return await this.discordService.addRoleToUser(provider.accessToken, {
+        guildId: processedConfig.guildId,
+        userId: processedConfig.targetUserId,
+        roleId: processedConfig.roleId,
+      });
+    } catch (error) {
+      console.error('Error adding Discord role:', error);
       throw error;
     }
   }
