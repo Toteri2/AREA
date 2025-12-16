@@ -22,7 +22,9 @@ env:
 jobs:
   sync-repos:
     runs-on: ubuntu-latest
-
+    
+    if: github.repository != 'EpitechPGE3-2025/G-DEV-500-MLH-5-2-area-2'
+    
     services:
       josh:
         image: joshproject/josh-proxy:latest
