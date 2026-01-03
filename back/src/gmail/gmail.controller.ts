@@ -248,9 +248,7 @@ export class GmailController {
   })
   @UseGuards(AuthGuard('jwt'))
   async listUserWebhooks(@Req() req) {
-    return this.gmailService.listUserWebhooks(
-      await this.authService.getStoredGmailToken(req.user.id)
-    );
+    return this.gmailService.listUserWebhooks(req.user.id);
   }
 
   @Post('alive')
@@ -267,18 +265,12 @@ export class GmailController {
   @UseGuards(AuthGuard('jwt'))
   async createWebhook(@Req() req, @Body() body: CreateGmailDto) {
     const provider = await this.authService.getGmailProvider(req.user.id);
-    const webhookUrl = process.env.GMAIL_WEBHOOK_URL ?? '';
     if (!provider) throw new UnauthorizedException('Gmail account not linked');
 
     return this.gmailService.createWebhook(
       body,
       await this.authService.getStoredGmailToken(req.user.id),
-      webhookUrl,
-      req.user.id,
-      await this.authService.createOAuthStateToken(
-        req.user.id,
-        ProviderType.GMAIL
-      )
+      req.user.id
     );
   }
 
