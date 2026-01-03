@@ -12,9 +12,9 @@ export class GmailService {
   ) {}
   private readonly baseUrl = 'https://gmail.googleapis.com/gmail/v1/';
 
-  async listUserWebhooks(): Promise<any> {
+  async listUserWebhooks(userId: number): Promise<any> {
     const hooks = await this.hookRepository.find({
-      where: { service: 'gmail' },
+      where: { service: 'gmail', userId: userId},
     });
     return hooks;
   }
@@ -29,8 +29,6 @@ export class GmailService {
       headers: this.getHeaders(access_token),
       body: JSON.stringify({
         topicName: body.topicName,
-        labelIds: body.labelIds || ['INBOX'],
-        labelFilterAction: body.labelFilterAction || 'include',
       }),
     });
 
@@ -43,6 +41,7 @@ export class GmailService {
       userId: userId,
       webhookId: valid.historyId,
       service: 'gmail',
+      eventType: body.eventType || 1,
     });
     await this.hookRepository.save(hook);
 
