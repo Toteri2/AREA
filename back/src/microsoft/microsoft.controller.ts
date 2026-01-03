@@ -52,8 +52,6 @@ export class MicrosoftController {
     );
 
     if (oauthState) {
-      console.log('Microsoft webhook received:', body);
-
       const subscriptionId = body.value?.[0]?.subscriptionId;
       if (subscriptionId) {
         const hook = await this.hooksRepository.findOne({
@@ -80,7 +78,6 @@ export class MicrosoftController {
         }
       }
     }
-
     return res.status(200).send();
   }
 

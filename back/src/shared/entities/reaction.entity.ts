@@ -10,6 +10,7 @@ import {
 
 export enum ReactionType {
   SEND_EMAIL_OUTLOOK = 1,
+  SEND_EMAIL_GMAIL = 2,
 }
 
 @Entity('reactions')
