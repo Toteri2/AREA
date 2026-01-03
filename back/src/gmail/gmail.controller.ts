@@ -17,7 +17,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { CreateGmailDto } from 'src/gmail/dto/create_gmail_dto';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { Hook } from 'src/shared/entities/hook.entity';
-import { GmailEventType } from 'src/shared/enums/gmail-event.enum';
+import { GmailEventType } from 'src/shared/enums/gmail.enum';
 import { ProviderType } from 'src/shared/enums/provider.enum';
 import { Repository } from 'typeorm';
 import { GmailService } from './gmail.service';
