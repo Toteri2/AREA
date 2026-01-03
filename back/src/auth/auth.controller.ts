@@ -39,7 +39,6 @@ export class AuthController {
         body.password,
         body.name
       );
-      console.log('Registered user:', user);
       const token = await this.authService.login(user);
       return res.status(201).send({
         id: user.id,
@@ -48,7 +47,6 @@ export class AuthController {
         token: token.access_token,
       });
     } catch (error) {
-      console.log('Registration error with code:', error.code);
       if (error.code === '23505') {
         return res.status(409).send({ message: 'Credentials already in use' });
       }
@@ -120,9 +118,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   async githubAuthCallback(@Body() body: { code: string }, @Req() req) {
     const userId = req.user.id;
-    console.log('GitHub auth callback for user ID:', userId);
     if (!userId) throw new Error('No session found');
-    console.log('Received code:', body.code);
     const access_token = await this.authService.getGithubToken(body.code);
     await this.authService.linkGithubAccount(userId, access_token);
     return { success: true, user: req.user.name };
@@ -264,9 +260,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   async gmailAuthCallback(@Body() body: { code: string }, @Req() req) {
     const userId = req.user.id;
-    console.log('Gmail auth callback for user ID:', userId);
     if (!userId) throw new Error('No session found');
-    console.log('Received code:', body.code);
     const access_token = await this.authService.getGmailToken(body.code);
     await this.authService.linkGmailAccount(userId, access_token);
     return { success: true, user: req.user.name };

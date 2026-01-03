@@ -134,6 +134,12 @@ export class AuthService {
       provider: ProviderType.DISCORD,
     });
   }
+  async getGmailProvider(userId: number): Promise<Provider | null> {
+    return this.providerRepository.findOneBy({
+      userId,
+      provider: ProviderType.GMAIL,
+    });
+  }
 
   async verifyToken(token: string): Promise<any> {
     try {
@@ -258,7 +264,6 @@ export class AuthService {
 
     const newCache = client.getTokenCache().serialize();
     if (newCache !== provider.accessToken) {
-      console.log('Updating Microsoft token cache for user:', userId);
       provider.accessToken = newCache;
       await this.providerRepository.save(provider);
     }
@@ -323,5 +328,16 @@ export class AuthService {
       });
     }
     return this.providerRepository.save(provider);
+  }
+
+  async getStoredGmailToken(userId: number): Promise<string> {
+    const provider = await this.providerRepository.findOneBy({
+      userId,
+      provider: ProviderType.GMAIL,
+    });
+    if (!provider || !provider.accessToken) {
+      throw new Error('Gmail account not linked');
+    }
+    return provider.accessToken;
   }
 }
