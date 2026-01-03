@@ -1,5 +1,5 @@
 import { User } from 'src/shared/entities/user.entity';
-import { GmailEventType } from 'src/shared/enums/gmail-event.enum';
+import { GmailEventType } from 'src/shared/enums/gmail.enum';
 import {
   Column,
   Entity,
