@@ -39,7 +39,6 @@ export class AuthController {
         body.password,
         body.name
       );
-      console.log('Registered user:', user);
       const token = await this.authService.login(user);
       return res.status(201).send({
         id: user.id,
@@ -48,7 +47,6 @@ export class AuthController {
         token: token.access_token,
       });
     } catch (error) {
-      console.log('Registration error with code:', error.code);
       if (error.code === '23505') {
         return res.status(409).send({ message: 'Credentials already in use' });
       }
@@ -120,9 +118,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   async githubAuthCallback(@Body() body: { code: string }, @Req() req) {
     const userId = req.user.id;
-    console.log('GitHub auth callback for user ID:', userId);
     if (!userId) throw new Error('No session found');
-    console.log('Received code:', body.code);
     const access_token = await this.authService.getGithubToken(body.code);
     await this.authService.linkGithubAccount(userId, access_token);
     return { success: true, user: req.user.name };
@@ -229,5 +225,46 @@ export class AuthController {
       console.error('Discord auth callback error:', error);
       throw error;
     }
+  }
+  @Get('gmail/url')
+  @ApiOperation({
+    summary: 'Gmail authentication url handler.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Gmail authentication url received.',
+  })
+  async gmailAuthUrl(@Query('mobile') mobile: string) {
+    const client_id = process.env.GMAIL_CLIENT_ID;
+    const redirect_uri = process.env.GMAIL_CALLBACK_URL;
+
+    const stateData = {
+      platform: mobile === 'true' ? 'mobile' : 'web',
+      nonce: Math.random().toString(36).substring(7),
+    };
+
+    const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=https://www.googleapis.com/auth/gmail.modify&state=${state}&prompt=consent&access_type=offline`;
+    return url;
+  }
+
+  @Post('gmail/validate')
+  @ApiOperation({
+    summary:
+      'Gmail authentication callback. Is going to validate the Gmail account and link it to the user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Gmail account linked successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async gmailAuthCallback(@Body() body: { code: string }, @Req() req) {
+    const userId = req.user.id;
+    if (!userId) throw new Error('No session found');
+    const { accessToken, refreshToken } = await this.authService.getGmailToken(
+      body.code
+    );
+    await this.authService.linkGmailAccount(userId, accessToken, refreshToken);
+    return { success: true, user: req.user.name };
   }
 }

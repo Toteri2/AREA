@@ -27,6 +27,9 @@ export class Provider {
   @Column({ name: 'access_token', nullable: true, type: 'text' })
   accessToken: string;
 
+  @Column({ name: 'refresh_token', nullable: true, type: 'text' })
+  refreshToken: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

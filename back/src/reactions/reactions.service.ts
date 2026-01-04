@@ -23,9 +23,6 @@ export class ReactionsService {
     reactionType: ReactionType,
     config: Record<string, any>
   ): Promise<Reaction> {
-    //console.log('Creating reaction with config:', config);
-    //console.log('For hook ID:', hookId, 'and user ID:', userId);
-    //console.log('Reaction type:', reactionType);
     const hook = await this.hooksRepository.findOne({
       where: { id: hookId, userId },
     });
@@ -90,10 +87,71 @@ export class ReactionsService {
 
       case ReactionType.DISCORD_ADD_ROLE:
         return this.addDiscordRole(reaction.config, webhookPayload, userId);
+      case ReactionType.SEND_EMAIL_GMAIL:
+        return this.sendEmailGmail(reaction.config, webhookPayload, userId);
 
       default:
         throw new Error(`Unknown reaction type: ${reaction.reactionType}`);
     }
+  }
+
+  private async sendEmailGmail(
+    config: any,
+    webhookPayload: any,
+    userId: number
+  ): Promise<any> {
+    try {
+      const gmailToken = await this.authService.getValidGmailToken(userId);
+      if (!gmailToken) {
+        throw new Error('Gmail account not linked');
+      }
+
+      const processedConfig = this.replaceVariables(config, webhookPayload);
+
+      const response = await fetch(
+        'https://gmail.googleapis.com/gmail/v1/users/me/messages/send',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${gmailToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            raw: this.createEmailRaw(
+              processedConfig.to,
+              processedConfig.subject,
+              processedConfig.body
+            ),
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to send email via Gmail: ${error}`);
+      }
+
+      return { success: true, message: 'Email sent via Gmail successfully' };
+    } catch (error) {
+      console.error('Error sending email via Gmail:', error);
+      throw error;
+    }
+  }
+
+  private createEmailRaw(to: string, subject: string, body: string): string {
+    const email = [
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      'Content-Type: text/plain; charset=utf-8',
+      '',
+      body,
+    ].join('\n');
+
+    return Buffer.from(email)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
   }
 
   private async sendEmailOutlook(
@@ -280,6 +338,14 @@ export class ReactionsService {
       return {
         changeType: payload.value[0].changeType,
         resource: payload.value[0].resource,
+      };
+    }
+
+    if (payload.message?.data) {
+      return {
+        emailAddress: payload.emailAddress || 'unknown',
+        historyId: payload.message.data.historyId || 'unknown',
+        timestamp: new Date().toISOString(),
       };
     }
 

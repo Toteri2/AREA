@@ -134,6 +134,12 @@ export class AuthService {
       provider: ProviderType.DISCORD,
     });
   }
+  async getGmailProvider(userId: number): Promise<Provider | null> {
+    return this.providerRepository.findOneBy({
+      userId,
+      provider: ProviderType.GMAIL,
+    });
+  }
 
   async verifyToken(token: string): Promise<any> {
     try {
@@ -258,21 +264,29 @@ export class AuthService {
 
     const newCache = client.getTokenCache().serialize();
     if (newCache !== provider.accessToken) {
-      console.log('Updating Microsoft token cache for user:', userId);
       provider.accessToken = newCache;
       await this.providerRepository.save(provider);
     }
     return result.accessToken;
   }
   async getDiscordToken(code: string): Promise<string> {
-    const redirectUri = this.configService.get<string>('DISCORD_CALLBACK_URL');
+    const _redirectUri = this.configService.get<string>('DISCORD_CALLBACK_URL');
 
     const params = new URLSearchParams();
-    params.append('client_id', this.configService.getOrThrow('DISCORD_CLIENT_ID'));
-    params.append('client_secret', this.configService.getOrThrow('DISCORD_CLIENT_SECRET'));
+    params.append(
+      'client_id',
+      this.configService.getOrThrow('DISCORD_CLIENT_ID')
+    );
+    params.append(
+      'client_secret',
+      this.configService.getOrThrow('DISCORD_CLIENT_SECRET')
+    );
     params.append('grant_type', 'authorization_code');
     params.append('code', code);
-    params.append('redirect_uri', this.configService.getOrThrow('DISCORD_CALLBACK_URL'));
+    params.append(
+      'redirect_uri',
+      this.configService.getOrThrow('DISCORD_CALLBACK_URL')
+    );
 
     const res = await axios.post(
       'https://discord.com/api/v10/oauth2/token',
@@ -284,5 +298,126 @@ export class AuthService {
       }
     );
     return res.data.access_token;
+  }
+
+  async getGmailToken(
+    code: string
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    try {
+      const response = await axios.post('https://oauth2.googleapis.com/token', {
+        client_id: process.env.GMAIL_CLIENT_ID,
+        client_secret: process.env.GMAIL_CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: process.env.GMAIL_CALLBACK_URL,
+      });
+      return {
+        accessToken: response.data.access_token,
+        refreshToken: response.data.refresh_token,
+      };
+    } catch (error) {
+      console.error(
+        'Error getting Gmail token:',
+        error.response?.data || error.message
+      );
+      throw new Error('Failed to get Gmail access token');
+    }
+  }
+
+  async linkGmailAccount(
+    userId: number,
+    accessToken: string,
+    refreshToken?: string
+  ): Promise<Provider> {
+    let provider = await this.providerRepository.findOne({
+      where: { userId, provider: ProviderType.GMAIL },
+    });
+    if (provider) {
+      provider.accessToken = accessToken;
+      if (refreshToken) {
+        provider.refreshToken = refreshToken;
+      }
+    } else {
+      provider = this.providerRepository.create({
+        userId,
+        user: { id: userId } as User,
+        provider: ProviderType.GMAIL,
+        accessToken,
+        refreshToken,
+      });
+    }
+    return this.providerRepository.save(provider);
+  }
+
+  async refreshGmailToken(userId: number): Promise<string> {
+    const provider = await this.providerRepository.findOne({
+      where: { userId, provider: ProviderType.GMAIL },
+    });
+
+    if (!provider || !provider.refreshToken) {
+      throw new Error('Gmail refresh token not found');
+    }
+
+    try {
+      const response = await axios.post('https://oauth2.googleapis.com/token', {
+        client_id: process.env.GMAIL_CLIENT_ID,
+        client_secret: process.env.GMAIL_CLIENT_SECRET,
+        refresh_token: provider.refreshToken,
+        grant_type: 'refresh_token',
+      });
+
+      const newAccessToken = response.data.access_token;
+
+      provider.accessToken = newAccessToken;
+      await this.providerRepository.save(provider);
+
+      return newAccessToken;
+    } catch (error) {
+      console.error(
+        'Error refreshing Gmail token:',
+        error.response?.data || error.message
+      );
+      throw new Error('Failed to refresh Gmail access token');
+    }
+  }
+
+  async getStoredGmailToken(userId: number): Promise<string> {
+    const provider = await this.providerRepository.findOneBy({
+      userId,
+      provider: ProviderType.GMAIL,
+    });
+    if (!provider || !provider.accessToken) {
+      throw new Error('Gmail account not linked');
+    }
+    return provider.accessToken;
+  }
+
+  async getValidGmailToken(userId: number): Promise<string> {
+    try {
+      const token = await this.getStoredGmailToken(userId);
+
+      try {
+        const response = await axios.get(
+          'https://gmail.googleapis.com/gmail/v1/users/me/profile',
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (response.status === 200) {
+          return token;
+        }
+      } catch (error) {
+        if (error.response?.status === 401) {
+          return await this.refreshGmailToken(userId);
+        }
+        throw error;
+      }
+
+      return token;
+    } catch (error) {
+      console.error('Error getting valid Gmail token:', error.message);
+      throw error;
+    }
   }
 }
