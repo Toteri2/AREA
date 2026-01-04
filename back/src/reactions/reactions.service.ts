@@ -101,7 +101,7 @@ export class ReactionsService {
     userId: number
   ): Promise<any> {
     try {
-      const gmailToken = await this.authService.getStoredGmailToken(userId);
+      const gmailToken = await this.authService.getValidGmailToken(userId);
       if (!gmailToken) {
         throw new Error('Gmail account not linked');
       }

@@ -118,19 +118,19 @@ export class GmailService {
   async handleGmailEvent(
     hook: Hook,
     gmailToken: string,
-    historyId: string
+    oldHistoryId: string
   ): Promise<boolean> {
     const eventType = hook.eventType;
 
     switch (eventType) {
       case GmailEventType.MESSAGE_ADDED_INBOX:
-        return this.checkMessageAddedInbox(hook, gmailToken, historyId);
+        return this.checkMessageAddedInbox(gmailToken, oldHistoryId);
 
       case GmailEventType.MESSAGE_ADDED:
-        return this.checkMessageAdded(hook, gmailToken, historyId);
+        return this.checkMessageAdded(gmailToken, oldHistoryId);
 
       case GmailEventType.MESSAGE_DELETED:
-        return this.checkMessageDeleted(hook, gmailToken, historyId);
+        return this.checkMessageDeleted(gmailToken, oldHistoryId);
 
       default:
         console.warn(`Unknown event type: ${eventType}`);
@@ -139,13 +139,12 @@ export class GmailService {
   }
 
   async checkMessageAddedInbox(
-    hook: Hook,
     gmailToken: string,
-    historyId: string
+    startHistoryId: string
   ): Promise<boolean> {
     try {
       const historyResponse = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=${hook.lastHistoryId || historyId}&historyTypes=messageAdded`,
+        `https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=${startHistoryId}&historyTypes=messageAdded`,
         {
           headers: {
             Authorization: `Bearer ${gmailToken}`,
@@ -169,13 +168,12 @@ export class GmailService {
   }
 
   async checkMessageAdded(
-    hook: Hook,
     gmailToken: string,
-    historyId: string
+    startHistoryId: string
   ): Promise<boolean> {
     try {
       const historyResponse = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=${hook.lastHistoryId || historyId}&historyTypes=messageAdded`,
+        `https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=${startHistoryId}&historyTypes=messageAdded`,
         {
           headers: {
             Authorization: `Bearer ${gmailToken}`,
@@ -195,24 +193,36 @@ export class GmailService {
   }
 
   async checkMessageDeleted(
-    hook: Hook,
     gmailToken: string,
-    historyId: string
+    startHistoryId: string
   ): Promise<boolean> {
     try {
       const historyResponse = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=${hook.lastHistoryId || historyId}&historyTypes=messageDeleted`,
+        `https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=${startHistoryId}&historyTypes=messageDeleted&historyTypes=labelRemoved`,
         {
           headers: {
             Authorization: `Bearer ${gmailToken}`,
           },
         }
       );
-
       if (historyResponse.ok) {
         const historyData = await historyResponse.json();
-        return historyData.history?.some((hist: any) => hist.messagesDeleted);
+
+        const hasDeleted = historyData.history?.some(
+          (hist: any) => hist.messagesDeleted
+        );
+        const hasTrashed = historyData.history?.some((hist: any) =>
+          hist.labelsRemoved?.some(
+            (labelChange: any) =>
+              labelChange.labelIds?.includes('INBOX') ||
+              labelChange.labelIds?.includes('UNREAD')
+          )
+        );
+
+        const result = hasDeleted || hasTrashed || false;
+        return result;
       }
+
       return false;
     } catch (error) {
       console.error('Error checking message deleted:', error);

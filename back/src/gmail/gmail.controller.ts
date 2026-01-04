@@ -58,7 +58,7 @@ export class GmailController {
           continue;
         }
 
-        const gmailToken = await this.authService.getStoredGmailToken(
+        const gmailToken = await this.authService.getValidGmailToken(
           hook.userId
         );
 
@@ -71,10 +71,14 @@ export class GmailController {
           continue;
         }
 
+        const oldHistoryId = hook.lastHistoryId || historyId;
+        
+        hook.lastHistoryId = historyId;
+        await this.hooksRepository.save(hook);
         const shouldTrigger = await this.gmailService.handleGmailEvent(
           hook,
           gmailToken,
-          historyId
+          oldHistoryId
         );
 
         if (shouldTrigger) {
@@ -86,9 +90,6 @@ export class GmailController {
             hook.userId
           );
         }
-
-        hook.lastHistoryId = historyId;
-        await this.hooksRepository.save(hook);
       }
     }
     return res.status(200).send();
@@ -123,7 +124,7 @@ export class GmailController {
 
     return this.gmailService.createWebhook(
       body,
-      await this.authService.getStoredGmailToken(req.user.id),
+      await this.authService.getValidGmailToken(req.user.id),
       req.user.id
     );
   }
@@ -139,7 +140,7 @@ export class GmailController {
     try {
       await this.gmailService.deleteSubscription(
         id,
-        await this.authService.getStoredGmailToken(req.user.id)
+        await this.authService.getValidGmailToken(req.user.id)
       );
       return res.status(200).send({ message: 'Subscription deleted' });
     } catch (error) {

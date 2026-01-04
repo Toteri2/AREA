@@ -349,6 +349,38 @@ export class AuthService {
     return this.providerRepository.save(provider);
   }
 
+  async refreshGmailToken(userId: number): Promise<string> {
+    const provider = await this.providerRepository.findOne({
+      where: { userId, provider: ProviderType.GMAIL },
+    });
+
+    if (!provider || !provider.refreshToken) {
+      throw new Error('Gmail refresh token not found');
+    }
+
+    try {
+      const response = await axios.post('https://oauth2.googleapis.com/token', {
+        client_id: process.env.GMAIL_CLIENT_ID,
+        client_secret: process.env.GMAIL_CLIENT_SECRET,
+        refresh_token: provider.refreshToken,
+        grant_type: 'refresh_token',
+      });
+
+      const newAccessToken = response.data.access_token;
+
+      provider.accessToken = newAccessToken;
+      await this.providerRepository.save(provider);
+
+      return newAccessToken;
+    } catch (error) {
+      console.error(
+        'Error refreshing Gmail token:',
+        error.response?.data || error.message
+      );
+      throw new Error('Failed to refresh Gmail access token');
+    }
+  }
+
   async getStoredGmailToken(userId: number): Promise<string> {
     const provider = await this.providerRepository.findOneBy({
       userId,
@@ -358,5 +390,34 @@ export class AuthService {
       throw new Error('Gmail account not linked');
     }
     return provider.accessToken;
+  }
+
+  async getValidGmailToken(userId: number): Promise<string> {
+    try {
+      const token = await this.getStoredGmailToken(userId);
+
+      try {
+        const response = await axios.get(
+          'https://gmail.googleapis.com/gmail/v1/users/me/profile',
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (response.status === 200) {
+          return token;
+        }
+      } catch (error) {
+        if (error.response?.status === 401) {
+          return await this.refreshGmailToken(userId);
+        }
+        throw error;
+      }
+
+      return token;
+    } catch (error) {
+      console.error('Error getting valid Gmail token:', error.message);
+      throw error;
+    }
   }
 }
