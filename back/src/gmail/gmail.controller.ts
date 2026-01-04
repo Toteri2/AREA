@@ -62,7 +62,12 @@ export class GmailController {
           hook.userId
         );
 
-        if (!(await this.gmailService.verifyEmailAddress(gmailToken, emailAddress))) {
+        if (
+          !(await this.gmailService.verifyEmailAddress(
+            gmailToken,
+            emailAddress
+          ))
+        ) {
           continue;
         }
 
@@ -73,7 +78,13 @@ export class GmailController {
         );
 
         if (shouldTrigger) {
-          await this.gmailService.executeReactions(hook, body, emailAddress, historyId, hook.userId);
+          await this.gmailService.executeReactions(
+            hook,
+            body,
+            emailAddress,
+            historyId,
+            hook.userId
+          );
         }
 
         hook.lastHistoryId = historyId;

@@ -17,19 +17,19 @@ export class GmailService {
 
   async listUserWebhooks(userId: number): Promise<any> {
     const hooks = await this.hookRepository.find({
-      where: { service: 'gmail', userId: userId},
+      where: { service: 'gmail', userId: userId },
     });
     return hooks;
   }
 
   async createWebhook(
     body: CreateGmailDto,
-    access_token: string,
-    userId: number,
+    accessToken: string,
+    userId: number
   ) {
     const response = await fetch(`${this.baseUrl}users/me/watch`, {
       method: 'POST',
-      headers: this.getHeaders(access_token),
+      headers: this.getHeaders(accessToken),
       body: JSON.stringify({
         topicName: body.topicName,
       }),
@@ -51,9 +51,9 @@ export class GmailService {
     return { valid, hookId: hook.id };
   }
 
-  getHeaders(access_token: string) {
+  getHeaders(accessToken: string) {
     return {
-      Authorization: `Bearer ${access_token}`,
+      Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     };
   }
@@ -81,9 +81,12 @@ export class GmailService {
     return this.handleResponse(response);
   }
 
-  async deleteSubscription(id: string, access_token: string) {
-    await this.stopWatch(access_token);
-    await this.hookRepository.delete({ webhookId: id });
+  async deleteSubscription(id: string, accessToken: string) {
+    try {
+      await this.stopWatch(accessToken);
+    } finally {
+      await this.hookRepository.delete({ webhookId: id });
+    }
     return { message: 'Webhook deleted successfully' };
   }
 

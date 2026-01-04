@@ -244,7 +244,7 @@ export class AuthController {
     };
 
     const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
-    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=https://www.googleapis.com/auth/gmail.modify&state=${state}`;
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=https://www.googleapis.com/auth/gmail.modify&state=${state}&prompt=consent&access_type=offline`;
     return url;
   }
 
@@ -261,8 +261,10 @@ export class AuthController {
   async gmailAuthCallback(@Body() body: { code: string }, @Req() req) {
     const userId = req.user.id;
     if (!userId) throw new Error('No session found');
-    const access_token = await this.authService.getGmailToken(body.code);
-    await this.authService.linkGmailAccount(userId, access_token);
+    const { accessToken, refreshToken } = await this.authService.getGmailToken(
+      body.code
+    );
+    await this.authService.linkGmailAccount(userId, accessToken, refreshToken);
     return { success: true, user: req.user.name };
   }
 }

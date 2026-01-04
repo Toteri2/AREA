@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class CreateGmailDto {
   @IsString()
@@ -9,11 +9,12 @@ export class CreateGmailDto {
   })
   topicName: string;
 
+  @IsOptional()
   @IsInt()
   @ApiProperty({
     description: 'The type of Gmail events to subscribe to',
     example: 1,
-    enum: [1, 2],
+    enum: [1, 2, 3],
   })
   eventType: number;
 }

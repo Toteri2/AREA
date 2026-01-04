@@ -270,14 +270,23 @@ export class AuthService {
     return result.accessToken;
   }
   async getDiscordToken(code: string): Promise<string> {
-    const redirectUri = this.configService.get<string>('DISCORD_CALLBACK_URL');
+    const _redirectUri = this.configService.get<string>('DISCORD_CALLBACK_URL');
 
     const params = new URLSearchParams();
-    params.append('client_id', this.configService.getOrThrow('DISCORD_CLIENT_ID'));
-    params.append('client_secret', this.configService.getOrThrow('DISCORD_CLIENT_SECRET'));
+    params.append(
+      'client_id',
+      this.configService.getOrThrow('DISCORD_CLIENT_ID')
+    );
+    params.append(
+      'client_secret',
+      this.configService.getOrThrow('DISCORD_CLIENT_SECRET')
+    );
     params.append('grant_type', 'authorization_code');
     params.append('code', code);
-    params.append('redirect_uri', this.configService.getOrThrow('DISCORD_CALLBACK_URL'));
+    params.append(
+      'redirect_uri',
+      this.configService.getOrThrow('DISCORD_CALLBACK_URL')
+    );
 
     const res = await axios.post(
       'https://discord.com/api/v10/oauth2/token',
@@ -291,7 +300,9 @@ export class AuthService {
     return res.data.access_token;
   }
 
-  async getGmailToken(code: string): Promise<string> {
+  async getGmailToken(
+    code: string
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       const response = await axios.post('https://oauth2.googleapis.com/token', {
         client_id: process.env.GMAIL_CLIENT_ID,
@@ -300,7 +311,10 @@ export class AuthService {
         grant_type: 'authorization_code',
         redirect_uri: process.env.GMAIL_CALLBACK_URL,
       });
-      return response.data.access_token;
+      return {
+        accessToken: response.data.access_token,
+        refreshToken: response.data.refresh_token,
+      };
     } catch (error) {
       console.error(
         'Error getting Gmail token:',
@@ -312,19 +326,24 @@ export class AuthService {
 
   async linkGmailAccount(
     userId: number,
-    accessToken: string
+    accessToken: string,
+    refreshToken?: string
   ): Promise<Provider> {
     let provider = await this.providerRepository.findOne({
       where: { userId, provider: ProviderType.GMAIL },
     });
     if (provider) {
       provider.accessToken = accessToken;
+      if (refreshToken) {
+        provider.refreshToken = refreshToken;
+      }
     } else {
       provider = this.providerRepository.create({
         userId,
         user: { id: userId } as User,
         provider: ProviderType.GMAIL,
         accessToken,
+        refreshToken,
       });
     }
     return this.providerRepository.save(provider);
