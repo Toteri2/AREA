@@ -1,14 +1,17 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateGmailDto } from 'src/gmail/dto/create_gmail_dto';
+import { ReactionsService } from 'src/reactions/reactions.service';
 import { Hook } from 'src/shared/entities/hook.entity';
+import { GmailEventType } from 'src/shared/enums/gmail.enum';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class GmailService {
   constructor(
     @InjectRepository(Hook)
-    private hookRepository: Repository<Hook>
+    private hookRepository: Repository<Hook>,
+    private readonly reactionsService: ReactionsService
   ) {}
   private readonly baseUrl = 'https://gmail.googleapis.com/gmail/v1/';
 
@@ -82,5 +85,159 @@ export class GmailService {
     await this.stopWatch(access_token);
     await this.hookRepository.delete({ webhookId: id });
     return { message: 'Webhook deleted successfully' };
+  }
+
+  async verifyEmailAddress(
+    gmailToken: string,
+    emailAddress: string
+  ): Promise<boolean> {
+    try {
+      const profileResponse = await fetch(
+        'https://gmail.googleapis.com/gmail/v1/users/me/profile',
+        {
+          headers: {
+            Authorization: `Bearer ${gmailToken}`,
+          },
+        }
+      );
+
+      if (profileResponse.ok) {
+        const profile = await profileResponse.json();
+        return profile.emailAddress === emailAddress;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error verifying email address:', error);
+      return false;
+    }
+  }
+
+  async handleGmailEvent(
+    hook: Hook,
+    gmailToken: string,
+    historyId: string
+  ): Promise<boolean> {
+    const eventType = hook.eventType;
+
+    switch (eventType) {
+      case GmailEventType.MESSAGE_ADDED_INBOX:
+        return this.checkMessageAddedInbox(hook, gmailToken, historyId);
+
+      case GmailEventType.MESSAGE_ADDED:
+        return this.checkMessageAdded(hook, gmailToken, historyId);
+
+      case GmailEventType.MESSAGE_DELETED:
+        return this.checkMessageDeleted(hook, gmailToken, historyId);
+
+      default:
+        console.warn(`Unknown event type: ${eventType}`);
+        return false;
+    }
+  }
+
+  async checkMessageAddedInbox(
+    hook: Hook,
+    gmailToken: string,
+    historyId: string
+  ): Promise<boolean> {
+    try {
+      const historyResponse = await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=${hook.lastHistoryId || historyId}&historyTypes=messageAdded`,
+        {
+          headers: {
+            Authorization: `Bearer ${gmailToken}`,
+          },
+        }
+      );
+
+      if (historyResponse.ok) {
+        const historyData = await historyResponse.json();
+        return historyData.history?.some((hist: any) =>
+          hist.messagesAdded?.some((msg: any) =>
+            msg.message?.labelIds?.includes('INBOX')
+          )
+        );
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking message added in inbox:', error);
+      return false;
+    }
+  }
+
+  async checkMessageAdded(
+    hook: Hook,
+    gmailToken: string,
+    historyId: string
+  ): Promise<boolean> {
+    try {
+      const historyResponse = await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=${hook.lastHistoryId || historyId}&historyTypes=messageAdded`,
+        {
+          headers: {
+            Authorization: `Bearer ${gmailToken}`,
+          },
+        }
+      );
+
+      if (historyResponse.ok) {
+        const historyData = await historyResponse.json();
+        return historyData.history?.some((hist: any) => hist.messagesAdded);
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking message added:', error);
+      return false;
+    }
+  }
+
+  async checkMessageDeleted(
+    hook: Hook,
+    gmailToken: string,
+    historyId: string
+  ): Promise<boolean> {
+    try {
+      const historyResponse = await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=${hook.lastHistoryId || historyId}&historyTypes=messageDeleted`,
+        {
+          headers: {
+            Authorization: `Bearer ${gmailToken}`,
+          },
+        }
+      );
+
+      if (historyResponse.ok) {
+        const historyData = await historyResponse.json();
+        return historyData.history?.some((hist: any) => hist.messagesDeleted);
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking message deleted:', error);
+      return false;
+    }
+  }
+
+  async executeReactions(
+    hook: Hook,
+    body: any,
+    emailAddress: string,
+    historyId: string,
+    userId: number
+  ): Promise<void> {
+    const reactions = await this.reactionsService.findByHookId(hook.id);
+
+    if (reactions.length > 0) {
+      for (const reaction of reactions) {
+        try {
+          await this.reactionsService.executeReaction(
+            reaction,
+            { ...body, emailAddress, historyId },
+            userId
+          );
+        } catch (error) {
+          console.error(`Failed to execute reaction ${reaction.id}:`, error);
+        }
+      }
+    }
   }
 }
