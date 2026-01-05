@@ -6,11 +6,13 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ProviderType } from 'src/shared/enums/provider.enum';
 import { UsersService } from './users.service';
 
 @ApiTags('users')
@@ -29,6 +31,28 @@ export class UsersController {
     const hooks = this.usersService.getUserWebhooks(req.user.id);
     console.log('Retrieved user webhooks:', hooks);
     return hooks;
+  }
+
+  @Get('connection')
+  @ApiOperation({ summary: 'Check if user is connected for given provider' })
+  @ApiResponse({
+    status: 200,
+    description: 'User connection status retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async isUserConnected(
+    @Req() req,
+    @Query('provider') provider?: string
+  ): Promise<{ connected: boolean }> {
+    const providerType = provider?.toLowerCase() as ProviderType;
+    if (!providerType || !(providerType.toUpperCase() in ProviderType)) {
+      return { connected: false };
+    }
+    const isConnected = await this.usersService.isUserConnected(
+      req.user.id,
+      providerType
+    );
+    return { connected: isConnected };
   }
 
   @Post()

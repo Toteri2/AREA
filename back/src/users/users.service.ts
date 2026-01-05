@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Hook } from 'src/shared/entities/hook.entity';
+import { Provider } from 'src/shared/entities/provider.entity';
 import { User } from 'src/shared/entities/user.entity';
+import { ProviderType } from 'src/shared/enums/provider.enum';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -11,7 +13,9 @@ export class UsersService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     @InjectRepository(Hook)
-    private hooksRepository: Repository<Hook>
+    private hooksRepository: Repository<Hook>,
+    @InjectRepository(Provider)
+    private providersRepository: Repository<Provider>
   ) {}
 
   async create(email: string, password: string): Promise<User> {
@@ -46,5 +50,18 @@ export class UsersService {
 
   async getUserWebhooks(userId: number): Promise<Hook[]> {
     return this.hooksRepository.find({ where: { userId: userId } });
+  }
+
+  async isUserConnected(
+    userId: number,
+    provider: ProviderType
+  ): Promise<boolean> {
+    const linked = await this.providersRepository.findOne({
+      where: { userId, provider },
+    });
+    if (linked) {
+      return true;
+    }
+    return false;
   }
 }
