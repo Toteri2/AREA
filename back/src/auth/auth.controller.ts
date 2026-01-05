@@ -173,8 +173,8 @@ export class AuthController {
       ProviderType.DISCORD,
     );
     const clientId = process.env.DISCORD_CLIENT_ID;
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const redirectUri = encodeURIComponent(`${frontendUrl}/discord/callback`);
+    const discordAuthCallbackUrl = process.env.DISCORD_CALLBACK_URL || '';
+    const redirectUri = encodeURIComponent(discordAuthCallbackUrl);
     const scope = encodeURIComponent(
       'identify email guilds guilds.members.read',
     );
