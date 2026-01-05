@@ -1,6 +1,7 @@
 import {
   useAppSelector,
   useGetGithubAuthUrlQuery,
+  useGetGmailAuthUrlQuery,
   useGetMicrosoftAuthUrlQuery,
   useListMicrosoftWebhooksQuery,
   useListRepositoriesQuery,
@@ -48,6 +49,57 @@ function GitHubLinker() {
           type='button'
           onClick={handleLinkGithub}
           className='btn-github-change'
+        >
+          Change Account
+        </button>
+      </div>
+    );
+  }
+  return null;
+}
+
+function GmailLinker() {
+  const { refetch: getAuthUrl } = useGetGmailAuthUrlQuery(undefined);
+  const { isLoading, isSuccess, isError } = useListRepositoriesQuery();
+
+  const handleLinkGmail = async () => {
+    try {
+      const result = await getAuthUrl();
+      if (result.data?.url) {
+        window.location.href = result.data.url;
+      } else if (result.error) {
+        console.error('Failed to fetch Gmail auth URL:', result.error);
+        alert('Failed to connect to Gmail. Please try again later.');
+      } else {
+        console.warn('No URL returned from Gmail auth endpoint');
+        alert('Unable to initiate Gmail authentication. Please try again.');
+      }
+    } catch (error) {
+      console.error('Unexpected error during Gmail auth:', error);
+      alert('An unexpected error occurred. Please try again.');
+    }
+  };
+
+  if (isLoading) {
+    return <div className='loading-spinner'>Loading...</div>;
+  }
+
+  if (isError) {
+    return (
+      <button type='button' onClick={handleLinkGmail} className='btn-gmail'>
+        Link Gmail Account
+      </button>
+    );
+  }
+
+  if (isSuccess) {
+    return (
+      <div className='service-linked'>
+        <p className='linked-status'>✓ Gmail Account Linked</p>
+        <button
+          type='button'
+          onClick={handleLinkGmail}
+          className='btn-gmail-change'
         >
           Change Account
         </button>
@@ -137,6 +189,7 @@ export function Profile() {
         <div className='profile-actions'>
           <h3>Connected Services</h3>
           <GitHubLinker />
+          <GmailLinker />
           <MicrosoftLinker />
         </div>
       </div>

@@ -65,6 +65,16 @@ export interface MicrosoftSubscription {
   expirationDateTime: string;
 }
 
+//Gmail type
+
+export interface GmailSubscription {
+  id: string;
+  resource: string;
+  changeType: string;
+  clientState: string;
+  expirationDateTime: string;
+}
+
 export interface Reaction {
   id: number;
   hookId: number;

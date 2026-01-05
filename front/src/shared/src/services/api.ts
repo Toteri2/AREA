@@ -4,6 +4,7 @@ import type { RootState } from '../store';
 import type {
   ApiAuthResponse,
   CreateWebhookDto,
+  GmailSubscription,
   MicrosoftSubscription,
   Repository,
   User,
@@ -187,6 +188,48 @@ export const apiSlice = createApi({
       query: () => '/users/webhooks',
       providesTags: ['Webhooks'],
     }),
+
+    getGmailAuthUrl: builder.query<
+      { url: string },
+      { mobile?: boolean } | undefined
+    >({
+      query: (args) => ({
+        url: '/auth/gmail/url',
+        params: args?.mobile ? { mobile: 'true' } : undefined,
+        responseHandler: (response) => response.text(),
+      }),
+      transformResponse: (response: string) => ({ url: response }),
+    }),
+    validateGmail: builder.mutation<{ success: boolean }, { code: string }>({
+      query: ({ code }) => ({
+        url: '/auth/gmail/validate',
+        method: 'POST',
+        body: { code },
+      }),
+    }),
+    listGmailWebhooks: builder.query<GmailSubscription[], void>({
+      query: () => '/Gmail/webhooks',
+      providesTags: ['gmailSubscriptions'],
+      refetchOnMountOrArgChange: true,
+    }),
+    createGmailSubscription: builder.mutation<
+      GmailSubscription,
+      { resource: string; changeType: string }
+    >({
+      query: (dto) => ({
+        url: '/gmail/create-webhook',
+        method: 'POST',
+        body: dto,
+      }),
+      invalidatesTags: ['GmailSubscriptions'],
+    }),
+    deleteGmailSubscription: builder.mutation<void, { id: string }>({
+      query: ({ id }) => ({
+        url: `/gmail/webhook?id=${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['GmailSubscriptions'],
+    }),
   }),
 });
 
@@ -210,4 +253,11 @@ export const {
   useCreateReactionMutation,
   useDeleteReactionMutation,
   useListUserWebhooksQuery,
+
+  useGetGmailAuthUrlQuery,
+  useLazyGetGmailAuthUrlQuery,
+  useValidateGmailMutation,
+  useListGmailWebhooksQuery,
+  useCreateGmailSubscriptionMutation,
+  useDeleteGmailSubscriptionMutation,
 } = apiSlice;

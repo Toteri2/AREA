@@ -11,6 +11,8 @@ import {
   Dashboard,
   GitHub,
   GitHubCallback,
+  Gmail,
+  GmailCallback,
   Login,
   Microsoft,
   MicrosoftCallback,
@@ -55,9 +57,11 @@ function App() {
                 <Route path='/dashboard' element={<Dashboard />} />
                 <Route path='/profile' element={<Profile />} />
                 <Route path='/github' element={<GitHub />} />
+                <Route path='/gmail' element={<Gmail />} />
                 <Route path='/microsoft' element={<Microsoft />} />
                 <Route path='/reactions' element={<Reactions />} />
                 <Route path='/github/callback' element={<GitHubCallback />} />
+                <Route path='/gmail/callback' element={<GmailCallback />} />
                 <Route
                   path='/microsoft/callback'
                   element={<MicrosoftCallback />}
