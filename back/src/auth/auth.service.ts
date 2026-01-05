@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import { ConfidentialClientApplication, Configuration } from '@azure/msal-node';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -5,7 +6,6 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as bcrypt from 'bcrypt';
-import { randomBytes } from 'crypto';
 import { OAuthState } from 'src/shared/entities/oauthstates.entity';
 import { Provider } from 'src/shared/entities/provider.entity';
 import { User } from 'src/shared/entities/user.entity';
@@ -35,7 +35,7 @@ export class AuthService {
     @InjectRepository(OAuthState)
     private oauthStatesRepository: Repository<OAuthState>,
     private jwtService: JwtService,
-    private configService: ConfigService
+    private configService: ConfigService,
   ) {}
 
   private getMsalClient() {
@@ -77,7 +77,7 @@ export class AuthService {
 
   async linkGithubAccount(
     userId: number,
-    accessToken: string
+    accessToken: string,
   ): Promise<Provider> {
     let provider = await this.providerRepository.findOne({
       where: { userId, provider: ProviderType.GITHUB },
@@ -111,7 +111,7 @@ export class AuthService {
 
   async linkDiscordAccount(
     userId: number,
-    accessToken: string
+    accessToken: string,
   ): Promise<Provider> {
     let provider = await this.providerRepository.findOne({
       where: { userId, provider: ProviderType.DISCORD },
@@ -141,6 +141,13 @@ export class AuthService {
     });
   }
 
+  async getJiraProvider(userId: number): Promise<Provider | null> {
+    return this.providerRepository.findOneBy({
+      userId,
+      provider: ProviderType.JIRA,
+    });
+  }
+
   async verifyToken(token: string): Promise<any> {
     try {
       return this.jwtService.verify(token);
@@ -151,7 +158,7 @@ export class AuthService {
 
   async createOAuthStateToken(
     userId: number,
-    provider: ProviderType
+    provider: ProviderType,
   ): Promise<string> {
     const state = randomBytes(16).toString('hex');
     const user = await this.userRepository.findOneBy({ id: userId });
@@ -169,7 +176,7 @@ export class AuthService {
 
   async validateOAuthState(
     state: string,
-    provider: ProviderType
+    provider: ProviderType,
   ): Promise<number | null> {
     const data = await this.oauthStatesRepository.findOneBy({ state });
     const date = Date.now();
@@ -183,7 +190,7 @@ export class AuthService {
 
   async findOauthState(
     state: string,
-    provider: ProviderType
+    provider: ProviderType,
   ): Promise<boolean> {
     const stateFound = await this.oauthStatesRepository.findOneBy({
       state,
@@ -208,7 +215,7 @@ export class AuthService {
         headers: {
           Accept: 'application/json',
         },
-      }
+      },
     );
     const access_token = res.data.access_token;
     return access_token;
@@ -275,17 +282,17 @@ export class AuthService {
     const params = new URLSearchParams();
     params.append(
       'client_id',
-      this.configService.getOrThrow('DISCORD_CLIENT_ID')
+      this.configService.getOrThrow('DISCORD_CLIENT_ID'),
     );
     params.append(
       'client_secret',
-      this.configService.getOrThrow('DISCORD_CLIENT_SECRET')
+      this.configService.getOrThrow('DISCORD_CLIENT_SECRET'),
     );
     params.append('grant_type', 'authorization_code');
     params.append('code', code);
     params.append(
       'redirect_uri',
-      this.configService.getOrThrow('DISCORD_CALLBACK_URL')
+      this.configService.getOrThrow('DISCORD_CALLBACK_URL'),
     );
 
     const res = await axios.post(
@@ -295,13 +302,13 @@ export class AuthService {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-      }
+      },
     );
     return res.data.access_token;
   }
 
   async getGmailToken(
-    code: string
+    code: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       const response = await axios.post('https://oauth2.googleapis.com/token', {
@@ -318,7 +325,7 @@ export class AuthService {
     } catch (error) {
       console.error(
         'Error getting Gmail token:',
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
       throw new Error('Failed to get Gmail access token');
     }
@@ -327,7 +334,7 @@ export class AuthService {
   async linkGmailAccount(
     userId: number,
     accessToken: string,
-    refreshToken?: string
+    refreshToken?: string,
   ): Promise<Provider> {
     let provider = await this.providerRepository.findOne({
       where: { userId, provider: ProviderType.GMAIL },
@@ -375,7 +382,7 @@ export class AuthService {
     } catch (error) {
       console.error(
         'Error refreshing Gmail token:',
-        error.response?.data || error.message
+        error.response?.data || error.message,
       );
       throw new Error('Failed to refresh Gmail access token');
     }
@@ -401,7 +408,7 @@ export class AuthService {
           'https://gmail.googleapis.com/gmail/v1/users/me/profile',
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
 
         if (response.status === 200) {
@@ -417,6 +424,162 @@ export class AuthService {
       return token;
     } catch (error) {
       console.error('Error getting valid Gmail token:', error.message);
+      throw error;
+    }
+  }
+
+  async getJiraToken(code: string, cloudId: string): Promise<string> {
+    const params = new URLSearchParams();
+    params.append('grant_type', 'authorization_code');
+    params.append('client_id', process.env.JIRA_CLIENT_ID || '');
+    params.append('client_secret', process.env.JIRA_CLIENT_SECRET || '');
+    params.append('code', code);
+    params.append('redirect_uri', process.env.JIRA_CALLBACK_URL || '');
+
+    const response = await axios.post(
+      'https://auth.atlassian.com/oauth/token',
+      params,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      },
+    );
+
+    return response.data.access_token;
+  }
+
+  async linkJiraAccount(
+    userId: number,
+    accessToken: string,
+    refreshToken?: string,
+    cloudId?: string,
+  ): Promise<Provider> {
+    let provider = await this.providerRepository.findOne({
+      where: { userId, provider: ProviderType.JIRA },
+    });
+
+    if (provider) {
+      provider.accessToken = accessToken;
+      if (refreshToken) {
+        provider.refreshToken = refreshToken;
+      }
+      if (cloudId) {
+        provider.providerId = cloudId;
+      }
+    } else {
+      provider = this.providerRepository.create({
+        userId,
+        user: { id: userId } as User,
+        provider: ProviderType.JIRA,
+        accessToken,
+        refreshToken: refreshToken || undefined,
+        providerId: cloudId || undefined,
+      });
+    }
+
+    return this.providerRepository.save(provider);
+  }
+
+  async getJiraCloudId(accessToken: string): Promise<string> {
+    const response = await axios.get(
+      'https://api.atlassian.com/oauth/token/accessible-resources',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/json',
+        },
+      },
+    );
+
+    if (response.data && response.data.length > 0) {
+      return response.data[0].id;
+    }
+
+    throw new Error('No Jira cloud resources found');
+  }
+
+  async refreshJiraToken(userId: number): Promise<string> {
+    const provider = await this.providerRepository.findOne({
+      where: { userId, provider: ProviderType.JIRA },
+    });
+
+    if (!provider || !provider.refreshToken) {
+      throw new Error('Jira refresh token not found');
+    }
+
+    try {
+      const params = new URLSearchParams();
+      params.append('grant_type', 'refresh_token');
+      params.append('client_id', process.env.JIRA_CLIENT_ID || '');
+      params.append('client_secret', process.env.JIRA_CLIENT_SECRET || '');
+      params.append('refresh_token', provider.refreshToken);
+
+      const response = await axios.post(
+        'https://auth.atlassian.com/oauth/token',
+        params,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      );
+
+      const newAccessToken = response.data.access_token;
+      const newRefreshToken = response.data.refresh_token;
+
+      provider.accessToken = newAccessToken;
+      if (newRefreshToken) {
+        provider.refreshToken = newRefreshToken;
+      }
+
+      await this.providerRepository.save(provider);
+
+      return newAccessToken;
+    } catch (error) {
+      console.error(
+        'Error refreshing Jira token:',
+        error.response?.data || error.message,
+      );
+      throw new Error('Failed to refresh Jira access token');
+    }
+  }
+
+  async getValidJiraToken(userId: number): Promise<string> {
+    try {
+      const provider = await this.providerRepository.findOneBy({
+        userId,
+        provider: ProviderType.JIRA,
+      });
+
+      if (!provider || !provider.accessToken) {
+        throw new Error('Jira account not linked');
+      }
+
+      try {
+        const response = await axios.get(
+          'https://api.atlassian.com/oauth/token/accessible-resources',
+          {
+            headers: {
+              Authorization: `Bearer ${provider.accessToken}`,
+              Accept: 'application/json',
+            },
+          },
+        );
+
+        if (response.status === 200) {
+          return provider.accessToken;
+        }
+      } catch (error) {
+        if (error.response?.status === 401) {
+          return await this.refreshJiraToken(userId);
+        }
+        throw error;
+      }
+
+      return provider.accessToken;
+    } catch (error) {
+      console.error('Error getting valid Jira token:', error.message);
       throw error;
     }
   }

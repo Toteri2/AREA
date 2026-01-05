@@ -31,13 +31,13 @@ export class AuthController {
   })
   async register(
     @Body() body: { email: string; password: string; name: string },
-    @Res() res
+    @Res() res,
   ) {
     try {
       const user = await this.authService.register(
         body.email,
         body.password,
-        body.name
+        body.name,
       );
       const token = await this.authService.login(user);
       return res.status(201).send({
@@ -170,13 +170,13 @@ export class AuthController {
     const userId = req.session.userId;
     const state = await this.authService.createOAuthStateToken(
       userId,
-      ProviderType.DISCORD
+      ProviderType.DISCORD,
     );
     const clientId = process.env.DISCORD_CLIENT_ID;
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const redirectUri = encodeURIComponent(`${frontendUrl}/discord/callback`);
     const scope = encodeURIComponent(
-      'identify email guilds guilds.members.read'
+      'identify email guilds guilds.members.read',
     );
     const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`;
     return url;
@@ -195,7 +195,7 @@ export class AuthController {
     const userId = req.session.userId;
     const state = await this.authService.createOAuthStateToken(
       userId,
-      ProviderType.DISCORD
+      ProviderType.DISCORD,
     );
     return state;
   }
@@ -214,7 +214,7 @@ export class AuthController {
       const { code, state } = body;
       const userId = await this.authService.validateOAuthState(
         state,
-        ProviderType.DISCORD
+        ProviderType.DISCORD,
       );
       console.log('Discord auth callback for user ID:', userId);
       if (!userId) throw new Error('Invalid or expired state token');
@@ -262,9 +262,56 @@ export class AuthController {
     const userId = req.user.id;
     if (!userId) throw new Error('No session found');
     const { accessToken, refreshToken } = await this.authService.getGmailToken(
-      body.code
+      body.code,
     );
     await this.authService.linkGmailAccount(userId, accessToken, refreshToken);
+    return { success: true, user: req.user.name };
+  }
+
+  @Get('jira/url')
+  @ApiOperation({
+    summary: 'Jira authentication url handler.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Jira authentication url received.',
+  })
+  async jiraAuthUrl(@Query('mobile') mobile: string) {
+    const client_id = process.env.JIRA_CLIENT_ID;
+    const redirect_uri = process.env.JIRA_CALLBACK_URL;
+
+    const stateData = {
+      platform: mobile === 'true' ? 'mobile' : 'web',
+      nonce: Math.random().toString(36).substring(7),
+    };
+
+    const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
+    const scope = encodeURIComponent(
+      'read:jira-work write:jira-work read:jira-user offline_access',
+    );
+    const url = `https://auth.atlassian.com/authorize?audience=api.atlassian.com&client_id=${client_id}&scope=${scope}&redirect_uri=${redirect_uri}&state=${state}&response_type=code&prompt=consent`;
+    return url;
+  }
+
+  @Post('jira/validate')
+  @ApiOperation({
+    summary:
+      'Jira authentication callback. Is going to validate the Jira account and link it to the user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Jira account linked successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async jiraAuthCallback(@Body() body: { code: string }, @Req() req) {
+    const userId = req.user.id;
+    if (!userId) throw new Error('No session found');
+
+    const accessToken = await this.authService.getJiraToken(body.code, '');
+    const cloudId = await this.authService.getJiraCloudId(accessToken);
+
+    await this.authService.linkJiraAccount(userId, accessToken, '', cloudId);
+
     return { success: true, user: req.user.name };
   }
 }
