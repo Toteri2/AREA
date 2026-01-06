@@ -152,4 +152,32 @@ export class JiraService {
 
     return response.data;
   }
+
+  async listProjectIssues(userId: number, projectKey: string): Promise<any> {
+    const provider = await this.authService.getJiraProvider(userId);
+    if (!provider || !provider.accessToken || !provider.providerId) {
+      throw new Error('Jira account not linked or missing cloud ID');
+    }
+
+    const accessToken = await this.authService.getValidJiraToken(userId);
+    const cloudId = provider.providerId;
+
+    const response = await axios.post(
+      `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/search/jql`,
+      {
+        jql: `project = ${projectKey}`,
+        maxResults: 100,
+        fields: ['key', 'summary', 'status', 'assignee', 'priority', 'issuetype', 'created', 'updated'],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      }
+    );
+
+    return response.data;
+  }
 }

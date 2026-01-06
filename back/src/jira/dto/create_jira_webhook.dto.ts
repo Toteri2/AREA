@@ -63,6 +63,7 @@ export class CreateJiraWebhookDto {
   @ApiProperty({
     description: 'List of Jira webhook events to subscribe to',
     example: ['jira:issue_created', 'jira:issue_updated', 'comment_created'],
+    enum: VALID_JIRA_EVENTS,
     type: [String],
     required: true,
     isArray: true,

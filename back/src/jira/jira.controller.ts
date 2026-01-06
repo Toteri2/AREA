@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Post,
   Query,
   Req,
@@ -183,6 +184,31 @@ export class JiraController {
       return issue;
     } catch (error) {
       console.error('Error fetching Jira issue:', error.message);
+      throw error;
+    }
+  }
+
+  @Get(':projectKey/issues')
+  @ApiOperation({ summary: 'List all issues for a specific Jira project' })
+  @ApiResponse({
+    status: 200,
+    description: 'Issues retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async listProjectIssues(@Req() req, @Param('projectKey') projectKey: string) {
+    const provider = await this.authService.getJiraProvider(req.user.id);
+    if (!provider) {
+      throw new UnauthorizedException('Jira account not linked');
+    }
+
+    try {
+      const issues = await this.jiraService.listProjectIssues(
+        req.user.id,
+        projectKey
+      );
+      return issues;
+    } catch (error) {
+      console.error('Error fetching Jira project issues:', error.message);
       throw error;
     }
   }
