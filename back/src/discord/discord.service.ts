@@ -297,4 +297,101 @@ export class DiscordService {
       ],
     };
   }
+
+  /**
+   * Create a Discord webhook in a specific channel
+   */
+  async createWebhook(
+    userAccessToken: string,
+    channelId: string,
+    name: string,
+    avatar?: string
+  ) {
+    const body: any = { name };
+    if (avatar) {
+      body.avatar = avatar;
+    }
+
+    const response = await fetch(
+      `${this.baseUrl}/channels/${channelId}/webhooks`,
+      {
+        method: 'POST',
+        headers: this.getBotHeaders(),
+        body: JSON.stringify(body),
+      }
+    );
+    return this.handleResponse(response);
+  }
+
+  /**
+   * Get all webhooks for a channel
+   */
+  async getChannelWebhooks(channelId: string) {
+    const response = await fetch(
+      `${this.baseUrl}/channels/${channelId}/webhooks`,
+      {
+        headers: this.getBotHeaders(),
+      }
+    );
+    return this.handleResponse(response);
+  }
+
+  /**
+   * Get all webhooks for a guild
+   */
+  async getGuildWebhooks(guildId: string) {
+    const response = await fetch(
+      `${this.baseUrl}/guilds/${guildId}/webhooks`,
+      {
+        headers: this.getBotHeaders(),
+      }
+    );
+    return this.handleResponse(response);
+  }
+
+  /**
+   * Delete a webhook
+   */
+  async deleteWebhook(webhookId: string) {
+    const response = await fetch(`${this.baseUrl}/webhooks/${webhookId}`, {
+      method: 'DELETE',
+      headers: this.getBotHeaders(),
+    });
+
+    if (response.status === 204) {
+      return { success: true, message: 'Webhook deleted successfully' };
+    }
+    return this.handleResponse(response);
+  }
+
+  /**
+   * Execute a webhook (send a message via webhook)
+   */
+  async executeWebhook(
+    webhookId: string,
+    webhookToken: string,
+    content: string,
+    embeds?: any[]
+  ) {
+    const body: any = { content };
+    if (embeds && embeds.length > 0) {
+      body.embeds = embeds;
+    }
+
+    const response = await fetch(
+      `${this.baseUrl}/webhooks/${webhookId}/${webhookToken}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (response.status === 204) {
+      return { success: true, message: 'Message sent via webhook' };
+    }
+    return this.handleResponse(response);
+  }
 }

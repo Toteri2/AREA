@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { DiscordModule } from 'src/discord/discord.module';
@@ -10,7 +10,7 @@ import { Reaction } from 'src/shared/entities/reaction.entity';
 @Module({
   imports: [
     AuthModule,
-    DiscordModule,
+    forwardRef(() => DiscordModule),
     TypeOrmModule.forFeature([Reaction, Hook]),
   ],
   controllers: [ReactionsController],
