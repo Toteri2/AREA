@@ -173,7 +173,7 @@ export class JiraController {
     description: 'Issue details retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
-  async getIssue(@Req() req, @Query('issueKey') issueKey: string) {
+  async getIssue(@Req() req, @Param('issueKey') issueKey: string) {
     const provider = await this.authService.getJiraProvider(req.user.id);
     if (!provider) {
       throw new UnauthorizedException('Jira account not linked');
