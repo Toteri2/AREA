@@ -91,7 +91,7 @@ export class JiraController {
   }
 
   @Post('create-webhook')
-  @ApiOperation({ summary: 'Create a Jira webhook via OAuth 2.0' })
+  @ApiOperation({ summary: 'Create a Jira webhook' })
   @ApiResponse({
     status: 201,
     description: 'The webhook has been successfully created.',
@@ -109,7 +109,7 @@ export class JiraController {
     return this.jiraService.createWebhook(
       body,
       accessToken,
-      provider.providerId || '',
+      provider.providerId,
       webhookUrl,
       req.user.id
     );

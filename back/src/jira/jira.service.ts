@@ -30,12 +30,13 @@ export class JiraService {
   ): Promise<any> {
     try {
       const webhookData = {
-        name: `AREA Webhook - ${body.projectKey}`,
         url: webhookUrl,
-        events: body.events,
-        filters: {
-          'issue-related-events-section': `project = ${body.projectKey}`,
-        },
+        webhooks: [
+          {
+            jqlFilter: `project = ${body.projectKey}`,
+            events: body.events,
+          },
+        ],
       };
 
       const response = await axios.post(
@@ -50,7 +51,17 @@ export class JiraService {
         }
       );
 
-      const webhookId = response.data.id || response.data.webhookId;
+      const results = response.data.webhookRegistrationResult;
+      if (!results || !Array.isArray(results) || results.length === 0) {
+        throw new Error(`Unexpected response from Jira API: ${JSON.stringify(response.data)}`);
+      }
+
+      const createdWebhook = results[0];
+      if (createdWebhook.errors) {
+        throw new Error(`Jira webhook validation failed: ${createdWebhook.errors.join(', ')}`);
+      }
+
+      const webhookId = createdWebhook.createdWebhookId;
 
       const hook = this.hookRepository.create({
         userId: userId,
