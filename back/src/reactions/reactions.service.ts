@@ -87,8 +87,18 @@ export class ReactionsService {
 
       case ReactionType.DISCORD_ADD_ROLE:
         return this.addDiscordRole(reaction.config, webhookPayload, userId);
+
       case ReactionType.SEND_EMAIL_GMAIL:
         return this.sendEmailGmail(reaction.config, webhookPayload, userId);
+
+      case ReactionType.JIRA_CREATE_ISSUE:
+        return this.createJiraIssue(reaction.config, webhookPayload, userId);
+
+      case ReactionType.JIRA_ADD_COMMENT:
+        return this.addJiraComment(reaction.config, webhookPayload, userId);
+
+      case ReactionType.JIRA_UPDATE_STATUS:
+        return this.updateJiraStatus(reaction.config, webhookPayload, userId);
 
       default:
         throw new Error(`Unknown reaction type: ${reaction.reactionType}`);
@@ -349,6 +359,259 @@ export class ReactionsService {
       };
     }
 
+    if (payload.issue) {
+      return {
+        issueKey: payload.issue.key,
+        issueId: payload.issue.id,
+        summary: payload.issue.fields?.summary,
+        description: payload.issue.fields?.description,
+        status: payload.issue.fields?.status?.name,
+        priority: payload.issue.fields?.priority?.name,
+        assignee: payload.issue.fields?.assignee?.displayName,
+        issueType: payload.issue.fields?.issuetype?.name,
+        oldStatus: payload.changelog?.items?.find((i: any) => i.field === 'status')?.fromString,
+        newStatus: payload.changelog?.items?.find((i: any) => i.field === 'status')?.toString,
+        commentBody: payload.comment?.body,
+        commentAuthor: payload.comment?.author?.displayName,
+      };
+    }
+
     return {};
+  }
+
+  private async createJiraIssue(
+    config: any,
+    webhookPayload: any,
+    userId: number
+  ): Promise<any> {
+    try {
+      const provider = await this.authService.getJiraProvider(userId);
+      if (!provider || !provider.accessToken || !provider.providerId) {
+        throw new Error('Jira account not linked or missing cloud ID');
+      }
+
+      const accessToken = await this.authService.getValidJiraToken(userId);
+      const cloudId = provider.providerId;
+
+      const processedConfig = this.replaceVariables(config, webhookPayload);
+
+      const description = processedConfig.description
+        ? {
+            type: 'doc',
+            version: 1,
+            content: [
+              {
+                type: 'paragraph',
+                content: [
+                  {
+                    type: 'text',
+                    text: processedConfig.description,
+                  },
+                ],
+              },
+            ],
+          }
+        : undefined;
+
+      const issueData: any = {
+        fields: {
+          project: {
+            key: processedConfig.projectKey,
+          },
+          summary: processedConfig.summary,
+          issuetype: {
+            name: processedConfig.issueType,
+          },
+        },
+      };
+
+      if (description) {
+        issueData.fields.description = description;
+      }
+
+      if (processedConfig.priority) {
+        issueData.fields.priority = {
+          name: processedConfig.priority,
+        };
+      }
+
+      if (processedConfig.labels) {
+        issueData.fields.labels = Array.isArray(processedConfig.labels)
+          ? processedConfig.labels
+          : processedConfig.labels.split(',').map((l: string) => l.trim());
+      }
+
+      const response = await fetch(
+        `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/issue`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify(issueData),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`Failed to create Jira issue: ${JSON.stringify(error)}`);
+      }
+
+      const result = await response.json();
+      return {
+        success: true,
+        issueKey: result.key,
+        issueId: result.id,
+        message: `Issue ${result.key} created successfully`,
+      };
+    } catch (error) {
+      console.error('Error creating Jira issue:', error);
+      throw error;
+    }
+  }
+
+  private async addJiraComment(
+    config: any,
+    webhookPayload: any,
+    userId: number
+  ): Promise<any> {
+    try {
+      const provider = await this.authService.getJiraProvider(userId);
+      if (!provider || !provider.accessToken || !provider.providerId) {
+        throw new Error('Jira account not linked or missing cloud ID');
+      }
+
+      const accessToken = await this.authService.getValidJiraToken(userId);
+      const cloudId = provider.providerId;
+
+      const processedConfig = this.replaceVariables(config, webhookPayload);
+
+      const commentBody = {
+        body: {
+          type: 'doc',
+          version: 1,
+          content: [
+            {
+              type: 'paragraph',
+              content: [
+                {
+                  type: 'text',
+                  text: processedConfig.comment,
+                },
+              ],
+            },
+          ],
+        },
+      };
+
+      const response = await fetch(
+        `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/issue/${processedConfig.issueKey}/comment`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify(commentBody),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`Failed to add Jira comment: ${JSON.stringify(error)}`);
+      }
+
+      const result = await response.json();
+      return {
+        success: true,
+        commentId: result.id,
+        message: `Comment added to ${processedConfig.issueKey} successfully`,
+      };
+    } catch (error) {
+      console.error('Error adding Jira comment:', error);
+      throw error;
+    }
+  }
+
+  private async updateJiraStatus(
+    config: any,
+    webhookPayload: any,
+    userId: number
+  ): Promise<any> {
+    try {
+      const provider = await this.authService.getJiraProvider(userId);
+      if (!provider || !provider.accessToken || !provider.providerId) {
+        throw new Error('Jira account not linked or missing cloud ID');
+      }
+
+      const accessToken = await this.authService.getValidJiraToken(userId);
+      const cloudId = provider.providerId;
+
+      const processedConfig = this.replaceVariables(config, webhookPayload);
+
+      const transitionsResponse = await fetch(
+        `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/issue/${processedConfig.issueKey}/transitions`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: 'application/json',
+          },
+        }
+      );
+
+      if (!transitionsResponse.ok) {
+        throw new Error('Failed to fetch available transitions');
+      }
+
+      const transitionsData = await transitionsResponse.json();
+
+      const transition = transitionsData.transitions.find(
+        (t: any) =>
+          t.name.toLowerCase() === processedConfig.transitionName.toLowerCase() ||
+          t.to.name.toLowerCase() === processedConfig.transitionName.toLowerCase()
+      );
+
+      if (!transition) {
+        throw new Error(
+          `Transition "${processedConfig.transitionName}" not found for issue ${processedConfig.issueKey}`
+        );
+      }
+
+      const response = await fetch(
+        `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/issue/${processedConfig.issueKey}/transitions`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            transition: {
+              id: transition.id,
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`Failed to update Jira status: ${JSON.stringify(error)}`);
+      }
+
+      return {
+        success: true,
+        issueKey: processedConfig.issueKey,
+        transitionId: transition.id,
+        transitionName: transition.name,
+        newStatus: transition.to.name,
+      };
+    } catch (error) {
+      console.error('Error updating Jira status:', error);
+      throw error;
+    }
   }
 }
