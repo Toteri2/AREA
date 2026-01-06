@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { DiscordModule } from './discord/discord.module';
 import { GithubModule } from './github/github.module';
 import { GmailModule } from './gmail/gmail.module';
+import { JiraModule } from './jira/jira.module';
 import { MicrosoftModule } from './microsoft/microsoft.module';
 import { ReactionsModule } from './reactions/reactions.module';
 import { UserModule } from './users/users.module';
@@ -39,6 +40,7 @@ import { UserModule } from './users/users.module';
     MicrosoftModule,
     ReactionsModule,
     GmailModule,
+    JiraModule,
   ],
   controllers: [AppController],
   providers: [AppService],
