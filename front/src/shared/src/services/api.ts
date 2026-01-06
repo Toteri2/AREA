@@ -214,7 +214,7 @@ export const apiSlice = createApi({
     }),
     createGmailSubscription: builder.mutation<
       GmailSubscription,
-      { resource: string; changeType: string }
+      { eventType: number }
     >({
       query: (dto) => ({
         url: '/gmail/create-webhook',

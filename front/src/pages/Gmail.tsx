@@ -6,61 +6,47 @@ import {
   useListGmailWebhooksQuery,
 } from '../shared/src/web';
 
+export const GMAIL_EVENT_TYPES = {
+  MESSAGE_IN_INBOX: 1,
+  MESSAGE_RECEIVED: 2,
+  MESSAGE_DELETED: 3,
+} as const;
+
+export const GMAIL_EVENT_TYPE_LABELS: Record<number, string> = {
+  [GMAIL_EVENT_TYPES.MESSAGE_IN_INBOX]: 'Message received in inbox',
+  [GMAIL_EVENT_TYPES.MESSAGE_RECEIVED]: 'Message received',
+  [GMAIL_EVENT_TYPES.MESSAGE_DELETED]: 'Message deleted',
+};
+
 function CreateSubscriptionForm({ onClose }: { onClose: () => void }) {
-  const [resource, setResource] = useState('me/mailFolders/inbox/messages');
-  const [changeType, setChangeType] = useState('created');
+  const [eventType, setEventType] = useState<number>(1);
   const [createSubscription, { isLoading, error }] =
     useCreateGmailSubscriptionMutation();
 
   const handleCreate = async () => {
     try {
-      await createSubscription({ resource, changeType }).unwrap();
+      await createSubscription({
+        eventType,
+      }).unwrap();
       onClose();
     } catch (_err) {
       /* empty */
     }
   };
 
-  const resourceOptions = [
-    { value: 'me/mailFolders/inbox/messages', label: 'Inbox Messages' },
-    { value: 'me/messages', label: 'All Messages' },
-    { value: 'me/events', label: 'Calendar Events' },
-    { value: 'me/contacts', label: 'Contacts' },
-  ];
-
-  const changeTypeOptions = [
-    { value: 'created', label: 'Created' },
-    { value: 'updated', label: 'Updated' },
-    { value: 'deleted', label: 'Deleted' },
-  ];
-
   return (
     <div className='webhook-form'>
       <h3>Create New Subscription</h3>
       <div className='form-group'>
-        <label htmlFor='resource-select'>Resource</label>
+        <label htmlFor='event-type'>Event Type</label>
         <select
-          id='resource-select'
-          value={resource}
-          onChange={(e) => setResource(e.target.value)}
+          id='event-type'
+          value={eventType}
+          onChange={(e) => setEventType(Number(e.target.value))}
         >
-          {resourceOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className='form-group'>
-        <label htmlFor='changetype-select'>Change Type</label>
-        <select
-          id='changetype-select'
-          value={changeType}
-          onChange={(e) => setChangeType(e.target.value)}
-        >
-          {changeTypeOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
+          {Object.entries(GMAIL_EVENT_TYPE_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
             </option>
           ))}
         </select>
@@ -139,10 +125,10 @@ export function Gmail() {
             {subscriptions?.map((sub: GmailSubscription) => (
               <li key={sub.id} className='webhook-item'>
                 <div className='webhook-info'>
-                  <span className='webhook-url'>Resource: {sub.resource}</span>
-                  <span>Changes: {sub.changeType}</span>
                   <span>
-                    Expires: {new Date(sub.expirationDateTime).toLocaleString()}
+                    Action :{' '}
+                    {GMAIL_EVENT_TYPE_LABELS[sub.eventType] ??
+                      'Unknown event type'}
                   </span>
                 </div>
                 <button

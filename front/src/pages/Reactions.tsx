@@ -10,20 +10,25 @@ import {
 const REACTION_TYPES = [
   {
     value: 1,
-    label: 'Email Notification',
+    label: 'Email Notification (Outlook)',
     requiresConfig: ['to', 'subject', 'body'],
   },
   {
     value: 2,
+    label: 'Email Notification (Gmail)',
+    requiresConfig: ['to', 'subject', 'body'],
+  },
+  {
+    value: 3,
     label: 'Slack Message',
     requiresConfig: ['webhookUrl', 'message'],
   },
   {
-    value: 3,
+    value: 4,
     label: 'Discord Webhook',
     requiresConfig: ['webhookUrl', 'message'],
   },
-  { value: 4, label: 'HTTP POST', requiresConfig: ['url', 'body'] },
+  { value: 5, label: 'HTTP POST', requiresConfig: ['url', 'body'] },
 ];
 
 export function Reactions() {
@@ -221,7 +226,8 @@ export function Reactions() {
                 <fieldset className='form-group'>
                   <legend>Configuration</legend>
 
-                  {selectedReactionType === 1 && (
+                  {(selectedReactionType === 1 ||
+                    selectedReactionType === 2) && (
                     <>
                       <div className='form-group'>
                         <label htmlFor='config-to'>To (Email)</label>
@@ -278,8 +284,8 @@ export function Reactions() {
                     </>
                   )}
 
-                  {(selectedReactionType === 2 ||
-                    selectedReactionType === 3) && (
+                  {(selectedReactionType === 3 ||
+                    selectedReactionType === 4) && (
                     <>
                       <div className='form-group'>
                         <label htmlFor='config-webhookUrl'>Webhook URL</label>
@@ -316,7 +322,7 @@ export function Reactions() {
                     </>
                   )}
 
-                  {selectedReactionType === 4 && (
+                  {selectedReactionType === 5 && (
                     <>
                       <div className='form-group'>
                         <label htmlFor='config-url'>URL</label>
