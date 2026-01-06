@@ -287,7 +287,7 @@ export class AuthController {
 
     const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
     const scope = encodeURIComponent(
-      'read:jira-work write:jira-work read:jira-user offline_access',
+      'read:jira-work write:jira-work read:jira-user manage:jira-webhook offline_access',
     );
     const url = `https://auth.atlassian.com/authorize?audience=api.atlassian.com&client_id=${client_id}&scope=${scope}&redirect_uri=${redirect_uri}&state=${state}&response_type=code&prompt=consent`;
     return url;
@@ -307,10 +307,25 @@ export class AuthController {
     const userId = req.user.id;
     if (!userId) throw new Error('No session found');
 
-    const accessToken = await this.authService.getJiraToken(body.code, '');
+    let code = body.code;
+
+    if (code.includes('code=')) {
+      const match = code.match(/code=([^&]+)/);
+      if (match) {
+        code = decodeURIComponent(match[1]);
+      }
+    }
+
+    const { accessToken, refreshToken } =
+      await this.authService.getJiraToken(code);
     const cloudId = await this.authService.getJiraCloudId(accessToken);
 
-    await this.authService.linkJiraAccount(userId, accessToken, '', cloudId);
+    await this.authService.linkJiraAccount(
+      userId,
+      accessToken,
+      refreshToken,
+      cloudId,
+    );
 
     return { success: true, user: req.user.name };
   }

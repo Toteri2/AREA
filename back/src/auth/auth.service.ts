@@ -428,25 +428,39 @@ export class AuthService {
     }
   }
 
-  async getJiraToken(code: string, cloudId: string): Promise<string> {
-    const params = new URLSearchParams();
-    params.append('grant_type', 'authorization_code');
-    params.append('client_id', process.env.JIRA_CLIENT_ID || '');
-    params.append('client_secret', process.env.JIRA_CLIENT_SECRET || '');
-    params.append('code', code);
-    params.append('redirect_uri', process.env.JIRA_CALLBACK_URL || '');
+  async getJiraToken(
+    code: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    try {
+      const params = new URLSearchParams();
+      params.append('grant_type', 'authorization_code');
+      params.append('client_id', process.env.JIRA_CLIENT_ID || '');
+      params.append('client_secret', process.env.JIRA_CLIENT_SECRET || '');
+      params.append('code', code);
+      params.append('redirect_uri', process.env.JIRA_CALLBACK_URL || '');
 
-    const response = await axios.post(
-      'https://auth.atlassian.com/oauth/token',
-      params,
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+      const response = await axios.post(
+        'https://auth.atlassian.com/oauth/token',
+        params,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
         },
-      },
-    );
+      );
 
-    return response.data.access_token;
+      return {
+        accessToken: response.data.access_token,
+        refreshToken: response.data.refresh_token,
+      };
+    } catch (error) {
+      if (error.response?.status === 400) {
+        throw new Error(
+          'Invalid or expired authorization code.',
+        );
+      }
+      throw error;
+    }
   }
 
   async linkJiraAccount(
