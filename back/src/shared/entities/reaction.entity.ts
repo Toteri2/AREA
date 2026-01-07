@@ -14,6 +14,9 @@ export enum ReactionType {
   DISCORD_CREATE_CHANNEL = 3,
   DISCORD_ADD_ROLE = 4,
   SEND_EMAIL_GMAIL = 5,
+  JIRA_CREATE_ISSUE = 6,
+  JIRA_ADD_COMMENT = 7,
+  JIRA_UPDATE_STATUS = 8,
 }
 
 @Entity('reactions')
