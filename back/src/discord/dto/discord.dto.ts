@@ -82,3 +82,5 @@ export class CreatePrivateChannelDto {
   })
   permissionOverwrites?: any[];
 }
+
+export { CreateDiscordWebhookDto } from './create-discord-webhook.dto';
