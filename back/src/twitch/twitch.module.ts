@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
-import { TwitchWebhook } from '../shared/entities/twitch-webhook.entity';
+import { Hook } from '../shared/entities/hook.entity';
 import { TwitchController } from './twitch.controller';
 import { TwitchService } from './twitch.service';
 
 @Module({
     imports: [
         AuthModule,
-        TypeOrmModule.forFeature([TwitchWebhook]),
+        TypeOrmModule.forFeature([Hook]),
     ],
     controllers: [TwitchController],
     providers: [TwitchService],
