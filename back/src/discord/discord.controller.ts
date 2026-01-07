@@ -180,14 +180,11 @@ export class DiscordController {
     console.log('Discord webhook received');
     console.log('Payload:', body);
 
-    // Discord sends a PING event to verify the webhook endpoint
     if (body.type === 1) {
       return { type: 1 };
     }
 
-    // Handle interaction events (e.g., slash commands, buttons, etc.)
     if (body.type === 2 || body.type === 3) {
-      // Find all hooks associated with this Discord event
       const hooks = await this.hooksRepository.find({
         where: { service: 'discord' },
       });
@@ -284,14 +281,12 @@ export class DiscordController {
     if (!provider)
       throw new UnauthorizedException('Discord account not linked');
 
-    // Delete from database
     await this.hooksRepository.delete({
       webhookId,
       userId: req.user.id,
       service: 'discord',
     });
 
-    // Delete from Discord
     return this.discordService.deleteWebhook(webhookId);
   }
 }
