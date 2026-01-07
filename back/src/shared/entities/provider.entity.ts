@@ -30,6 +30,9 @@ export class Provider {
   @Column({ name: 'refresh_token', nullable: true, type: 'text' })
   refreshToken: string;
 
+  @Column({ name: 'provider_id', nullable: true, type: 'text' })
+  providerId: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }
