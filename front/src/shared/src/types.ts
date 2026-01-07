@@ -75,6 +75,28 @@ export interface GmailSubscription {
   expirationDateTime: string;
 }
 
+export type AboutService = {
+  name: string;
+  actions: {
+    name: string;
+    description: string;
+  }[];
+  reactions: {
+    name: string;
+    description: string;
+  }[];
+};
+
+export type AboutResponse = {
+  client: {
+    host: string;
+  };
+  server: {
+    current_time: number;
+    services: AboutService[];
+  };
+};
+
 export interface Reaction {
   id: number;
   hookId: number;
