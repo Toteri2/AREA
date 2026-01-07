@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateClipDto, SendChatMessageDto, UpdateStreamDto } from './dto/twitch.dto';
-import { TwitchWebhook } from '../shared/entities/twitch-webhook.entity';
+import { Hook } from '../shared/entities/hook.entity';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -13,8 +13,8 @@ export class TwitchService {
 
     constructor(
         private configService: ConfigService,
-        @InjectRepository(TwitchWebhook)
-        private webhookRepository: Repository<TwitchWebhook>,
+        @InjectRepository(Hook)
+        private hookRepository: Repository<Hook>,
     ) {
         this.webhookSecret = this.configService.get<string>('TWITCH_WEBHOOK_SECRET') || 'your_webhook_secret';
     }
@@ -316,16 +316,14 @@ export class TwitchService {
 
         const data = await this.handleResponse(response);
 
-        const webhook = this.webhookRepository.create({
+        const webhook = this.hookRepository.create({
             userId,
-            subscriptionId: data.data[0].id,
-            eventType,
-            condition,
-            status: 'enabled',
-            callbackUrl,
+            webhookId: data.data[0].id,
+            service: 'twitch',
+            eventType: this.mapEventTypeToInt(eventType),
         });
 
-        await this.webhookRepository.save(webhook);
+        await this.hookRepository.save(webhook);
 
         return data;
     }
@@ -352,11 +350,10 @@ export class TwitchService {
             throw new HttpException('Failed to unsubscribe', response.status);
         }
 
-        // Update webhook status in database
-        await this.webhookRepository.update(
-            { subscriptionId },
-            { status: 'disabled' }
-        );
+        await this.hookRepository.delete({
+            webhookId: subscriptionId,
+            service: 'twitch',
+        });
 
         return { success: true };
     }
@@ -397,8 +394,22 @@ export class TwitchService {
      * Get user's active webhooks
      */
     async getUserWebhooks(userId: number) {
-        return this.webhookRepository.find({
-            where: { userId, status: 'enabled' },
+        return this.hookRepository.find({
+            where: { userId, service: 'twitch' },
         });
+    }
+
+    /**
+     * Map Twitch event type to integer for storage
+     */
+    private mapEventTypeToInt(eventType: string): number {
+        const eventMap: { [key: string]: number } = {
+            'stream.online': 1,
+            'stream.offline': 2,
+            'channel.update': 3,
+            'channel.follow': 4,
+            'channel.subscribe': 5,
+        };
+        return eventMap[eventType] || 0;
     }
 }
