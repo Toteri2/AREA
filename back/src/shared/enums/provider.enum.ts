@@ -4,4 +4,5 @@ export enum ProviderType {
   DISCORD = 'discord',
   GMAIL = 'gmail',
   JIRA = 'jira',
+  TWITCH = 'twitch',
 }
