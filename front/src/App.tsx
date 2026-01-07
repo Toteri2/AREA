@@ -19,6 +19,7 @@ import {
   Profile,
   Reactions,
   Register,
+  Services,
 } from './pages';
 import './App.css';
 
@@ -60,6 +61,7 @@ function App() {
                 <Route path='/gmail' element={<Gmail />} />
                 <Route path='/microsoft' element={<Microsoft />} />
                 <Route path='/reactions' element={<Reactions />} />
+                <Route path='/services' element={<Services />} />
                 <Route path='/github/callback' element={<GitHubCallback />} />
                 <Route path='/gmail/callback' element={<GmailCallback />} />
                 <Route

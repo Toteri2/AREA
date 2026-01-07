@@ -9,3 +9,4 @@ export { MicrosoftCallback } from './MicrosoftCallback';
 export { Profile } from './Profile';
 export { Reactions } from './Reactions';
 export { Register } from './Register';
+export { Services } from './Services';
