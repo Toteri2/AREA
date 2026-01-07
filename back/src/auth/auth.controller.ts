@@ -234,7 +234,57 @@ export class AuthController {
       await this.authService.linkDiscordAccount(userId, accessToken);
       return { success: true, message: 'Discord account linked successfully' };
     } catch (error) {
-      console.error('Discord auth callback error:', error);
+      console.error('Discord auth callback error:', error); 
+      throw error;
+    }
+  }
+
+  @Get('twitch/url')
+  @ApiOperation({
+    summary: 'Get Twitch OAuth URL',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Twitch OAuth URL generated successfully.',
+  })
+  @UseGuards(JwtSessionGuard)
+  async getTwitchAuthUrl(@Req() req) {
+    const userId = req.session.userId;
+    const state = await this.authService.createOAuthStateToken(
+      userId,
+      ProviderType.TWITCH
+    );
+    const clientId = process.env.TWITCH_CLIENT_ID;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const redirectUri = encodeURIComponent(`${frontendUrl}/twitch/callback`);
+    const scope = encodeURIComponent('user:read:email');
+    const url = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`;
+    return url;
+  }
+
+  @Post('twitch/validate')
+  @ApiOperation({
+    summary:
+      'Twitch authentication callback. Validates the code and links the Twitch account to the user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Twitch account linked successfully.',
+  })
+  async twitchAuthCallback(@Body() body: { code: string; state: string }) {
+    try {
+      const { code, state } = body;
+      const userId = await this.authService.validateOAuthState(
+        state,
+        ProviderType.TWITCH
+      );
+      console.log('Twitch auth callback for user ID:', userId);
+      if (!userId) throw new Error('Invalid or expired state token');
+      const access_token = await this.authService.getTwitchToken(code);
+      await this.authService.linkTwitchAccount(userId, access_token);
+      return { success: true, message: 'Twitch account linked successfully' };
+    } catch (error) {
+      console.error('Twitch auth callback error:', error);
       throw error;
     }
   }

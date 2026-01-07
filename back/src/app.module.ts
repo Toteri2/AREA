@@ -10,6 +10,7 @@ import { GmailModule } from './gmail/gmail.module';
 import { JiraModule } from './jira/jira.module';
 import { MicrosoftModule } from './microsoft/microsoft.module';
 import { ReactionsModule } from './reactions/reactions.module';
+import { TwitchModule } from './twitch/twitch.module';
 import { UserModule } from './users/users.module';
 
 @Module({
@@ -41,6 +42,7 @@ import { UserModule } from './users/users.module';
     ReactionsModule,
     GmailModule,
     JiraModule,
+    TwitchModule,
   ],
   controllers: [AppController],
   providers: [AppService],
