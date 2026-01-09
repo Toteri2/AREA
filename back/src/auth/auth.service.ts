@@ -217,8 +217,8 @@ export class AuthService {
         },
       }
     );
-    const access_token = res.data.access_token;
-    return access_token;
+    const accessToken = res.data.access_token;
+    return accessToken;
   }
 
   async linkMicrosoftAccount(userId: number, code: string) {
