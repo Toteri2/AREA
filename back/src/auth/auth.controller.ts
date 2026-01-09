@@ -93,8 +93,8 @@ export class AuthController {
     description: 'GitHub authentication url received.',
   })
   async githubAuthUrl(@Query('mobile') mobile: string) {
-    const client_id = process.env.GITHUB_CLIENT_ID;
-    const redirect_uri = process.env.GITHUB_CALLBACK_URL;
+    const clientId = process.env.GITHUB_CLIENT_ID;
+    const redirectUri = process.env.GITHUB_CALLBACK_URL;
 
     const stateData = {
       platform: mobile === 'true' ? 'mobile' : 'web',
@@ -103,7 +103,7 @@ export class AuthController {
 
     const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
 
-    return `https://github.com/login/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&scope=user:email repo write:repo_hook&state=${state}`;
+    return `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email repo write:repo_hook&state=${state}`;
   }
 
   @Post('github/validate')
@@ -119,8 +119,8 @@ export class AuthController {
   async githubAuthCallback(@Body() body: { code: string }, @Req() req) {
     const userId = req.user.id;
     if (!userId) throw new Error('No session found');
-    const access_token = await this.authService.getGithubToken(body.code);
-    await this.authService.linkGithubAccount(userId, access_token);
+    const accessToken = await this.authService.getGithubToken(body.code);
+    await this.authService.linkGithubAccount(userId, accessToken);
     return { success: true, user: req.user.name };
   }
 
@@ -131,15 +131,15 @@ export class AuthController {
     description: 'Microsoft authentication URL retrieved successfully.',
   })
   async microsoftAuthUrl(@Query('mobile') mobile: string) {
-    const client_id = process.env.MICROSOFT_CLIENT_ID;
-    const redirect_uri = process.env.MICROSOFT_CALLBACK_URL;
+    const clientId = process.env.MICROSOFT_CLIENT_ID;
+    const redirectUri = process.env.MICROSOFT_CALLBACK_URL;
 
     const stateData = {
       platform: mobile === 'true' ? 'mobile' : 'web',
       nonce: Math.random().toString(36).substring(7),
     };
     const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
-    return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${client_id}&response_type=code&redirect_uri=${redirect_uri}&response_mode=query&scope=offline_access user.read mail.read&state=${state}`;
+    return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&response_mode=query&scope=offline_access user.read mail.read&state=${state}`;
   }
 
   @Post('microsoft/validate')
@@ -218,8 +218,8 @@ export class AuthController {
       );
       console.log('Discord auth callback for user ID:', userId);
       if (!userId) throw new Error('Invalid or expired state token');
-      const access_token = await this.authService.getDiscordToken(code);
-      await this.authService.linkDiscordAccount(userId, access_token);
+      const accessToken = await this.authService.getDiscordToken(code);
+      await this.authService.linkDiscordAccount(userId, accessToken);
       return { success: true, message: 'Discord account linked successfully' };
     } catch (error) {
       console.error('Discord auth callback error:', error);
@@ -235,8 +235,8 @@ export class AuthController {
     description: 'Gmail authentication url received.',
   })
   async gmailAuthUrl(@Query('mobile') mobile: string) {
-    const client_id = process.env.GMAIL_CLIENT_ID;
-    const redirect_uri = process.env.GMAIL_CALLBACK_URL;
+    const clientId = process.env.GMAIL_CLIENT_ID;
+    const redirectUri = process.env.GMAIL_CALLBACK_URL;
 
     const stateData = {
       platform: mobile === 'true' ? 'mobile' : 'web',
@@ -244,7 +244,7 @@ export class AuthController {
     };
 
     const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
-    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=https://www.googleapis.com/auth/gmail.modify&state=${state}&prompt=consent&access_type=offline`;
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=https://www.googleapis.com/auth/gmail.modify&state=${state}&prompt=consent&access_type=offline`;
     return url;
   }
 
@@ -320,8 +320,8 @@ export class AuthController {
     description: 'Jira authentication url received.',
   })
   async jiraAuthUrl(@Query('mobile') mobile: string) {
-    const client_id = process.env.JIRA_CLIENT_ID;
-    const redirect_uri = process.env.JIRA_CALLBACK_URL;
+    const clientId = process.env.JIRA_CLIENT_ID;
+    const redirectUri = process.env.JIRA_CALLBACK_URL;
 
     const stateData = {
       platform: mobile === 'true' ? 'mobile' : 'web',
@@ -332,7 +332,7 @@ export class AuthController {
     const scope = encodeURIComponent(
       'read:jira-work write:jira-work read:jira-user manage:jira-webhook offline_access'
     );
-    const url = `https://auth.atlassian.com/authorize?audience=api.atlassian.com&client_id=${client_id}&scope=${scope}&redirect_uri=${redirect_uri}&state=${state}&response_type=code&prompt=consent`;
+    const url = `https://auth.atlassian.com/authorize?audience=api.atlassian.com&client_id=${clientId}&scope=${scope}&redirect_uri=${redirectUri}&state=${state}&response_type=code&prompt=consent`;
     return url;
   }
 

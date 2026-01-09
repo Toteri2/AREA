@@ -73,10 +73,10 @@ export class GmailService {
     return response.json();
   }
 
-  async stopWatch(access_token: string) {
+  async stopWatch(accessToken: string) {
     const response = await fetch(`${this.baseUrl}users/me/stop`, {
       method: 'POST',
-      headers: this.getHeaders(access_token),
+      headers: this.getHeaders(accessToken),
     });
     return this.handleResponse(response);
   }
