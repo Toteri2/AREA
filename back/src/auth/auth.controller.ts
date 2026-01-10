@@ -8,6 +8,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtSessionGuard } from 'src/auth/guards/jwt-session.guard';
@@ -17,7 +18,10 @@ import { AuthService } from './auth.service';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService
+  ) {}
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
@@ -93,8 +97,10 @@ export class AuthController {
     description: 'GitHub authentication url received.',
   })
   async githubAuthUrl(@Query('mobile') mobile: string) {
-    const clientId = process.env.GITHUB_CLIENT_ID;
-    const redirectUri = process.env.GITHUB_CALLBACK_URL;
+    const clientId = this.configService.getOrThrow<string>('GITHUB_CLIENT_ID');
+    const redirectUri = this.configService.getOrThrow<string>(
+      'GITHUB_CALLBACK_URL'
+    );
 
     const stateData = {
       platform: mobile === 'true' ? 'mobile' : 'web',
@@ -131,8 +137,12 @@ export class AuthController {
     description: 'Microsoft authentication URL retrieved successfully.',
   })
   async microsoftAuthUrl(@Query('mobile') mobile: string) {
-    const clientId = process.env.MICROSOFT_CLIENT_ID;
-    const redirectUri = process.env.MICROSOFT_CALLBACK_URL;
+    const clientId = this.configService.getOrThrow<string>(
+      'MICROSOFT_CLIENT_ID'
+    );
+    const redirectUri = this.configService.getOrThrow<string>(
+      'MICROSOFT_CALLBACK_URL'
+    );
 
     const stateData = {
       platform: mobile === 'true' ? 'mobile' : 'web',
@@ -172,8 +182,10 @@ export class AuthController {
       userId,
       ProviderType.DISCORD
     );
-    const clientId = process.env.DISCORD_CLIENT_ID;
-    const discordAuthCallbackUrl = process.env.DISCORD_CALLBACK_URL || '';
+    const clientId = this.configService.getOrThrow<string>('DISCORD_CLIENT_ID');
+    const discordAuthCallbackUrl = this.configService.getOrThrow<string>(
+      'DISCORD_CALLBACK_URL'
+    );
     const redirectUri = encodeURIComponent(discordAuthCallbackUrl);
     const scope = encodeURIComponent(
       'identify email guilds guilds.members.read'
@@ -235,8 +247,9 @@ export class AuthController {
     description: 'Gmail authentication url received.',
   })
   async gmailAuthUrl(@Query('mobile') mobile: string) {
-    const clientId = process.env.GMAIL_CLIENT_ID;
-    const redirectUri = process.env.GMAIL_CALLBACK_URL;
+    const clientId = this.configService.getOrThrow<string>('GMAIL_CLIENT_ID');
+    const redirectUri =
+      this.configService.getOrThrow<string>('GMAIL_CALLBACK_URL');
 
     const stateData = {
       platform: mobile === 'true' ? 'mobile' : 'web',
@@ -320,8 +333,9 @@ export class AuthController {
     description: 'Jira authentication url received.',
   })
   async jiraAuthUrl(@Query('mobile') mobile: string) {
-    const clientId = process.env.JIRA_CLIENT_ID;
-    const redirectUri = process.env.JIRA_CALLBACK_URL;
+    const clientId = this.configService.getOrThrow<string>('JIRA_CLIENT_ID');
+    const redirectUri =
+      this.configService.getOrThrow<string>('JIRA_CALLBACK_URL');
 
     const stateData = {
       platform: mobile === 'true' ? 'mobile' : 'web',

@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -26,6 +27,7 @@ export class GithubController {
     private readonly githubService: GithubService,
     private readonly authService: AuthService,
     private readonly reactionsService: ReactionsService,
+    private readonly configService: ConfigService,
     @InjectRepository(Hook)
     private hooksRepository: Repository<Hook>
   ) {}
@@ -80,7 +82,8 @@ export class GithubController {
   @UseGuards(AuthGuard('jwt'))
   async createWebhook(@Req() req, @Body() createWebhookDto: CreateWebhookDto) {
     const provider = await this.authService.getGithubProvider(req.user.id);
-    const webhookUrl = process.env.GITHUB_WEBHOOK_URL ?? '';
+    const webhookUrl =
+      this.configService.getOrThrow<string>('GITHUB_WEBHOOK_URL');
     if (!provider) throw new UnauthorizedException('GitHub account not linked');
     const result = await this.githubService.createWebhook(
       provider.accessToken,

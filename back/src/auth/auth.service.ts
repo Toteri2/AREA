@@ -14,13 +14,7 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
-  private msalConfig: Configuration = {
-    auth: {
-      clientId: process.env.MICROSOFT_CLIENT_ID || '',
-      authority: 'https://login.microsoftonline.com/common',
-      clientSecret: process.env.MICROSOFT_CLIENT_SECRET || '',
-    },
-  };
+  private msalConfig: Configuration;
   private scopes = [
     'https://graph.microsoft.com/Mail.ReadWrite',
     'https://graph.microsoft.com/User.Read',
@@ -36,7 +30,17 @@ export class AuthService {
     private oauthStatesRepository: Repository<OAuthState>,
     private jwtService: JwtService,
     private configService: ConfigService
-  ) {}
+  ) {
+    this.msalConfig = {
+      auth: {
+        clientId: this.configService.getOrThrow<string>('MICROSOFT_CLIENT_ID'),
+        authority: 'https://login.microsoftonline.com/common',
+        clientSecret: this.configService.getOrThrow<string>(
+          'MICROSOFT_CLIENT_SECRET'
+        ),
+      },
+    };
+  }
 
   private getMsalClient() {
     return new ConfidentialClientApplication(this.msalConfig);
@@ -46,7 +50,9 @@ export class AuthService {
     const client = this.getMsalClient();
     const authUrl = await client.getAuthCodeUrl({
       scopes: this.scopes,
-      redirectUri: process.env.MICROSOFT_CALLBACK_URL || '',
+      redirectUri: this.configService.getOrThrow<string>(
+        'MICROSOFT_CALLBACK_URL'
+      ),
     });
     return authUrl;
   }
@@ -206,10 +212,14 @@ export class AuthService {
     const res = await axios.post(
       'https://github.com/login/oauth/access_token',
       {
-        client_id: process.env.GITHUB_CLIENT_ID,
-        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        client_id: this.configService.getOrThrow<string>('GITHUB_CLIENT_ID'),
+        client_secret: this.configService.getOrThrow<string>(
+          'GITHUB_CLIENT_SECRET'
+        ),
         code: code,
-        redirect_uri: process.env.GITHUB_CALLBACK_URL,
+        redirect_uri: this.configService.getOrThrow<string>(
+          'GITHUB_CALLBACK_URL'
+        ),
       },
       {
         headers: {
@@ -226,7 +236,9 @@ export class AuthService {
     await client.acquireTokenByCode({
       code: code,
       scopes: this.scopes,
-      redirectUri: process.env.MICROSOFT_CALLBACK_URL ?? '',
+      redirectUri: this.configService.getOrThrow<string>(
+        'MICROSOFT_CALLBACK_URL'
+      ),
     });
     const cache = client.getTokenCache().serialize();
     let provider = await this.providerRepository.findOne({
@@ -312,11 +324,14 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       const response = await axios.post('https://oauth2.googleapis.com/token', {
-        client_id: process.env.GMAIL_CLIENT_ID,
-        client_secret: process.env.GMAIL_CLIENT_SECRET,
+        client_id: this.configService.getOrThrow<string>('GMAIL_CLIENT_ID'),
+        client_secret: this.configService.getOrThrow<string>(
+          'GMAIL_CLIENT_SECRET'
+        ),
         code,
         grant_type: 'authorization_code',
-        redirect_uri: process.env.GMAIL_CALLBACK_URL,
+        redirect_uri:
+          this.configService.getOrThrow<string>('GMAIL_CALLBACK_URL'),
       });
       return {
         accessToken: response.data.access_token,
@@ -367,8 +382,10 @@ export class AuthService {
 
     try {
       const response = await axios.post('https://oauth2.googleapis.com/token', {
-        client_id: process.env.GMAIL_CLIENT_ID,
-        client_secret: process.env.GMAIL_CLIENT_SECRET,
+        client_id: this.configService.getOrThrow<string>('GMAIL_CLIENT_ID'),
+        client_secret: this.configService.getOrThrow<string>(
+          'GMAIL_CLIENT_SECRET'
+        ),
         refresh_token: provider.refreshToken,
         grant_type: 'refresh_token',
       });
@@ -434,10 +451,19 @@ export class AuthService {
     try {
       const params = new URLSearchParams();
       params.append('grant_type', 'authorization_code');
-      params.append('client_id', process.env.JIRA_CLIENT_ID || '');
-      params.append('client_secret', process.env.JIRA_CLIENT_SECRET || '');
+      params.append(
+        'client_id',
+        this.configService.getOrThrow<string>('JIRA_CLIENT_ID')
+      );
+      params.append(
+        'client_secret',
+        this.configService.getOrThrow<string>('JIRA_CLIENT_SECRET')
+      );
       params.append('code', code);
-      params.append('redirect_uri', process.env.JIRA_CALLBACK_URL || '');
+      params.append(
+        'redirect_uri',
+        this.configService.getOrThrow<string>('JIRA_CALLBACK_URL')
+      );
 
       const response = await axios.post(
         'https://auth.atlassian.com/oauth/token',
@@ -523,8 +549,14 @@ export class AuthService {
     try {
       const params = new URLSearchParams();
       params.append('grant_type', 'refresh_token');
-      params.append('client_id', process.env.JIRA_CLIENT_ID || '');
-      params.append('client_secret', process.env.JIRA_CLIENT_SECRET || '');
+      params.append(
+        'client_id',
+        this.configService.getOrThrow<string>('JIRA_CLIENT_ID')
+      );
+      params.append(
+        'client_secret',
+        this.configService.getOrThrow<string>('JIRA_CLIENT_SECRET')
+      );
       params.append('refresh_token', provider.refreshToken);
 
       const response = await axios.post(
