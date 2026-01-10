@@ -20,9 +20,9 @@ import { Hook } from '../shared/entities/hook.entity';
 import { DiscordService } from './discord.service';
 import {
   AddRoleDto,
+  CreateDiscordWebhookDto,
   CreatePrivateChannelDto,
   SendMessageDto,
-  CreateDiscordWebhookDto,
 } from './dto/discord.dto';
 
 @ApiTags('discord')
@@ -117,7 +117,10 @@ export class DiscordController {
     const provider = await this.authService.getDiscordProvider(req.user.id);
     if (!provider)
       throw new UnauthorizedException('Discord account not linked');
-    return this.discordService.sendMessage(provider.accessToken, sendMessageDto);
+    return this.discordService.sendMessage(
+      provider.accessToken,
+      sendMessageDto
+    );
   }
 
   @Post('roles')

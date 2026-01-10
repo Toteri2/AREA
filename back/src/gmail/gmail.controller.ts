@@ -72,7 +72,7 @@ export class GmailController {
         }
 
         const oldHistoryId = hook.lastHistoryId || historyId;
-        
+
         hook.lastHistoryId = historyId;
         await this.hooksRepository.save(hook);
         const shouldTrigger = await this.gmailService.handleGmailEvent(
