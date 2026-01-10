@@ -10,6 +10,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -28,6 +29,7 @@ export class JiraController {
     private readonly jiraService: JiraService,
     private readonly authService: AuthService,
     private readonly reactionsService: ReactionsService,
+    private readonly configService: ConfigService,
     @InjectRepository(Hook)
     private hooksRepository: Repository<Hook>
   ) {}
@@ -104,7 +106,8 @@ export class JiraController {
       throw new UnauthorizedException('Jira account not linked');
     }
 
-    const webhookUrl = process.env.JIRA_WEBHOOK_URL ?? '';
+    const webhookUrl =
+      this.configService.getOrThrow<string>('JIRA_WEBHOOK_URL');
     const accessToken = await this.authService.getValidJiraToken(req.user.id);
 
     return this.jiraService.createWebhook(

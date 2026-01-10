@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import session from 'express-session';
@@ -5,10 +6,12 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
-  const corsOrigins = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const corsOrigins =
+    configService.getOrThrow<string>('FRONTEND_URL') || 'http://localhost:5173';
 
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isProduction = configService.getOrThrow<string>('NODE_ENV') === 'production';
 
   if (isProduction) app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
@@ -34,7 +37,7 @@ async function bootstrap() {
 
   app.use(
     session({
-      secret: process.env.SESSION_SECRET || 'secret',
+      secret: configService.getOrThrow<string>('SESSION_SECRET'),
       resave: false,
       saveUninitialized: false,
       cookie: {
@@ -59,6 +62,6 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);
-  await app.listen(process.env.PORT ?? 8080);
+  await app.listen(configService.getOrThrow<string>('PORT') ?? 8080);
 }
 bootstrap();
