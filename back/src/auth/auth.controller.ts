@@ -290,8 +290,8 @@ export class AuthController {
     description: 'Google authentication url received.',
   })
   async googleAuthUrl(@Query('mobile') mobile: string) {
-    const client_id = process.env.GMAIL_CLIENT_ID;
-    const redirect_uri = process.env.GOOGLE_CALLBACK_URL;
+    const clientId = process.env.GMAIL_CLIENT_ID;
+    const redirectUri = process.env.GOOGLE_CALLBACK_URL;
 
     const stateData = {
       platform: mobile === 'true' ? 'mobile' : 'web',
@@ -300,7 +300,8 @@ export class AuthController {
 
     const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
     const scope = encodeURIComponent('email profile');
-    return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=${scope}&state=${state}`;
+
+    return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`;
   }
 
   @Post('google/validate')
