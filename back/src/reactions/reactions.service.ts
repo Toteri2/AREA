@@ -369,8 +369,12 @@ export class ReactionsService {
         priority: payload.issue.fields?.priority?.name,
         assignee: payload.issue.fields?.assignee?.displayName,
         issueType: payload.issue.fields?.issuetype?.name,
-        oldStatus: payload.changelog?.items?.find((i: any) => i.field === 'status')?.fromString,
-        newStatus: payload.changelog?.items?.find((i: any) => i.field === 'status')?.toString,
+        oldStatus: payload.changelog?.items?.find(
+          (i: any) => i.field === 'status'
+        )?.fromString,
+        newStatus: payload.changelog?.items?.find(
+          (i: any) => i.field === 'status'
+        )?.toString,
         commentBody: payload.comment?.body,
         commentAuthor: payload.comment?.author?.displayName,
       };
@@ -456,7 +460,9 @@ export class ReactionsService {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(`Failed to create Jira issue: ${JSON.stringify(error)}`);
+        throw new Error(
+          `Failed to create Jira issue: ${JSON.stringify(error)}`
+        );
       }
 
       const result = await response.json();
@@ -570,8 +576,10 @@ export class ReactionsService {
 
       const transition = transitionsData.transitions.find(
         (t: any) =>
-          t.name.toLowerCase() === processedConfig.transitionName.toLowerCase() ||
-          t.to.name.toLowerCase() === processedConfig.transitionName.toLowerCase()
+          t.name.toLowerCase() ===
+            processedConfig.transitionName.toLowerCase() ||
+          t.to.name.toLowerCase() ===
+            processedConfig.transitionName.toLowerCase()
       );
 
       if (!transition) {
@@ -599,7 +607,9 @@ export class ReactionsService {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(`Failed to update Jira status: ${JSON.stringify(error)}`);
+        throw new Error(
+          `Failed to update Jira status: ${JSON.stringify(error)}`
+        );
       }
 
       return {

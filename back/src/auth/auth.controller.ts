@@ -31,13 +31,13 @@ export class AuthController {
   })
   async register(
     @Body() body: { email: string; password: string; name: string },
-    @Res() res,
+    @Res() res
   ) {
     try {
       const user = await this.authService.register(
         body.email,
         body.password,
-        body.name,
+        body.name
       );
       const token = await this.authService.login(user);
       return res.status(201).send({
@@ -170,13 +170,13 @@ export class AuthController {
     const userId = req.session.userId;
     const state = await this.authService.createOAuthStateToken(
       userId,
-      ProviderType.DISCORD,
+      ProviderType.DISCORD
     );
     const clientId = process.env.DISCORD_CLIENT_ID;
     const discordAuthCallbackUrl = process.env.DISCORD_CALLBACK_URL || '';
     const redirectUri = encodeURIComponent(discordAuthCallbackUrl);
     const scope = encodeURIComponent(
-      'identify email guilds guilds.members.read',
+      'identify email guilds guilds.members.read'
     );
     const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`;
     return url;
@@ -195,7 +195,7 @@ export class AuthController {
     const userId = req.session.userId;
     const state = await this.authService.createOAuthStateToken(
       userId,
-      ProviderType.DISCORD,
+      ProviderType.DISCORD
     );
     return state;
   }
@@ -214,7 +214,7 @@ export class AuthController {
       const { code, state } = body;
       const userId = await this.authService.validateOAuthState(
         state,
-        ProviderType.DISCORD,
+        ProviderType.DISCORD
       );
       console.log('Discord auth callback for user ID:', userId);
       if (!userId) throw new Error('Invalid or expired state token');
@@ -262,10 +262,53 @@ export class AuthController {
     const userId = req.user.id;
     if (!userId) throw new Error('No session found');
     const { accessToken, refreshToken } = await this.authService.getGmailToken(
-      body.code,
+      body.code
     );
     await this.authService.linkGmailAccount(userId, accessToken, refreshToken);
     return { success: true, user: req.user.name };
+  }
+
+  @Get('google/url')
+  @ApiOperation({
+    summary: 'Google authentication url handler for login/register.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Google authentication url received.',
+  })
+  async googleAuthUrl(@Query('mobile') mobile: string) {
+    const client_id = process.env.GMAIL_CLIENT_ID;
+    const redirect_uri = process.env.GOOGLE_CALLBACK_URL;
+
+    const stateData = {
+      platform: mobile === 'true' ? 'mobile' : 'web',
+      nonce: Math.random().toString(36).substring(7),
+    };
+
+    const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
+    const scope = encodeURIComponent('email profile');
+    return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=${scope}&state=${state}`;
+  }
+
+  @Post('google/validate')
+  @ApiOperation({
+    summary:
+      'Google authentication callback. Authenticates or registers the user via Google OAuth',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User authenticated successfully.',
+  })
+  async googleAuthCallback(@Body() body: { code: string }, @Res() res) {
+    const { accessToken, email, name } =
+      await this.authService.getGoogleUserInfo(body.code);
+    const user = await this.authService.findOrCreateGoogleUser(
+      email,
+      name,
+      accessToken
+    );
+    const token = await this.authService.login(user);
+    return res.status(200).send(token);
   }
 
   @Get('jira/url')
@@ -287,7 +330,7 @@ export class AuthController {
 
     const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
     const scope = encodeURIComponent(
-      'read:jira-work write:jira-work read:jira-user manage:jira-webhook offline_access',
+      'read:jira-work write:jira-work read:jira-user manage:jira-webhook offline_access'
     );
     const url = `https://auth.atlassian.com/authorize?audience=api.atlassian.com&client_id=${client_id}&scope=${scope}&redirect_uri=${redirect_uri}&state=${state}&response_type=code&prompt=consent`;
     return url;
@@ -324,7 +367,7 @@ export class AuthController {
       userId,
       accessToken,
       refreshToken,
-      cloudId,
+      cloudId
     );
 
     return { success: true, user: req.user.name };

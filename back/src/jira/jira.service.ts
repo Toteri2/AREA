@@ -53,12 +53,16 @@ export class JiraService {
 
       const results = response.data.webhookRegistrationResult;
       if (!results || !Array.isArray(results) || results.length === 0) {
-        throw new Error(`Unexpected response from Jira API: ${JSON.stringify(response.data)}`);
+        throw new Error(
+          `Unexpected response from Jira API: ${JSON.stringify(response.data)}`
+        );
       }
 
       const createdWebhook = results[0];
       if (createdWebhook.errors) {
-        throw new Error(`Jira webhook validation failed: ${createdWebhook.errors.join(', ')}`);
+        throw new Error(
+          `Jira webhook validation failed: ${createdWebhook.errors.join(', ')}`
+        );
       }
 
       const webhookId = createdWebhook.createdWebhookId;
@@ -78,7 +82,10 @@ export class JiraService {
         message: 'Jira webhook created successfully',
       };
     } catch (error) {
-      console.error('Error creating Jira webhook:', error.response?.data || error.message);
+      console.error(
+        'Error creating Jira webhook:',
+        error.response?.data || error.message
+      );
       throw error;
     }
   }
@@ -167,7 +174,16 @@ export class JiraService {
       {
         jql: `project = ${projectKey}`,
         maxResults: 100,
-        fields: ['key', 'summary', 'status', 'assignee', 'priority', 'issuetype', 'created', 'updated'],
+        fields: [
+          'key',
+          'summary',
+          'status',
+          'assignee',
+          'priority',
+          'issuetype',
+          'created',
+          'updated',
+        ],
       },
       {
         headers: {

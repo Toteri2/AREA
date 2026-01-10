@@ -340,12 +340,9 @@ export class DiscordService {
    * Get all webhooks for a guild
    */
   async getGuildWebhooks(guildId: string) {
-    const response = await fetch(
-      `${this.baseUrl}/guilds/${guildId}/webhooks`,
-      {
-        headers: this.getBotHeaders(),
-      }
-    );
+    const response = await fetch(`${this.baseUrl}/guilds/${guildId}/webhooks`, {
+      headers: this.getBotHeaders(),
+    });
     return this.handleResponse(response);
   }
 

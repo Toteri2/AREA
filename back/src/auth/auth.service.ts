@@ -1,4 +1,3 @@
-import { randomBytes } from 'crypto';
 import { ConfidentialClientApplication, Configuration } from '@azure/msal-node';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -6,6 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 import { OAuthState } from 'src/shared/entities/oauthstates.entity';
 import { Provider } from 'src/shared/entities/provider.entity';
 import { User } from 'src/shared/entities/user.entity';
@@ -35,7 +35,7 @@ export class AuthService {
     @InjectRepository(OAuthState)
     private oauthStatesRepository: Repository<OAuthState>,
     private jwtService: JwtService,
-    private configService: ConfigService,
+    private configService: ConfigService
   ) {}
 
   private getMsalClient() {
@@ -77,7 +77,7 @@ export class AuthService {
 
   async linkGithubAccount(
     userId: number,
-    accessToken: string,
+    accessToken: string
   ): Promise<Provider> {
     let provider = await this.providerRepository.findOne({
       where: { userId, provider: ProviderType.GITHUB },
@@ -111,7 +111,7 @@ export class AuthService {
 
   async linkDiscordAccount(
     userId: number,
-    accessToken: string,
+    accessToken: string
   ): Promise<Provider> {
     let provider = await this.providerRepository.findOne({
       where: { userId, provider: ProviderType.DISCORD },
@@ -158,7 +158,7 @@ export class AuthService {
 
   async createOAuthStateToken(
     userId: number,
-    provider: ProviderType,
+    provider: ProviderType
   ): Promise<string> {
     const state = randomBytes(16).toString('hex');
     const user = await this.userRepository.findOneBy({ id: userId });
@@ -176,7 +176,7 @@ export class AuthService {
 
   async validateOAuthState(
     state: string,
-    provider: ProviderType,
+    provider: ProviderType
   ): Promise<number | null> {
     const data = await this.oauthStatesRepository.findOneBy({ state });
     const date = Date.now();
@@ -190,7 +190,7 @@ export class AuthService {
 
   async findOauthState(
     state: string,
-    provider: ProviderType,
+    provider: ProviderType
   ): Promise<boolean> {
     const stateFound = await this.oauthStatesRepository.findOneBy({
       state,
@@ -215,7 +215,7 @@ export class AuthService {
         headers: {
           Accept: 'application/json',
         },
-      },
+      }
     );
     const access_token = res.data.access_token;
     return access_token;
@@ -282,17 +282,17 @@ export class AuthService {
     const params = new URLSearchParams();
     params.append(
       'client_id',
-      this.configService.getOrThrow('DISCORD_CLIENT_ID'),
+      this.configService.getOrThrow('DISCORD_CLIENT_ID')
     );
     params.append(
       'client_secret',
-      this.configService.getOrThrow('DISCORD_CLIENT_SECRET'),
+      this.configService.getOrThrow('DISCORD_CLIENT_SECRET')
     );
     params.append('grant_type', 'authorization_code');
     params.append('code', code);
     params.append(
       'redirect_uri',
-      this.configService.getOrThrow('DISCORD_CALLBACK_URL'),
+      this.configService.getOrThrow('DISCORD_CALLBACK_URL')
     );
 
     const res = await axios.post(
@@ -302,13 +302,13 @@ export class AuthService {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-      },
+      }
     );
     return res.data.access_token;
   }
 
   async getGmailToken(
-    code: string,
+    code: string
   ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       const response = await axios.post('https://oauth2.googleapis.com/token', {
@@ -325,7 +325,7 @@ export class AuthService {
     } catch (error) {
       console.error(
         'Error getting Gmail token:',
-        error.response?.data || error.message,
+        error.response?.data || error.message
       );
       throw new Error('Failed to get Gmail access token');
     }
@@ -334,7 +334,7 @@ export class AuthService {
   async linkGmailAccount(
     userId: number,
     accessToken: string,
-    refreshToken?: string,
+    refreshToken?: string
   ): Promise<Provider> {
     let provider = await this.providerRepository.findOne({
       where: { userId, provider: ProviderType.GMAIL },
@@ -382,7 +382,7 @@ export class AuthService {
     } catch (error) {
       console.error(
         'Error refreshing Gmail token:',
-        error.response?.data || error.message,
+        error.response?.data || error.message
       );
       throw new Error('Failed to refresh Gmail access token');
     }
@@ -408,7 +408,7 @@ export class AuthService {
           'https://gmail.googleapis.com/gmail/v1/users/me/profile',
           {
             headers: { Authorization: `Bearer ${token}` },
-          },
+          }
         );
 
         if (response.status === 200) {
@@ -429,7 +429,7 @@ export class AuthService {
   }
 
   async getJiraToken(
-    code: string,
+    code: string
   ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       const params = new URLSearchParams();
@@ -446,7 +446,7 @@ export class AuthService {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
-        },
+        }
       );
 
       return {
@@ -455,9 +455,7 @@ export class AuthService {
       };
     } catch (error) {
       if (error.response?.status === 400) {
-        throw new Error(
-          'Invalid or expired authorization code.',
-        );
+        throw new Error('Invalid or expired authorization code.');
       }
       throw error;
     }
@@ -467,7 +465,7 @@ export class AuthService {
     userId: number,
     accessToken: string,
     refreshToken?: string,
-    cloudId?: string,
+    cloudId?: string
   ): Promise<Provider> {
     let provider = await this.providerRepository.findOne({
       where: { userId, provider: ProviderType.JIRA },
@@ -503,7 +501,7 @@ export class AuthService {
           Authorization: `Bearer ${accessToken}`,
           Accept: 'application/json',
         },
-      },
+      }
     );
 
     if (response.data && response.data.length > 0) {
@@ -536,7 +534,7 @@ export class AuthService {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
-        },
+        }
       );
 
       const newAccessToken = response.data.access_token;
@@ -553,7 +551,7 @@ export class AuthService {
     } catch (error) {
       console.error(
         'Error refreshing Jira token:',
-        error.response?.data || error.message,
+        error.response?.data || error.message
       );
       throw new Error('Failed to refresh Jira access token');
     }
@@ -578,7 +576,7 @@ export class AuthService {
               Authorization: `Bearer ${provider.accessToken}`,
               Accept: 'application/json',
             },
-          },
+          }
         );
 
         if (response.status === 200) {
@@ -595,6 +593,64 @@ export class AuthService {
     } catch (error) {
       console.error('Error getting valid Jira token:', error.message);
       throw error;
+    }
+  }
+
+  async findOrCreateGoogleUser(
+    email: string,
+    name: string,
+    googleId: string
+  ): Promise<User> {
+    let user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      const randomPassword = await bcrypt.hash(
+        randomBytes(32).toString('hex'),
+        10
+      );
+      user = this.userRepository.create({
+        email,
+        name,
+        password: randomPassword,
+      });
+      user = await this.userRepository.save(user);
+    }
+
+    return user;
+  }
+
+  async getGoogleUserInfo(
+    code: string
+  ): Promise<{ accessToken: string; email: string; name: string }> {
+    try {
+      const tokenResponse = await axios.post(
+        'https://oauth2.googleapis.com/token',
+        {
+          client_id: process.env.GMAIL_CLIENT_ID,
+          client_secret: process.env.GMAIL_CLIENT_SECRET,
+          code,
+          grant_type: 'authorization_code',
+          redirect_uri: process.env.GOOGLE_CALLBACK_URL,
+        }
+      );
+      const accessToken = tokenResponse.data.access_token;
+      const userInfoResponse = await axios.get(
+        'https://www.googleapis.com/oauth2/v2/userinfo',
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+
+      return {
+        accessToken,
+        email: userInfoResponse.data.email,
+        name: userInfoResponse.data.name,
+      };
+    } catch (error) {
+      console.error(
+        'Error getting Google user info:',
+        error.response?.data || error.message
+      );
+      throw new Error('Failed to get Google user info');
     }
   }
 }
