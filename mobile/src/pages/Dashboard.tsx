@@ -67,6 +67,14 @@ export function Dashboard() {
           <Text style={styles.cardTitle}>Profile</Text>
           <Text style={styles.cardDescription}>View and edit your profile</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigation.navigate('Reactions')}
+        >
+          <Text style={styles.cardTitle}>Reactions</Text>
+          <Text style={styles.cardDescription}>View and edit reactions</Text>
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>

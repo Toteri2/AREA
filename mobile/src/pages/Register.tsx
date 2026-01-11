@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import type { RootStackParamList } from '../navigation';
 import { useRegisterMutation } from '../shared/src/native';
 
@@ -27,32 +28,78 @@ export function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const navigation = useNavigation<RegisterNavigationProp>();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const navigation = useNavigation<RegisterNavigationProp>();
   const [register, { isLoading }] = useRegisterMutation();
 
+  // Password requirements
+  const requirements = [
+    { label: 'At least 8 characters', test: (pwd: string) => pwd.length >= 8 },
+    {
+      label: 'At least one uppercase letter',
+      test: (pwd: string) => /[A-Z]/.test(pwd),
+    },
+    {
+      label: 'At least one lowercase letter',
+      test: (pwd: string) => /[a-z]/.test(pwd),
+    },
+    { label: 'At least one number', test: (pwd: string) => /[0-9]/.test(pwd) },
+    {
+      label: 'At least one special character',
+      test: (pwd: string) => /[\W_]/.test(pwd),
+    },
+    {
+      label: 'Must not include name',
+      test: (pwd: string) => !name || !new RegExp(name, 'i').test(pwd),
+    },
+  ];
+
+  const passwordStrength = requirements.reduce(
+    (score, req) => score + (req.test(password) ? 1 : 0),
+    0
+  );
+
+  const isEmailValid = (value: string) =>
+    value.length <= 254 &&
+    /^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,63}$/.test(
+      value
+    );
+
   const handleSubmit = async () => {
+    setErrorMessage('');
+
     if (!name || !email || !password || !confirmPassword) {
-      setErrorMessage('Please fill in all fields');
+      setErrorMessage('Please fill in all fields.');
+      return;
+    }
+
+    if (!isEmailValid(email)) {
+      setErrorMessage('Please enter a valid email address.');
+      return;
+    }
+
+    if (passwordStrength < requirements.length) {
+      setErrorMessage('Password must satisfy all criteria.');
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMessage('Passwords do not match');
+      setErrorMessage('Passwords do not match.');
       return;
     }
 
-    setErrorMessage('');
-
     try {
-      await register({ email, password, name }).unwrap();
+      await register({ name, email, password }).unwrap();
       Alert.alert('Success', 'Registration successful! Please login.', [
         { text: 'OK', onPress: () => navigation.navigate('Login') },
       ]);
     } catch (err) {
       const apiError = err as { data?: { message: string } };
-      const message = apiError.data?.message || 'An unexpected error occurred.';
-      setErrorMessage(message);
+      setErrorMessage(
+        apiError.data?.message || 'An unexpected error occurred.'
+      );
       console.error('Failed to register:', err);
     }
   };
@@ -70,6 +117,7 @@ export function Register() {
             <Text style={styles.errorText}>{errorMessage}</Text>
           ) : null}
 
+          {/* Name */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>Name</Text>
             <TextInput
@@ -82,6 +130,7 @@ export function Register() {
             />
           </View>
 
+          {/* Email */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>Email</Text>
             <TextInput
@@ -96,30 +145,71 @@ export function Register() {
             />
           </View>
 
+          {/* Password */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              placeholder='Enter your password'
-              placeholderTextColor='#888'
-            />
+            <View style={{ position: 'relative' }}>
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                placeholder='Enter your password'
+                placeholderTextColor='#888'
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeButton}
+              >
+                <Icon
+                  name={showPassword ? 'eye-slash' : 'eye'}
+                  size={20}
+                  color='#fff'
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ marginTop: 8 }}>
+              {requirements.map((req) => (
+                <Text
+                  key={req.label}
+                  style={{
+                    color: req.test(password) ? 'green' : 'red',
+                    fontSize: 12,
+                  }}
+                >
+                  {req.label}
+                </Text>
+              ))}
+            </View>
           </View>
 
+          {/* Confirm Password */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>Confirm Password</Text>
-            <TextInput
-              style={styles.input}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              placeholder='Confirm your password'
-              placeholderTextColor='#888'
-            />
+            <View style={{ position: 'relative' }}>
+              <TextInput
+                style={styles.input}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+                placeholder='Confirm your password'
+                placeholderTextColor='#888'
+              />
+              <TouchableOpacity
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={styles.eyeButton}
+              >
+                <Icon
+                  name={showConfirmPassword ? 'eye-slash' : 'eye'}
+                  size={20}
+                  color='#fff'
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
+          {/* Submit */}
           <TouchableOpacity
             style={[styles.button, isLoading && styles.buttonDisabled]}
             onPress={handleSubmit}
@@ -196,6 +286,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: '#1a1a2e',
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 12,
+    top: '50%',
+    transform: [{ translateY: -10 }],
+    padding: 4,
   },
   button: {
     backgroundColor: '#e94560',
