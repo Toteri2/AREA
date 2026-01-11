@@ -6,7 +6,7 @@ interface ConfigState {
 }
 
 const initialState: ConfigState = {
-  baseUrl: '',
+  baseUrl: 'http://api.mambokara.dev',
 };
 
 export const configSlice = createSlice({

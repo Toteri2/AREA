@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -5,91 +7,127 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useDispatch } from 'react-redux';
+import { setBaseUrl } from '../shared/src/features/configSlice';
 import {
   useAppSelector,
-  useLazyGetGithubAuthUrlQuery,
-  useLazyGetMicrosoftAuthUrlQuery,
-  useListMicrosoftWebhooksQuery,
-  useListRepositoriesQuery,
+  useConnectionQuery,
+  useGetGithubAuthUrlQuery,
+  useGetGmailAuthUrlQuery,
+  useGetMicrosoftAuthUrlQuery,
+  useGetServicesQuery,
 } from '../shared/src/native';
 
-function GitHubLinker() {
-  const [getAuthUrl] = useLazyGetGithubAuthUrlQuery();
-  const { isLoading, isSuccess, isError } = useListRepositoriesQuery();
+type Service = { name: string };
 
+type ServiceLinkerProps = {
+  label: string;
+  getAuthUrl: () => Promise<any>;
+  connection: { isLoading: boolean; isConnected: boolean };
+};
+
+function ServiceLinker({ label, getAuthUrl, connection }: ServiceLinkerProps) {
   const handleLink = async () => {
     try {
-      const result = await getAuthUrl({ mobile: true }).unwrap();
-      await Linking.openURL(result.url);
+      const result = await getAuthUrl();
+      if (result.url) {
+        await Linking.openURL(result.url);
+      } else {
+        Alert.alert('Error', `Could not get ${label} auth URL`);
+      }
     } catch {
-      Alert.alert('Error', 'Could not get GitHub auth URL.');
+      Alert.alert('Error', `Unexpected error while linking ${label}`);
     }
   };
 
-  if (isLoading) return <ActivityIndicator color='#e94560' />;
-  if (isError) {
+  if (connection.isLoading) {
+    return <ActivityIndicator color='#e94560' style={{ marginVertical: 10 }} />;
+  }
+
+  if (!connection.isConnected) {
     return (
       <TouchableOpacity style={styles.button} onPress={handleLink}>
-        <Text style={styles.buttonText}>Link GitHub Account</Text>
+        <Text style={styles.buttonText}>Link {label} Account</Text>
       </TouchableOpacity>
     );
   }
-  if (isSuccess) {
-    return (
-      <View style={styles.linkedContainer}>
-        <Text style={styles.linkedText}>✓ GitHub Account Linked</Text>
-        <TouchableOpacity style={styles.changeButton} onPress={handleLink}>
-          <Text style={styles.changeButtonText}>Change</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-  return null;
-}
 
-function MicrosoftLinker() {
-  const [getAuthUrl] = useLazyGetMicrosoftAuthUrlQuery();
-  const { isLoading, isSuccess, isError } = useListMicrosoftWebhooksQuery();
-
-  const handleLink = async () => {
-    try {
-      const result = await getAuthUrl({ mobile: true }).unwrap();
-      await Linking.openURL(result.url);
-    } catch {
-      Alert.alert('Error', 'Could not get Microsoft auth URL.');
-    }
-  };
-
-  if (isLoading) return <ActivityIndicator color='#e94560' />;
-  if (isError) {
-    return (
-      <TouchableOpacity style={styles.button} onPress={handleLink}>
-        <Text style={styles.buttonText}>Link Microsoft Account</Text>
+  return (
+    <View style={styles.linkedContainer}>
+      <Text style={styles.linkedText}>✓ {label} Account Linked</Text>
+      <TouchableOpacity style={styles.changeButton} onPress={handleLink}>
+        <Text style={styles.changeButtonText}>Change</Text>
       </TouchableOpacity>
-    );
-  }
-  if (isSuccess) {
-    return (
-      <View style={styles.linkedContainer}>
-        <Text style={styles.linkedText}>✓ Microsoft Account Linked</Text>
-        <TouchableOpacity style={styles.changeButton} onPress={handleLink}>
-          <Text style={styles.changeButtonText}>Change</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-  return null;
+    </View>
+  );
 }
 
 export function Profile() {
+  const dispatch = useDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const baseUrlFromStore = useAppSelector((state) => state.config.baseUrl);
+
+  const [customBaseUrl, setCustomBaseUrl] = useState(baseUrlFromStore);
+
+  const { data: servicesData } = useGetServicesQuery();
+  const services: Service[] = servicesData?.server?.services ?? [];
+  const serviceNames = new Set(services.map((s) => s.name));
+
+  const githubConnection = useConnectionQuery(
+    serviceNames.has('github') ? { provider: 'github' } : undefined
+  );
+  const githubAuthQuery = useGetGithubAuthUrlQuery(
+    serviceNames.has('github') ? undefined : { skip: true }
+  );
+
+  const gmailConnection = useConnectionQuery(
+    serviceNames.has('gmail') ? { provider: 'gmail' } : undefined
+  );
+  const gmailAuthQuery = useGetGmailAuthUrlQuery(
+    serviceNames.has('gmail') ? undefined : { skip: true }
+  );
+
+  const microsoftConnection = useConnectionQuery(
+    serviceNames.has('microsoft') ? { provider: 'microsoft' } : undefined
+  );
+  const microsoftAuthQuery = useGetMicrosoftAuthUrlQuery(
+    serviceNames.has('microsoft') ? undefined : { skip: true }
+  );
+
+  const getAuthMapping: Record<string, any> = {
+    github: {
+      getAuthUrl: async () => (await githubAuthQuery.refetch()).data,
+      connection: githubConnection,
+    },
+    gmail: {
+      getAuthUrl: async () => (await gmailAuthQuery.refetch()).data,
+      connection: gmailConnection,
+    },
+    microsoft: {
+      getAuthUrl: async () => (await microsoftAuthQuery.refetch()).data,
+      connection: microsoftConnection,
+    },
+  };
+
+  const updateBaseUrl = async () => {
+    if (!customBaseUrl.startsWith('http')) {
+      Alert.alert('Erreur', "L'URL doit commencer par http ou https");
+      return;
+    }
+
+    dispatch(setBaseUrl(customBaseUrl));
+    await AsyncStorage.setItem('baseUrl', customBaseUrl);
+    Alert.alert('Succès', 'Base URL mise à jour !');
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Profile</Text>
+
       <View style={styles.card}>
         <View style={styles.infoSection}>
           <View style={styles.infoRow}>
@@ -101,10 +139,37 @@ export function Profile() {
             <Text style={styles.value}>{user?.email}</Text>
           </View>
         </View>
+
+        <View style={styles.baseUrlSection}>
+          <Text style={styles.sectionTitle}>API Base URL</Text>
+          <TextInput
+            style={styles.input}
+            value={customBaseUrl}
+            onChangeText={setCustomBaseUrl}
+            placeholder='http://api.mambokara.dev'
+            placeholderTextColor='#888'
+          />
+          <TouchableOpacity style={styles.button} onPress={updateBaseUrl}>
+            <Text style={styles.buttonText}>Update Base URL</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.actionsSection}>
           <Text style={styles.sectionTitle}>Connected Services</Text>
-          <GitHubLinker />
-          <MicrosoftLinker />
+          {services.map((service) => {
+            const mapping = getAuthMapping[service.name];
+            if (!mapping) return null;
+            return (
+              <ServiceLinker
+                key={service.name}
+                label={
+                  service.name.charAt(0).toUpperCase() + service.name.slice(1)
+                }
+                getAuthUrl={mapping.getAuthUrl}
+                connection={mapping.connection}
+              />
+            );
+          })}
         </View>
       </View>
     </ScrollView>
@@ -132,6 +197,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
     marginBottom: 16,
+  },
+  baseUrlSection: { marginBottom: 24 },
+  input: {
+    backgroundColor: '#1a1a2e',
+    borderColor: '#0f3460',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    color: '#fff',
+    marginBottom: 10,
   },
   button: {
     backgroundColor: '#24292e',

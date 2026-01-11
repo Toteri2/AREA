@@ -14,10 +14,13 @@ export const store = createStore({
   storage: nativeStorage,
 });
 
-// Use production API instead of localhost
-const baseUrl = 'https://api.mambokara.dev';
-store.dispatch(setBaseUrl(baseUrl));
+const initializeBaseUrl = async () => {
+  const savedBaseUrl = await AsyncStorage.getItem('baseUrl');
+  const baseUrl = savedBaseUrl || 'https://api.mambokara.dev';
+  store.dispatch(setBaseUrl(baseUrl));
+};
 
+initializeBaseUrl();
 store.dispatch(loadToken());
 
 export * from '.';
