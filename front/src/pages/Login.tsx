@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { GoogleAuthButton } from '../components/GoogleAuthButton';
 import { useLoginMutation } from '../shared/src/web';
 
 export function Login() {
@@ -53,6 +54,13 @@ export function Login() {
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+
+        <div className='divider'>
+          <span>OR</span>
+        </div>
+
+        <GoogleAuthButton onError={setErrorMessage} redirectTo='/dashboard' />
+
         <p className='auth-link'>
           Don't have an account? <Link to='/register'>Register</Link>
         </p>
