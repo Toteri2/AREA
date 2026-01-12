@@ -1,12 +1,28 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import axios from 'axios';
 import { DiscordService } from './discord.service';
+
+jest.mock('axios');
+const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('DiscordService', () => {
   let service: DiscordService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [DiscordService],
+      providers: [
+        DiscordService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              if (key === 'DISCORD_BOT_TOKEN') return 'test-bot-token';
+              return null;
+            }),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<DiscordService>(DiscordService);
@@ -102,25 +118,19 @@ describe('DiscordService', () => {
     const mockToken = 'mock_discord_token';
 
     beforeEach(() => {
-      // Mock global fetch
-      global.fetch = jest.fn();
-    });
-
-    afterEach(() => {
-      jest.restoreAllMocks();
+      jest.clearAllMocks();
     });
 
     it('should call Discord API for getCurrentUser', async () => {
       const mockUser = { id: '123', username: 'testuser' };
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
+      mockedAxios.get.mockResolvedValue({
         status: 200,
-        json: jest.fn().mockResolvedValue(mockUser),
+        data: mockUser,
       });
 
       const result = await service.getCurrentUser(mockToken);
 
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(axios.get).toHaveBeenCalledWith(
         'https://discord.com/api/v10/users/@me',
         expect.objectContaining({
           headers: expect.objectContaining({
@@ -136,17 +146,18 @@ describe('DiscordService', () => {
         { id: '1', name: 'Guild 1' },
         { id: '2', name: 'Guild 2' },
       ];
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
+      mockedAxios.get.mockResolvedValue({
         status: 200,
-        json: jest.fn().mockResolvedValue(mockGuilds),
+        data: mockGuilds,
       });
 
       const result = await service.listUserGuilds(mockToken);
 
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(axios.get).toHaveBeenCalledWith(
         'https://discord.com/api/v10/users/@me/guilds',
-        expect.any(Object)
+        expect.objectContaining({
+          headers: expect.any(Object),
+        })
       );
       expect(result).toEqual(mockGuilds);
     });
@@ -159,19 +170,18 @@ describe('DiscordService', () => {
       };
       const mockMessage = { id: '456', content: 'Test message' };
 
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
+      mockedAxios.post.mockResolvedValue({
         status: 200,
-        json: jest.fn().mockResolvedValue(mockMessage),
+        data: mockMessage,
       });
 
       const result = await service.sendMessage(mockToken, dto);
 
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(axios.post).toHaveBeenCalledWith(
         `https://discord.com/api/v10/channels/${dto.channelId}/messages`,
+        { content: dto.content },
         expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({ content: dto.content, embeds: dto.embeds }),
+          headers: expect.any(Object),
         })
       );
       expect(result).toEqual(mockMessage);
@@ -184,17 +194,18 @@ describe('DiscordService', () => {
         roleId: '789',
       };
 
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
+      mockedAxios.put.mockResolvedValue({
         status: 204,
+        data: null,
       });
 
       const result = await service.addRoleToUser(mockToken, dto);
 
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(axios.put).toHaveBeenCalledWith(
         `https://discord.com/api/v10/guilds/${dto.guildId}/members/${dto.userId}/roles/${dto.roleId}`,
+        {},
         expect.objectContaining({
-          method: 'PUT',
+          headers: expect.any(Object),
         })
       );
       expect(result).toEqual({
@@ -212,19 +223,20 @@ describe('DiscordService', () => {
       };
       const mockChannel = { id: '999', name: 'private-channel' };
 
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
+      mockedAxios.post.mockResolvedValue({
         status: 200,
-        json: jest.fn().mockResolvedValue(mockChannel),
+        data: mockChannel,
       });
 
       const result = await service.createPrivateChannel(mockToken, dto);
 
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(axios.post).toHaveBeenCalledWith(
         `https://discord.com/api/v10/guilds/${dto.guildId}/channels`,
         expect.objectContaining({
-          method: 'POST',
-          body: expect.stringContaining(dto.name),
+          name: dto.name,
+        }),
+        expect.objectContaining({
+          headers: expect.any(Object),
         })
       );
       expect(result).toEqual(mockChannel);
