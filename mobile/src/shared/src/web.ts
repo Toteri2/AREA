@@ -13,8 +13,15 @@ export const store = createStore({
   storage: webStorage,
 });
 
+// Validate production configuration
 const baseUrl = import.meta.env.PROD
-  ? import.meta.env.VITE_API_URL || 'http://localhost:8080'
+  ? import.meta.env.VITE_API_URL ||
+    (() => {
+      throw new Error(
+        'VITE_API_URL environment variable is required in production mode. ' +
+          'Please set it in your .env.production file or build environment.'
+      );
+    })()
   : '/api';
 store.dispatch(setBaseUrl(baseUrl));
 

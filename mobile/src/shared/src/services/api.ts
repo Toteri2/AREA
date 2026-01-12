@@ -4,9 +4,11 @@ import type { RootState } from '../store';
 import type {
   AboutResponse,
   ApiAuthResponse,
+  CreateReactionDto,
   CreateWebhookDto,
   GmailSubscription,
   MicrosoftSubscription,
+  Reaction,
   Repository,
   User,
   Webhook,
@@ -44,7 +46,7 @@ export const apiSlice = createApi({
     const cachedBaseQuery = getCachedBaseQuery(baseUrl);
     return cachedBaseQuery(args, api, extraOptions);
   },
-  tagTypes: ['User', 'Repos', 'Webhooks', 'MicrosoftSubscriptions'],
+  tagTypes: ['User', 'Repos', 'Webhooks', 'MicrosoftSubscriptions', 'GmailSubscriptions', 'Reactions'],
   endpoints: (builder) => ({
     login: builder.mutation<
       ApiAuthResponse,
@@ -115,7 +117,7 @@ export const apiSlice = createApi({
       query: (args) => ({
         url: '/auth/github/url',
         params: args?.mobile ? { mobile: 'true' } : undefined,
-        responseHandler: (response) => response.text(),
+        responseHandler: (response: Response) => response.text(),
       }),
       transformResponse: (response: string) => ({ url: response }),
     }),
@@ -133,7 +135,7 @@ export const apiSlice = createApi({
       query: (args) => ({
         url: '/auth/microsoft/url',
         params: args?.mobile ? { mobile: 'true' } : undefined,
-        responseHandler: (response) => response.text(),
+        responseHandler: (response: Response) => response.text(),
       }),
       transformResponse: (response: string) => ({ url: response }),
     }),
@@ -170,7 +172,6 @@ export const apiSlice = createApi({
     listMicrosoftWebhooks: builder.query<MicrosoftSubscription[], void>({
       query: () => '/microsoft/webhooks',
       providesTags: ['MicrosoftSubscriptions'],
-      refetchOnMountOrArgChange: true,
     }),
     createMicrosoftSubscription: builder.mutation<
       MicrosoftSubscription,
@@ -222,7 +223,7 @@ export const apiSlice = createApi({
       query: (args) => ({
         url: '/auth/gmail/url',
         params: args?.mobile ? { mobile: 'true' } : undefined,
-        responseHandler: (response) => response.text(),
+        responseHandler: (response: Response) => response.text(),
       }),
       transformResponse: (response: string) => ({ url: response }),
     }),
@@ -235,8 +236,7 @@ export const apiSlice = createApi({
     }),
     listGmailWebhooks: builder.query<GmailSubscription[], void>({
       query: () => '/Gmail/webhooks',
-      providesTags: ['gmailSubscriptions'],
-      refetchOnMountOrArgChange: true,
+      providesTags: ['GmailSubscriptions'],
     }),
     createGmailSubscription: builder.mutation<
       GmailSubscription,
