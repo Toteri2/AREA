@@ -369,4 +369,330 @@ describe('AuthController', () => {
       ).rejects.toThrow('Invalid GitHub code');
     });
   });
+
+  describe('microsoftAuthUrl', () => {
+    it('should return Microsoft OAuth URL', async () => {
+      const result = await controller.microsoftAuthUrl('false');
+
+      expect(result).toContain('login.microsoftonline.com');
+      expect(result).toContain('client_id=');
+      expect(result).toContain('response_type=code');
+      expect(result).toContain('state=');
+    });
+
+    it('should include mobile platform in state when mobile=true', async () => {
+      const result = await controller.microsoftAuthUrl('true');
+      const stateParam = result.split('state=')[1].split('&')[0];
+      const decodedState = JSON.parse(
+        Buffer.from(stateParam, 'base64').toString()
+      );
+
+      expect(decodedState.platform).toBe('mobile');
+    });
+  });
+
+  describe('microsoftAuthValidate', () => {
+    it('should link Microsoft account successfully', async () => {
+      const mockRequest = {
+        user: { id: 1, name: 'Test User' },
+      };
+
+      jest
+        .spyOn(authService, 'linkMicrosoftAccount')
+        .mockResolvedValue({} as Provider);
+
+      const result = await controller.microsoftAuthValidate(
+        { code: 'ms-code' },
+        mockRequest
+      );
+
+      expect(result).toEqual({ success: true, user: 'Test User' });
+      expect(authService.linkMicrosoftAccount).toHaveBeenCalledWith(
+        1,
+        'ms-code'
+      );
+    });
+  });
+
+  describe('getDiscordAuthUrl', () => {
+    it('should return Discord OAuth URL with state', async () => {
+      const mockRequest = {
+        session: { userId: 1 },
+      };
+
+      jest
+        .spyOn(authService, 'createOAuthStateToken')
+        .mockResolvedValue('discord-state-123');
+
+      const result = await controller.getDiscordAuthUrl(mockRequest);
+
+      expect(result).toContain('discord.com/api/oauth2/authorize');
+      expect(result).toContain('state=discord-state-123');
+      expect(result).toContain('scope=');
+    });
+  });
+
+  describe('discordAuthState', () => {
+    it('should return OAuth state token', async () => {
+      const mockRequest = {
+        session: { userId: 1 },
+      };
+
+      jest
+        .spyOn(authService, 'createOAuthStateToken')
+        .mockResolvedValue('state-token-xyz');
+
+      const result = await controller.discordAuthState(mockRequest);
+
+      expect(result).toBe('state-token-xyz');
+    });
+  });
+
+  describe('discordAuthCallback', () => {
+    it('should link Discord account successfully', async () => {
+      jest.spyOn(authService, 'validateOAuthState').mockResolvedValue(1);
+      jest
+        .spyOn(authService, 'getDiscordToken')
+        .mockResolvedValue('discord-token');
+      jest
+        .spyOn(authService, 'linkDiscordAccount')
+        .mockResolvedValue({} as Provider);
+
+      const result = await controller.discordAuthCallback({
+        code: 'discord-code',
+        state: 'valid-state',
+      });
+
+      expect(result).toEqual({
+        success: true,
+        message: 'Discord account linked successfully',
+      });
+    });
+
+    it('should throw error for invalid state', async () => {
+      jest.spyOn(authService, 'validateOAuthState').mockResolvedValue(null);
+
+      await expect(
+        controller.discordAuthCallback({
+          code: 'discord-code',
+          state: 'invalid-state',
+        })
+      ).rejects.toThrow('Invalid or expired state token');
+    });
+  });
+
+  describe('getTwitchAuthUrl', () => {
+    it('should return Twitch OAuth URL', async () => {
+      const mockRequest = {
+        session: { userId: 1 },
+      };
+
+      jest
+        .spyOn(authService, 'createOAuthStateToken')
+        .mockResolvedValue('twitch-state');
+
+      const result = await controller.getTwitchAuthUrl(mockRequest);
+
+      expect(result).toContain('id.twitch.tv/oauth2/authorize');
+      expect(result).toContain('state=twitch-state');
+    });
+  });
+
+  describe('twitchAuthCallback', () => {
+    it('should link Twitch account successfully', async () => {
+      jest.spyOn(authService, 'validateOAuthState').mockResolvedValue(1);
+      jest
+        .spyOn(authService, 'getTwitchToken')
+        .mockResolvedValue('twitch-token');
+      jest
+        .spyOn(authService, 'linkTwitchAccount')
+        .mockResolvedValue({} as Provider);
+
+      const result = await controller.twitchAuthCallback({
+        code: 'twitch-code',
+        state: 'valid-state',
+      });
+
+      expect(result).toEqual({
+        success: true,
+        message: 'Twitch account linked successfully',
+      });
+    });
+
+    it('should throw error for invalid state', async () => {
+      jest.spyOn(authService, 'validateOAuthState').mockResolvedValue(null);
+
+      await expect(
+        controller.twitchAuthCallback({
+          code: 'twitch-code',
+          state: 'invalid-state',
+        })
+      ).rejects.toThrow('Invalid or expired state token');
+    });
+  });
+
+  describe('gmailAuthUrl', () => {
+    it('should return Gmail OAuth URL', async () => {
+      const result = await controller.gmailAuthUrl('false');
+
+      expect(result).toContain('accounts.google.com/o/oauth2/v2/auth');
+      expect(result).toContain('scope=https://www.googleapis.com');
+      expect(result).toContain('access_type=offline');
+    });
+  });
+
+  describe('gmailAuthCallback', () => {
+    it('should link Gmail account successfully', async () => {
+      const mockRequest = {
+        user: { id: 1, name: 'Test User' },
+      };
+
+      jest.spyOn(authService, 'getGmailToken').mockResolvedValue({
+        accessToken: 'gmail-access',
+        refreshToken: 'gmail-refresh',
+      });
+      jest
+        .spyOn(authService, 'linkGmailAccount')
+        .mockResolvedValue({} as Provider);
+
+      const result = await controller.gmailAuthCallback(
+        { code: 'gmail-code' },
+        mockRequest
+      );
+
+      expect(result).toEqual({ success: true, user: 'Test User' });
+    });
+
+    it('should throw error when no userId', async () => {
+      const mockRequest = {
+        user: { id: null, name: 'Test User' },
+      };
+
+      await expect(
+        controller.gmailAuthCallback({ code: 'gmail-code' }, mockRequest)
+      ).rejects.toThrow('No session found');
+    });
+  });
+
+  describe('googleAuthUrl', () => {
+    it('should return Google OAuth URL for login', async () => {
+      const result = await controller.googleAuthUrl('false');
+
+      expect(result).toContain('accounts.google.com/o/oauth2/v2/auth');
+      expect(result).toContain('scope=');
+    });
+  });
+
+  describe('googleAuthCallback', () => {
+    it('should authenticate user via Google', async () => {
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      };
+
+      const mockUser = {
+        id: 1,
+        email: 'test@gmail.com',
+        name: 'Test User',
+      };
+
+      jest.spyOn(authService, 'getGoogleUserInfo').mockResolvedValue({
+        accessToken: 'google-token',
+        email: 'test@gmail.com',
+        name: 'Test User',
+      });
+
+      jest
+        .spyOn(authService, 'findOrCreateGoogleUser')
+        .mockResolvedValue(mockUser as User);
+
+      jest.spyOn(authService, 'login').mockResolvedValue({
+        access_token: 'jwt-token',
+        user: mockUser,
+      });
+
+      await controller.googleAuthCallback({ code: 'google-code' }, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        access_token: 'jwt-token',
+        user: mockUser,
+      });
+    });
+  });
+
+  describe('jiraAuthUrl', () => {
+    it('should return Jira OAuth URL', async () => {
+      const result = await controller.jiraAuthUrl('false');
+
+      expect(result).toContain('auth.atlassian.com/authorize');
+      expect(result).toContain('audience=api.atlassian.com');
+      expect(result).toContain('response_type=code');
+    });
+  });
+
+  describe('jiraAuthCallback', () => {
+    it('should link Jira account successfully', async () => {
+      const mockRequest = {
+        user: { id: 1, name: 'Test User' },
+      };
+
+      jest.spyOn(authService, 'getJiraToken').mockResolvedValue({
+        accessToken: 'jira-access',
+        refreshToken: 'jira-refresh',
+      });
+
+      jest
+        .spyOn(authService, 'getJiraCloudId')
+        .mockResolvedValue('cloud-id-123');
+
+      jest
+        .spyOn(authService, 'linkJiraAccount')
+        .mockResolvedValue({} as Provider);
+
+      const result = await controller.jiraAuthCallback(
+        { code: 'jira-code' },
+        mockRequest
+      );
+
+      expect(result).toEqual({ success: true, user: 'Test User' });
+      expect(authService.getJiraToken).toHaveBeenCalledWith('jira-code');
+    });
+
+    it('should handle URL-encoded code', async () => {
+      const mockRequest = {
+        user: { id: 1, name: 'Test User' },
+      };
+
+      jest.spyOn(authService, 'getJiraToken').mockResolvedValue({
+        accessToken: 'jira-access',
+        refreshToken: 'jira-refresh',
+      });
+
+      jest
+        .spyOn(authService, 'getJiraCloudId')
+        .mockResolvedValue('cloud-id-123');
+
+      jest
+        .spyOn(authService, 'linkJiraAccount')
+        .mockResolvedValue({} as Provider);
+
+      await controller.jiraAuthCallback(
+        { code: 'code=encoded%20code&other=param' },
+        mockRequest
+      );
+
+      expect(authService.getJiraToken).toHaveBeenCalledWith('encoded code');
+    });
+
+    it('should throw error when no userId', async () => {
+      const mockRequest = {
+        user: { id: null, name: 'Test User' },
+      };
+
+      await expect(
+        controller.jiraAuthCallback({ code: 'jira-code' }, mockRequest)
+      ).rejects.toThrow('No session found');
+    });
+  });
 });
