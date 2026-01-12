@@ -14,9 +14,6 @@ export class TwitchService {
       'your_webhook_secret';
   }
 
-  /**
-   * Get current authenticated Twitch user info
-   */
   async getCurrentUser(userAccessToken: string) {
     const response = await fetch(`${this.baseUrl}/users`, {
       headers: this.getHeaders(userAccessToken),
@@ -24,9 +21,6 @@ export class TwitchService {
     return this.handleResponse(response);
   }
 
-  /**
-   * Get user's followed channels
-   */
   async getFollowedChannels(userAccessToken: string, userId: string) {
     const response = await fetch(
       `${this.baseUrl}/channels/followed?user_id=${userId}`,
@@ -37,11 +31,7 @@ export class TwitchService {
     return this.handleResponse(response);
   }
 
-  /**
-   * Create a Twitch EventSub webhook
-   */
   async createWebhook(
-    userAccessToken: string,
     dto: CreateTwitchWebhookDto,
     webhookUrl: string
   ) {
@@ -77,20 +67,12 @@ export class TwitchService {
     return this.handleResponse(response);
   }
 
-  /**
-   * Verify webhook signature from Twitch
-   */
   verifyWebhookSignature(
     messageId: string,
     timestamp: string,
     body: string,
     signature: string
   ): boolean {
-    console.log('Verifying webhook signature with secret:', this.webhookSecret);
-    console.log('Message ID:', messageId);
-    console.log('Timestamp:', timestamp);
-    console.log('Body:', body);
-    console.log('Signature:', signature);
     const message = messageId + timestamp + body;
     const hmac = crypto.createHmac('sha256', this.webhookSecret);
     hmac.update(message);
@@ -102,9 +84,6 @@ export class TwitchService {
     );
   }
 
-  /**
-   * Get service metadata for actions and reactions
-   */
   getServiceMetadata() {
     return {
       name: 'twitch',
@@ -171,9 +150,6 @@ export class TwitchService {
     };
   }
 
-  /**
-   * Build condition object based on event type
-   */
   private buildCondition(eventType: string, broadcasterUserId: string): any {
     const baseCondition = { broadcaster_user_id: broadcasterUserId };
 
@@ -187,9 +163,6 @@ export class TwitchService {
     return baseCondition;
   }
 
-  /**
-   * Get App Access Token (Client Credentials)
-   */
   private async getAppAccessToken(): Promise<string> {
     const clientId = this.configService.get<string>('TWITCH_CLIENT_ID');
     const clientSecret = this.configService.get<string>('TWITCH_CLIENT_SECRET');

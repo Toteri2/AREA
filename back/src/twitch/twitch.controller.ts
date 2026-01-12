@@ -121,15 +121,12 @@ export class TwitchController {
     @Body() body: any,
     @Res() res
   ) {
-    console.log('Received Twitch webhook:', messageType, subscriptionType);
     const bodyString = JSON.stringify(body);
-    console.log('Body string for signature verification:', bodyString);
     if (messageType.localeCompare('webhook_callback_verification') === 0) {
-      console.log('Twitch webhook verification challenge received');
       return res
         .set('Content-Type', 'text/plain')
         .status(200)
-        .send(body.challenge); //return { challenge: body.challenge };
+        .send(body.challenge);
     }
     const isValid = this.twitchService.verifyWebhookSignature(
       messageId,
@@ -137,15 +134,12 @@ export class TwitchController {
       bodyString,
       signature
     );
-    console.log('Is signature valid?', isValid);
 
     if (!isValid) {
       throw new BadRequestException('Invalid signature');
     }
 
     if (messageType === 'notification') {
-      console.log('Twitch webhook received:', subscriptionType);
-      console.log('Payload:', body);
 
       if (body.subscription) {
         const subscriptionId = body.subscription.id;
@@ -177,7 +171,6 @@ export class TwitchController {
     }
 
     if (messageType === 'revocation') {
-      console.log('Subscription revoked:', body.subscription);
       return res.status(200).send({ status: 'ok' });
     }
 
