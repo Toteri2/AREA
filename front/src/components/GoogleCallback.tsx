@@ -41,7 +41,7 @@ export function GoogleCallback() {
           ...(state && { state }),
         }).unwrap();
 
-        if (data.token) {
+        if (data.access_token) {
           setStatus('Success! Redirecting...');
           setTimeout(() => {
             navigate('/dashboard');

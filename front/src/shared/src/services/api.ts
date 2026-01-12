@@ -92,7 +92,7 @@ export const apiSlice = createApi({
     }),
 
     googleAuthValidate: builder.mutation<
-      { token: string },
+      { access_token: string },
       { code: string; state?: string }
     >({
       query: (authData) => ({
@@ -102,7 +102,7 @@ export const apiSlice = createApi({
       }),
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
-        dispatch(persistToken(data.token));
+        dispatch(persistToken(data.access_token));
       },
     }),
 
