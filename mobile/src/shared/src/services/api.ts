@@ -128,6 +128,13 @@ export const apiSlice = createApi({
         body: { code },
       }),
     }),
+    validateGoogle: builder.mutation<{ success: boolean }, { code: string }>({
+      query: ({ code }) => ({
+        url: '/auth/google/validate',
+        method: 'POST',
+        body: { code },
+      }),
+    }),
     getMicrosoftAuthUrl: builder.query<
       { url: string },
       { mobile?: boolean } | undefined
@@ -283,6 +290,7 @@ export const {
   useGetGithubAuthUrlQuery,
   useLazyGetGithubAuthUrlQuery,
   useValidateGithubMutation,
+  useValidateGoogleMutation,
   useGetMicrosoftAuthUrlQuery,
   useLazyGetMicrosoftAuthUrlQuery,
   useValidateMicrosoftMutation,

@@ -24,6 +24,7 @@ import {
   useAppSelector,
   useGetProfileQuery,
   useValidateGithubMutation,
+  useValidateGoogleMutation,
   useValidateMicrosoftMutation,
 } from './shared/src/native';
 
@@ -33,6 +34,7 @@ function AppNavigator() {
   const { isAuthenticated, token } = useAppSelector((state) => state.auth);
   const { isLoading } = useGetProfileQuery(undefined, { skip: !token });
   const [validateGithub] = useValidateGithubMutation();
+  const [validateGoogle] = useValidateGoogleMutation();
   const [validateMicrosoft] = useValidateMicrosoftMutation();
 
   useEffect(() => {
@@ -49,6 +51,9 @@ function AppNavigator() {
         } else if (url.includes('auth/microsoft')) {
           await validateMicrosoft({ code }).unwrap();
           Alert.alert('Success', 'Microsoft account linked successfully!');
+        } else if (url.includes('auth/google')) {
+          await validateGoogle({ code }).unwrap();
+          Alert.alert('Success', 'Google account linked successfully!');
         }
       } catch (_error) {
         Alert.alert('Error', 'Failed to link account. Please try again.');
