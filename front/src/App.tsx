@@ -22,6 +22,7 @@ import {
   Services,
 } from './pages';
 import './App.css';
+import { GoogleCallback } from './components/GoogleCallback';
 
 function App() {
   const { isAuthenticated, token } = useAppSelector((state) => state.auth);
@@ -78,6 +79,7 @@ function App() {
                 <Route path='/login' element={<Login />} />
                 <Route path='/register' element={<Register />} />
                 <Route path='/github/callback' element={<GitHubCallback />} />
+                <Route path='/google/callback' element={<GoogleCallback />} />
                 <Route
                   path='/microsoft/callback'
                   element={<MicrosoftCallback />}
