@@ -1,9 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CreateClipDto, SendChatMessageDto, UpdateStreamDto } from './dto/twitch.dto';
-import { Hook } from '../shared/entities/hook.entity';
+import { CreateTwitchWebhookDto } from './dto/twitch-webhook.dto';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -11,11 +8,7 @@ export class TwitchService {
     private readonly baseUrl = 'https://api.twitch.tv/helix';
     private readonly webhookSecret: string;
 
-    constructor(
-        private configService: ConfigService,
-        @InjectRepository(Hook)
-        private hookRepository: Repository<Hook>,
-    ) {
+    constructor(private configService: ConfigService) {
         this.webhookSecret = this.configService.get<string>('TWITCH_WEBHOOK_SECRET') || 'your_webhook_secret';
     }
 
@@ -43,208 +36,144 @@ export class TwitchService {
     }
 
     /**
-     * Get streams for followed channels
+     * Create a Twitch EventSub webhook
      */
-    async getFollowedStreams(userAccessToken: string, userId: string) {
-        const response = await fetch(
-            `${this.baseUrl}/streams/followed?user_id=${userId}`,
-            {
-                headers: this.getHeaders(userAccessToken),
-            }
-        );
-        return this.handleResponse(response);
-    }
-
-    /**
-     * Get channel information
-     */
-    async getChannelInfo(userAccessToken: string, broadcasterId: string) {
-        const response = await fetch(
-            `${this.baseUrl}/channels?broadcaster_id=${broadcasterId}`,
-            {
-                headers: this.getHeaders(userAccessToken),
-            }
-        );
-        return this.handleResponse(response);
-    }
-
-    /**
-     * Get stream information
-     */
-    async getStreamInfo(userAccessToken: string, userId: string) {
-        const response = await fetch(`${this.baseUrl}/streams?user_id=${userId}`, {
-            headers: this.getHeaders(userAccessToken),
-        });
-        return this.handleResponse(response);
-    }
-
-    /**
-     * Get channel's videos
-     */
-    async getVideos(userAccessToken: string, userId: string) {
-        const response = await fetch(
-            `${this.baseUrl}/videos?user_id=${userId}&first=20`,
-            {
-                headers: this.getHeaders(userAccessToken),
-            }
-        );
-        return this.handleResponse(response);
-    }
-
-    /**
-     * Get channel's clips
-     */
-    async getClips(userAccessToken: string, broadcasterId: string) {
-        const response = await fetch(
-            `${this.baseUrl}/clips?broadcaster_id=${broadcasterId}&first=20`,
-            {
-                headers: this.getHeaders(userAccessToken),
-            }
-        );
-        return this.handleResponse(response);
-    }
-
-    /**
-     * Create a clip from a live stream
-     */
-    async createClip(userAccessToken: string, dto: CreateClipDto) {
-        const { broadcasterId } = dto;
-
-        const response = await fetch(
-            `${this.baseUrl}/clips?broadcaster_id=${broadcasterId}`,
-            {
-                method: 'POST',
-                headers: this.getHeaders(userAccessToken),
-            }
-        );
-        return this.handleResponse(response);
-    }
-
-    /**
-     * Update stream information
-     */
-    async updateStreamInfo(
+    async createWebhook(
         userAccessToken: string,
-        broadcasterId: string,
-        dto: UpdateStreamDto
+        dto: CreateTwitchWebhookDto,
+        webhookUrl: string
     ) {
-        const response = await fetch(
-            `${this.baseUrl}/channels?broadcaster_id=${broadcasterId}`,
-            {
-                method: 'PATCH',
-                headers: {
-                    ...this.getHeaders(userAccessToken),
-                    'Content-Type': 'application/json',
+        const { broadcasterUserId, eventType, secret } = dto;
+        const clientId = this.configService.get<string>('TWITCH_CLIENT_ID');
+        const appAccessToken = await this.getAppAccessToken();
+
+        const condition = this.buildCondition(eventType, broadcasterUserId);
+        const version = eventType === 'channel.follow' ? '2' : '1';
+
+        const response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${appAccessToken}`,
+                'Client-Id': clientId || '',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                type: eventType,
+                version,
+                condition,
+                transport: {
+                    method: 'webhook',
+                    callback: webhookUrl,
+                    secret: secret || this.webhookSecret,
                 },
-                body: JSON.stringify({
-                    ...(dto.title && { title: dto.title }),
-                    ...(dto.gameId && { game_id: dto.gameId }),
-                    ...(dto.broadcasterLanguage && {
-                        broadcaster_language: dto.broadcasterLanguage,
-                    }),
-                }),
-            }
-        );
-
-        if (response.status === 204) {
-            return { success: true, message: 'Stream info updated successfully' };
-        }
-        return this.handleResponse(response);
-    }
-
-    /**
-     * Get top games/categories
-     */
-    async getTopGames(userAccessToken: string) {
-        const response = await fetch(`${this.baseUrl}/games/top?first=20`, {
-            headers: this.getHeaders(userAccessToken),
+            }),
         });
+
         return this.handleResponse(response);
     }
 
     /**
-     * Search channels
+     * Verify webhook signature from Twitch
      */
-    async searchChannels(userAccessToken: string, query: string) {
-        const response = await fetch(
-            `${this.baseUrl}/search/channels?query=${encodeURIComponent(query)}&first=20`,
-            {
-                headers: this.getHeaders(userAccessToken),
-            }
+    verifyWebhookSignature(messageId: string, timestamp: string, body: string, signature: string): boolean {
+        const message = messageId + timestamp + body;
+        const hmac = crypto.createHmac('sha256', this.webhookSecret);
+        hmac.update(message);
+        const expectedSignature = 'sha256=' + hmac.digest('hex');
+
+        return crypto.timingSafeEqual(
+            Buffer.from(signature),
+            Buffer.from(expectedSignature)
         );
-        return this.handleResponse(response);
     }
 
     /**
-     * Get user's subscriptions
+     * Get service metadata for actions and reactions
      */
-    async getSubscriptions(userAccessToken: string, broadcasterId: string) {
-        const response = await fetch(
-            `${this.baseUrl}/subscriptions?broadcaster_id=${broadcasterId}`,
-            {
-                headers: this.getHeaders(userAccessToken),
-            }
-        );
-        return this.handleResponse(response);
-    }
-
-    /**
-     * Get metadata for Twitch service
-     */
-    getMetadata() {
+    getServiceMetadata() {
         return {
-            name: 'Twitch',
+            name: 'twitch',
             actions: [
                 {
-                    name: 'stream_started',
-                    description: 'Triggered when a followed channel goes live',
+                    name: 'stream.online',
+                    description: 'Triggered when a channel goes live',
+                    parameters: [
+                        {
+                            name: 'broadcasterUserId',
+                            type: 'string',
+                            description: 'The ID of the broadcaster to monitor',
+                            required: true,
+                        },
+                    ],
                 },
                 {
-                    name: 'stream_ended',
+                    name: 'stream.offline',
                     description: 'Triggered when a stream ends',
+                    parameters: [
+                        {
+                            name: 'broadcasterUserId',
+                            type: 'string',
+                            description: 'The ID of the broadcaster to monitor',
+                            required: true,
+                        },
+                    ],
                 },
                 {
-                    name: 'new_follower',
-                    description: 'Triggered when someone follows your channel',
+                    name: 'channel.update',
+                    description: 'Triggered when channel information is updated',
+                    parameters: [
+                        {
+                            name: 'broadcasterUserId',
+                            type: 'string',
+                            description: 'The ID of the broadcaster to monitor',
+                            required: true,
+                        },
+                    ],
                 },
                 {
-                    name: 'new_subscriber',
-                    description: 'Triggered when someone subscribes to your channel',
-                },
-                {
-                    name: 'viewer_threshold',
-                    description: 'Triggered when stream reaches a viewer count threshold',
+                    name: 'channel.follow',
+                    description: 'Triggered when someone follows a channel',
+                    parameters: [
+                        {
+                            name: 'broadcasterUserId',
+                            type: 'string',
+                            description: 'The ID of the broadcaster to monitor',
+                            required: true,
+                        },
+                    ],
                 },
             ],
             reactions: [
                 {
-                    name: 'create_clip',
-                    description: 'Create a clip from a live stream',
+                    name: 'send_chat_message',
+                    description: 'Send a message in chat',
                 },
                 {
                     name: 'update_stream_info',
                     description: 'Update stream title or category',
                 },
-                {
-                    name: 'send_chat_message',
-                    description: 'Send a message in chat (requires chatbot)',
-                },
             ],
         };
     }
 
-    private getHeaders(accessToken: string) {
-        const clientId = this.configService.get<string>('TWITCH_CLIENT_ID');
-        return {
-            Authorization: `Bearer ${accessToken}`,
-            'Client-Id': clientId || '',
-            'Content-Type': 'application/json',
-        };
+    /**
+     * Build condition object based on event type
+     */
+    private buildCondition(eventType: string, broadcasterUserId: string): any {
+        const baseCondition = { broadcaster_user_id: broadcasterUserId };
+
+        if (eventType === 'channel.follow') {
+            return {
+                ...baseCondition,
+                moderator_user_id: broadcasterUserId,
+            };
+        }
+
+        return baseCondition;
     }
 
     /**
      * Get App Access Token (Client Credentials)
-     * Required for EventSub webhooks
      */
     private async getAppAccessToken(): Promise<string> {
         const clientId = this.configService.get<string>('TWITCH_CLIENT_ID');
@@ -268,6 +197,15 @@ export class TwitchService {
         return data.access_token;
     }
 
+    private getHeaders(accessToken: string) {
+        const clientId = this.configService.get<string>('TWITCH_CLIENT_ID');
+        return {
+            Authorization: `Bearer ${accessToken}`,
+            'Client-Id': clientId || '',
+            'Content-Type': 'application/json',
+        };
+    }
+
     private async handleResponse(response: Response) {
         if (!response.ok) {
             const error = await response.json().catch(() => ({}));
@@ -280,136 +218,5 @@ export class TwitchService {
             return null;
         }
         return response.json();
-    }
-
-    /**
-     * Subscribe to EventSub webhook
-     */
-    async subscribeToEventSub(
-        userId: number,
-        userAccessToken: string,
-        eventType: string,
-        condition: any,
-        callbackUrl: string,
-    ) {
-        const clientId = this.configService.get<string>('TWITCH_CLIENT_ID');
-        const appAccessToken = await this.getAppAccessToken();
-
-        const response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${appAccessToken}`,
-                'Client-Id': clientId || '',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                type: eventType,
-                version: '1',
-                condition,
-                transport: {
-                    method: 'webhook',
-                    callback: callbackUrl,
-                    secret: this.webhookSecret,
-                },
-            }),
-        });
-
-        const data = await this.handleResponse(response);
-
-        const webhook = this.hookRepository.create({
-            userId,
-            webhookId: data.data[0].id,
-            service: 'twitch',
-            eventType: this.mapEventTypeToInt(eventType),
-        });
-
-        await this.hookRepository.save(webhook);
-
-        return data;
-    }
-
-    /**
-     * Unsubscribe from EventSub webhook
-     */
-    async unsubscribeFromEventSub(userAccessToken: string, subscriptionId: string) {
-        const clientId = this.configService.get<string>('TWITCH_CLIENT_ID');
-        const appAccessToken = await this.getAppAccessToken();
-
-        const response = await fetch(
-            `https://api.twitch.tv/helix/eventsub/subscriptions?id=${subscriptionId}`,
-            {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${appAccessToken}`,
-                    'Client-Id': clientId || '',
-                },
-            }
-        );
-
-        if (response.status !== 204) {
-            throw new HttpException('Failed to unsubscribe', response.status);
-        }
-
-        await this.hookRepository.delete({
-            webhookId: subscriptionId,
-            service: 'twitch',
-        });
-
-        return { success: true };
-    }
-
-    /**
-     * List all EventSub subscriptions
-     */
-    async listEventSubSubscriptions(userAccessToken: string) {
-        const clientId = this.configService.get<string>('TWITCH_CLIENT_ID');
-        const appAccessToken = await this.getAppAccessToken();
-
-        const response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-            headers: {
-                'Authorization': `Bearer ${appAccessToken}`,
-                'Client-Id': clientId || '',
-            },
-        });
-
-        return this.handleResponse(response);
-    }
-
-    /**
-     * Verify webhook signature from Twitch
-     */
-    verifyWebhookSignature(messageId: string, timestamp: string, body: string, signature: string): boolean {
-        const message = messageId + timestamp + body;
-        const hmac = crypto.createHmac('sha256', this.webhookSecret);
-        hmac.update(message);
-        const expectedSignature = 'sha256=' + hmac.digest('hex');
-
-        return crypto.timingSafeEqual(
-            Buffer.from(signature),
-            Buffer.from(expectedSignature)
-        );
-    }
-
-    /**
-     * Get user's active webhooks
-     */
-    async getUserWebhooks(userId: number) {
-        return this.hookRepository.find({
-            where: { userId, service: 'twitch' },
-        });
-    }
-
-    /**
-     * Map Twitch event type to integer for storage
-     */
-    private mapEventTypeToInt(eventType: string): number {
-        const eventMap: { [key: string]: number } = {
-            'stream.online': 1,
-            'stream.offline': 2,
-            'channel.update': 3,
-            'channel.follow': 4,
-            'channel.subscribe': 5,
-        };
-        return eventMap[eventType] || 0;
     }
 }
