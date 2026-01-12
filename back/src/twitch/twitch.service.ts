@@ -1,7 +1,8 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 import * as crypto from 'crypto';
-import { CreateTwitchWebhookDto } from './dto/twitch-webhook.dto';
+import { CreateTwitchWebhookDto } from './dto/twitch.dto';
 
 @Injectable()
 export class TwitchService {
@@ -9,20 +10,20 @@ export class TwitchService {
   private readonly webhookSecret: string;
 
   constructor(private configService: ConfigService) {
-    this.webhookSecret =
-      this.configService.get<string>('TWITCH_WEBHOOK_SECRET') ||
-      'your_webhook_secret';
+    this.webhookSecret = this.configService.getOrThrow<string>(
+      'TWITCH_WEBHOOK_SECRET'
+    );
   }
 
   async getCurrentUser(userAccessToken: string) {
-    const response = await fetch(`${this.baseUrl}/users`, {
+    const response = await axios.get(`${this.baseUrl}/users`, {
       headers: this.getHeaders(userAccessToken),
     });
     return this.handleResponse(response);
   }
 
   async getFollowedChannels(userAccessToken: string, userId: string) {
-    const response = await fetch(
+    const response = await axios.get(
       `${this.baseUrl}/channels/followed?user_id=${userId}`,
       {
         headers: this.getHeaders(userAccessToken),
@@ -31,36 +32,32 @@ export class TwitchService {
     return this.handleResponse(response);
   }
 
-  async createWebhook(
-    dto: CreateTwitchWebhookDto,
-    webhookUrl: string
-  ) {
+  async createWebhook(dto: CreateTwitchWebhookDto, webhookUrl: string) {
     const { broadcasterUserId, eventType, secret } = dto;
-    const clientId = this.configService.get<string>('TWITCH_CLIENT_ID');
+    const clientId = this.configService.getOrThrow<string>('TWITCH_CLIENT_ID');
     const appAccessToken = await this.getAppAccessToken();
 
     const condition = this.buildCondition(eventType, broadcasterUserId);
     const version = eventType === 'channel.follow' ? '2' : '1';
 
-    const response = await fetch(
+    const response = await axios.post(
       'https://api.twitch.tv/helix/eventsub/subscriptions',
       {
-        method: 'POST',
+        type: eventType,
+        version,
+        condition,
+        transport: {
+          method: 'webhook',
+          callback: webhookUrl,
+          secret: secret || this.webhookSecret,
+        },
+      },
+      {
         headers: {
           Authorization: `Bearer ${appAccessToken}`,
-          'Client-Id': clientId || '',
+          'Client-Id': clientId,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          type: eventType,
-          version,
-          condition,
-          transport: {
-            method: 'webhook',
-            callback: webhookUrl,
-            secret: secret || this.webhookSecret,
-          },
-        }),
       }
     );
 
@@ -164,50 +161,42 @@ export class TwitchService {
   }
 
   private async getAppAccessToken(): Promise<string> {
-    const clientId = this.configService.get<string>('TWITCH_CLIENT_ID');
-    const clientSecret = this.configService.get<string>('TWITCH_CLIENT_SECRET');
+    const clientId = this.configService.getOrThrow<string>('TWITCH_CLIENT_ID');
+    const clientSecret = this.configService.getOrThrow<string>(
+      'TWITCH_CLIENT_SECRET'
+    );
 
     const params = new URLSearchParams();
-    params.append('client_id', clientId || '');
-    params.append('client_secret', clientSecret || '');
+    params.append('client_id', clientId);
+    params.append('client_secret', clientSecret);
     params.append('grant_type', 'client_credentials');
 
-    const response = await fetch('https://id.twitch.tv/oauth2/token', {
-      method: 'POST',
-      body: params,
-    });
+    const response = await axios.post(
+      'https://id.twitch.tv/oauth2/token',
+      params,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
 
-    if (!response.ok) {
-      throw new HttpException(
-        'Failed to get app access token',
-        response.status
-      );
-    }
-
-    const data = await response.json();
-    return data.access_token;
+    return response.data.access_token;
   }
 
   private getHeaders(accessToken: string) {
-    const clientId = this.configService.get<string>('TWITCH_CLIENT_ID');
+    const clientId = this.configService.getOrThrow<string>('TWITCH_CLIENT_ID');
     return {
       Authorization: `Bearer ${accessToken}`,
-      'Client-Id': clientId || '',
+      'Client-Id': clientId,
       'Content-Type': 'application/json',
     };
   }
 
-  private async handleResponse(response: Response) {
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new HttpException(
-        error.message || 'Twitch request failed',
-        response.status
-      );
-    }
+  private async handleResponse(response: any) {
     if (response.status === 204) {
       return null;
     }
-    return response.json();
+    return response.data;
   }
 }
