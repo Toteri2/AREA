@@ -1,6 +1,9 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { AuthService } from '../auth/auth.service';
+import { ReactionsService } from '../reactions/reactions.service';
+import { Hook } from '../shared/entities/hook.entity';
 import { DiscordController } from './discord.controller';
 import { DiscordService } from './discord.service';
 
@@ -27,6 +30,10 @@ describe('DiscordController', () => {
     getDiscordProvider: jest.fn(),
   };
 
+  const mockReactionsService = {
+    execute: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DiscordController],
@@ -38,6 +45,21 @@ describe('DiscordController', () => {
         {
           provide: AuthService,
           useValue: mockAuthService,
+        },
+        {
+          provide: ReactionsService,
+          useValue: mockReactionsService,
+        },
+        {
+          provide: getRepositoryToken(Hook),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            findOneBy: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            remove: jest.fn(),
+          },
         },
       ],
     }).compile();

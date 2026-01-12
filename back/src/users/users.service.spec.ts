@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Hook } from '../shared/entities/hook.entity';
+import { Provider } from '../shared/entities/provider.entity';
 import { User } from '../shared/entities/user.entity';
 import { UsersService } from './users.service';
 
@@ -23,6 +24,16 @@ describe('UsersService', () => {
         },
         {
           provide: getRepositoryToken(Hook),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            remove: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(Provider),
           useValue: {
             find: jest.fn(),
             findOne: jest.fn(),

@@ -72,6 +72,23 @@ describe('AuthService', () => {
               };
               return config[key];
             }),
+            getOrThrow: jest.fn((key: string) => {
+              const config = {
+                DISCORD_CLIENT_ID: 'test-discord-client-id',
+                DISCORD_CLIENT_SECRET: 'test-discord-secret',
+                GITHUB_CLIENT_ID: 'test-github-client-id',
+                GITHUB_CLIENT_SECRET: 'test-github-secret',
+                GOOGLE_CLIENT_ID: 'test-google-client-id',
+                GOOGLE_CLIENT_SECRET: 'test-google-secret',
+                MICROSOFT_CLIENT_ID: 'test-microsoft-client-id',
+                MICROSOFT_CLIENT_SECRET: 'test-microsoft-secret',
+                JIRA_CLIENT_ID: 'test-jira-client-id',
+                JIRA_CLIENT_SECRET: 'test-jira-secret',
+                JWT_SECRET: 'test-jwt-secret',
+                FRONTEND_URL: 'http://localhost:3000',
+              };
+              return config[key];
+            }),
           },
         },
       ],

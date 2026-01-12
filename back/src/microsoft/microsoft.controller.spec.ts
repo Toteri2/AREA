@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AuthService } from '../auth/auth.service';
@@ -35,6 +36,25 @@ describe('MicrosoftController', () => {
           provide: ReactionsService,
           useValue: {
             executeReaction: jest.fn(),
+          },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              const config = {
+                MICROSOFT_CLIENT_ID: 'test-microsoft-id',
+                MICROSOFT_CLIENT_SECRET: 'test-microsoft-secret',
+              };
+              return config[key];
+            }),
+            getOrThrow: jest.fn((key: string) => {
+              const config = {
+                MICROSOFT_CLIENT_ID: 'test-microsoft-id',
+                MICROSOFT_CLIENT_SECRET: 'test-microsoft-secret',
+              };
+              return config[key];
+            }),
           },
         },
       ],

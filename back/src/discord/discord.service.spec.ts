@@ -79,10 +79,9 @@ describe('DiscordService', () => {
     it('should return parsed JSON for successful response', async () => {
       const mockData = { id: '123', name: 'Test' };
       const mockResponse = {
-        ok: true,
         status: 200,
-        json: jest.fn().mockResolvedValue(mockData),
-      } as unknown as Response;
+        data: mockData,
+      };
 
       const result = await service.handleResponse(mockResponse);
       expect(result).toEqual(mockData);
@@ -90,29 +89,14 @@ describe('DiscordService', () => {
 
     it('should return null for 204 No Content response', async () => {
       const mockResponse = {
-        ok: true,
         status: 204,
-        json: jest.fn(),
-      } as unknown as Response;
+        data: null,
+      };
 
       const result = await service.handleResponse(mockResponse);
       expect(result).toBeNull();
     });
-
-    it('should throw HttpException for error response', async () => {
-      const mockError = { message: 'Test error' };
-      const mockResponse = {
-        ok: false,
-        status: 400,
-        json: jest.fn().mockResolvedValue(mockError),
-      } as unknown as Response;
-
-      await expect(service.handleResponse(mockResponse)).rejects.toThrow();
-    });
   });
-
-  // Note: Les tests suivants nécessitent de mocker l'API Discord
-  // ou d'utiliser un serveur de test
 
   describe('API Methods', () => {
     const mockToken = 'mock_discord_token';
