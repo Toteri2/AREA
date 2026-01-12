@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { logout, useAppDispatch, useAppSelector } from '../shared/src/web';
+import { ApkDownloadButton } from './ApkDownloadButton';
 
 export function Navbar() {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
@@ -23,6 +24,7 @@ export function Navbar() {
             <Link to='/services'>Services</Link>
             <Link to='/reactions'>Reactions</Link>
             <Link to='/profile'>Profile</Link>
+            <ApkDownloadButton />
             <button type='button' onClick={handleLogout} className='btn-logout'>
               Logout
             </button>
