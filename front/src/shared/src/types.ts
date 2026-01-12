@@ -87,16 +87,6 @@ export type AboutService = {
   }[];
 };
 
-export type AboutResponse = {
-  client: {
-    host: string;
-  };
-  server: {
-    current_time: number;
-    services: AboutService[];
-  };
-};
-
 export interface Reaction {
   id: number;
   hookId: number;
