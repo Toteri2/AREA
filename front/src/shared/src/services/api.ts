@@ -46,7 +46,14 @@ export const apiSlice = createApi({
     const cachedBaseQuery = getCachedBaseQuery(baseUrl);
     return cachedBaseQuery(args, api, extraOptions);
   },
-  tagTypes: ['User', 'Repos', 'Webhooks', 'MicrosoftSubscriptions', 'GmailSubscriptions', 'Reactions'],
+  tagTypes: [
+    'User',
+    'Repos',
+    'Webhooks',
+    'MicrosoftSubscriptions',
+    'GmailSubscriptions',
+    'Reactions',
+  ],
   endpoints: (builder) => ({
     login: builder.mutation<
       ApiAuthResponse,
