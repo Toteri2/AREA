@@ -683,11 +683,11 @@ export class AuthService {
       const tokenResponse = await axios.post(
         'https://oauth2.googleapis.com/token',
         {
-          client_id: process.env.GMAIL_CLIENT_ID,
-          client_secret: process.env.GMAIL_CLIENT_SECRET,
+          client_id: this.configService.getOrThrow<string>('GMAIL_CLIENT_ID'),
+          client_secret: this.configService.getOrThrow<string>('GMAIL_CLIENT_SECRET'),
           code,
           grant_type: 'authorization_code',
-          redirect_uri: process.env.GOOGLE_CALLBACK_URL,
+          redirect_uri: this.configService.getOrThrow<string>('GOOGLE_CALLBACK_URL'),
         }
       );
       const accessToken = tokenResponse.data.access_token;
