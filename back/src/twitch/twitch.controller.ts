@@ -1,13 +1,9 @@
 import {
     Body,
     Controller,
-    Delete,
     Get,
     Headers,
-    Param,
-    Patch,
     Post,
-    Query,
     Req,
     UnauthorizedException,
     UseGuards,
@@ -15,9 +11,12 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { AuthService } from '../auth/auth.service';
-import { CreateClipDto, UpdateStreamDto } from './dto/twitch.dto';
-import { CreateTwitchWebhookDto, EventSubCallbackDto } from './dto/twitch-webhook.dto';
+import { ReactionsService } from '../reactions/reactions.service';
+import { Hook } from '../shared/entities/hook.entity';
+import { CreateTwitchWebhookDto } from './dto/twitch-webhook.dto';
 import { TwitchService } from './twitch.service';
 
 @ApiTags('twitch')
@@ -25,7 +24,10 @@ import { TwitchService } from './twitch.service';
 export class TwitchController {
     constructor(
         private readonly twitchService: TwitchService,
-        private readonly authService: AuthService
+        private readonly authService: AuthService,
+        private readonly reactionsService: ReactionsService,
+        @InjectRepository(Hook)
+        private hooksRepository: Repository<Hook>,
     ) { }
 
     @Get('me')
@@ -58,148 +60,6 @@ export class TwitchController {
         return this.twitchService.getFollowedChannels(provider.accessToken, userId);
     }
 
-    @Get('followed-streams')
-    @ApiOperation({ summary: 'Get live streams from followed channels' })
-    @ApiResponse({
-        status: 200,
-        description: 'Followed streams retrieved successfully.',
-    })
-    @UseGuards(AuthGuard('jwt'))
-    async getFollowedStreams(@Req() req) {
-        const provider = await this.authService.getTwitchProvider(req.user.id);
-        if (!provider) throw new UnauthorizedException('Twitch account not linked');
-
-        const userData = await this.twitchService.getCurrentUser(provider.accessToken);
-        const userId = userData.data[0].id;
-
-        return this.twitchService.getFollowedStreams(provider.accessToken, userId);
-    }
-
-    @Get('channels/:broadcasterId')
-    @ApiOperation({ summary: 'Get channel information' })
-    @ApiResponse({
-        status: 200,
-        description: 'Channel information retrieved successfully.',
-    })
-    @UseGuards(AuthGuard('jwt'))
-    async getChannelInfo(@Req() req, @Param('broadcasterId') broadcasterId: string) {
-        const provider = await this.authService.getTwitchProvider(req.user.id);
-        if (!provider) throw new UnauthorizedException('Twitch account not linked');
-        return this.twitchService.getChannelInfo(provider.accessToken, broadcasterId);
-    }
-
-    @Get('streams/:userId')
-    @ApiOperation({ summary: 'Get stream information for a user' })
-    @ApiResponse({
-        status: 200,
-        description: 'Stream information retrieved successfully.',
-    })
-    @UseGuards(AuthGuard('jwt'))
-    async getStreamInfo(@Req() req, @Param('userId') userId: string) {
-        const provider = await this.authService.getTwitchProvider(req.user.id);
-        if (!provider) throw new UnauthorizedException('Twitch account not linked');
-        return this.twitchService.getStreamInfo(provider.accessToken, userId);
-    }
-
-    @Get('videos/:userId')
-    @ApiOperation({ summary: 'Get channel videos' })
-    @ApiResponse({
-        status: 200,
-        description: 'Videos retrieved successfully.',
-    })
-    @UseGuards(AuthGuard('jwt'))
-    async getVideos(@Req() req, @Param('userId') userId: string) {
-        const provider = await this.authService.getTwitchProvider(req.user.id);
-        if (!provider) throw new UnauthorizedException('Twitch account not linked');
-        return this.twitchService.getVideos(provider.accessToken, userId);
-    }
-
-    @Get('clips/:broadcasterId')
-    @ApiOperation({ summary: 'Get channel clips' })
-    @ApiResponse({
-        status: 200,
-        description: 'Clips retrieved successfully.',
-    })
-    @UseGuards(AuthGuard('jwt'))
-    async getClips(@Req() req, @Param('broadcasterId') broadcasterId: string) {
-        const provider = await this.authService.getTwitchProvider(req.user.id);
-        if (!provider) throw new UnauthorizedException('Twitch account not linked');
-        return this.twitchService.getClips(provider.accessToken, broadcasterId);
-    }
-
-    @Post('clips')
-    @ApiOperation({ summary: 'Create a clip from a live stream' })
-    @ApiResponse({
-        status: 201,
-        description: 'Clip created successfully.',
-    })
-    @UseGuards(AuthGuard('jwt'))
-    async createClip(@Req() req, @Body() createClipDto: CreateClipDto) {
-        const provider = await this.authService.getTwitchProvider(req.user.id);
-        if (!provider) throw new UnauthorizedException('Twitch account not linked');
-        return this.twitchService.createClip(provider.accessToken, createClipDto);
-    }
-
-    @Patch('streams/:broadcasterId')
-    @ApiOperation({ summary: 'Update stream information' })
-    @ApiResponse({
-        status: 200,
-        description: 'Stream information updated successfully.',
-    })
-    @UseGuards(AuthGuard('jwt'))
-    async updateStreamInfo(
-        @Req() req,
-        @Param('broadcasterId') broadcasterId: string,
-        @Body() updateStreamDto: UpdateStreamDto
-    ) {
-        const provider = await this.authService.getTwitchProvider(req.user.id);
-        if (!provider) throw new UnauthorizedException('Twitch account not linked');
-        return this.twitchService.updateStreamInfo(
-            provider.accessToken,
-            broadcasterId,
-            updateStreamDto
-        );
-    }
-
-    @Get('games/top')
-    @ApiOperation({ summary: 'Get top games/categories' })
-    @ApiResponse({
-        status: 200,
-        description: 'Top games retrieved successfully.',
-    })
-    @UseGuards(AuthGuard('jwt'))
-    async getTopGames(@Req() req) {
-        const provider = await this.authService.getTwitchProvider(req.user.id);
-        if (!provider) throw new UnauthorizedException('Twitch account not linked');
-        return this.twitchService.getTopGames(provider.accessToken);
-    }
-
-    @Get('search/channels')
-    @ApiOperation({ summary: 'Search for channels' })
-    @ApiResponse({
-        status: 200,
-        description: 'Channels found successfully.',
-    })
-    @UseGuards(AuthGuard('jwt'))
-    async searchChannels(@Req() req, @Query('query') query: string) {
-        const provider = await this.authService.getTwitchProvider(req.user.id);
-        if (!provider) throw new UnauthorizedException('Twitch account not linked');
-        return this.twitchService.searchChannels(provider.accessToken, query);
-    }
-
-    @Get('subscriptions/:broadcasterId')
-    @ApiOperation({ summary: 'Get channel subscriptions' })
-    @ApiResponse({
-        status: 200,
-        description: 'Subscriptions retrieved successfully.',
-    })
-    @UseGuards(AuthGuard('jwt'))
-    async getSubscriptions(@Req() req, @Param('broadcasterId') broadcasterId: string) {
-        const provider = await this.authService.getTwitchProvider(req.user.id);
-        if (!provider) throw new UnauthorizedException('Twitch account not linked');
-        return this.twitchService.getSubscriptions(provider.accessToken, broadcasterId);
-    }
-
     @Get('metadata')
     @ApiOperation({
         summary: 'Get Twitch service metadata (actions and reactions)',
@@ -209,82 +69,50 @@ export class TwitchController {
         description: 'Service metadata retrieved successfully.',
     })
     async getMetadata() {
-        return this.twitchService.getMetadata();
+        return this.twitchService.getServiceMetadata();
     }
 
-    @Post('webhooks/subscribe')
-    @ApiOperation({ summary: 'Subscribe to Twitch EventSub webhook' })
+    @Post('create-webhook')
+    @ApiOperation({ summary: 'Create a Twitch EventSub webhook' })
     @ApiResponse({
         status: 201,
         description: 'Webhook subscription created successfully.',
     })
     @UseGuards(AuthGuard('jwt'))
-    async subscribeToWebhook(@Req() req, @Body() dto: CreateTwitchWebhookDto) {
+    async createWebhook(@Req() req, @Body() createWebhookDto: CreateTwitchWebhookDto) {
         const provider = await this.authService.getTwitchProvider(req.user.id);
         if (!provider) throw new UnauthorizedException('Twitch account not linked');
 
-        const callbackUrl = process.env.TWITCH_WEBHOOK_CALLBACK_URL || 'https://your-domain.com/twitch/webhooks/callback';
-
-        return this.twitchService.subscribeToEventSub(
-            req.user.id,
+        const webhookUrl = process.env.TWITCH_WEBHOOK_URL || '';
+        const result = await this.twitchService.createWebhook(
             provider.accessToken,
-            dto.eventType,
-            dto.condition,
-            callbackUrl,
+            createWebhookDto,
+            webhookUrl
         );
+
+        const hook = this.hooksRepository.create({
+            userId: req.user.id,
+            webhookId: result.data[0].id,
+            service: 'twitch',
+        });
+
+        const savedHook = await this.hooksRepository.save(hook);
+        return { result, hookId: savedHook.id };
     }
 
-    @Delete('webhooks/:subscriptionId')
-    @ApiOperation({ summary: 'Unsubscribe from Twitch EventSub webhook' })
-    @ApiResponse({
-        status: 200,
-        description: 'Webhook unsubscribed successfully.',
-    })
-    @UseGuards(AuthGuard('jwt'))
-    async unsubscribeFromWebhook(@Req() req, @Param('subscriptionId') subscriptionId: string) {
-        const provider = await this.authService.getTwitchProvider(req.user.id);
-        if (!provider) throw new UnauthorizedException('Twitch account not linked');
-
-        return this.twitchService.unsubscribeFromEventSub(provider.accessToken, subscriptionId);
-    }
-
-    @Get('webhooks')
-    @ApiOperation({ summary: 'List all EventSub subscriptions' })
-    @ApiResponse({
-        status: 200,
-        description: 'EventSub subscriptions retrieved successfully.',
-    })
-    @UseGuards(AuthGuard('jwt'))
-    async listWebhooks(@Req() req) {
-        const provider = await this.authService.getTwitchProvider(req.user.id);
-        if (!provider) throw new UnauthorizedException('Twitch account not linked');
-
-        return this.twitchService.listEventSubSubscriptions(provider.accessToken);
-    }
-
-    @Get('webhooks/user')
-    @ApiOperation({ summary: 'Get user active webhooks from database' })
-    @ApiResponse({
-        status: 200,
-        description: 'User webhooks retrieved successfully.',
-    })
-    @UseGuards(AuthGuard('jwt'))
-    async getUserWebhooks(@Req() req) {
-        return this.twitchService.getUserWebhooks(req.user.id);
-    }
-
-    @Post('webhooks/callback')
+    @Post('webhook')
     @ApiOperation({ summary: 'Twitch EventSub webhook callback' })
     @ApiResponse({
         status: 200,
         description: 'Webhook callback handled successfully.',
     })
-    async handleWebhookCallback(
+    async webhook(
         @Headers('twitch-eventsub-message-id') messageId: string,
         @Headers('twitch-eventsub-message-timestamp') timestamp: string,
         @Headers('twitch-eventsub-message-signature') signature: string,
         @Headers('twitch-eventsub-message-type') messageType: string,
-        @Body() body: EventSubCallbackDto,
+        @Headers('twitch-eventsub-subscription-type') subscriptionType: string,
+        @Body() body: any,
     ) {
         const bodyString = JSON.stringify(body);
         const isValid = this.twitchService.verifyWebhookSignature(
@@ -303,8 +131,31 @@ export class TwitchController {
         }
 
         if (messageType === 'notification') {
-            console.log('Received Twitch event:', body.subscription?.type);
-            console.log('Event data:', body.event);
+            console.log('Twitch webhook received:', subscriptionType);
+            console.log('Payload:', body);
+
+            if (body.subscription) {
+                const subscriptionId = body.subscription.id;
+                const hooks = await this.hooksRepository.find({
+                    where: { webhookId: subscriptionId, service: 'twitch' },
+                });
+
+                for (const hook of hooks) {
+                    const reactions = await this.reactionsService.findByHookId(hook.id);
+
+                    for (const reaction of reactions) {
+                        try {
+                            await this.reactionsService.executeReaction(
+                                reaction,
+                                body,
+                                hook.userId
+                            );
+                        } catch (error) {
+                            console.error(`Failed to execute reaction ${reaction.id}:`, error);
+                        }
+                    }
+                }
+            }
 
             return { status: 'ok' };
         }

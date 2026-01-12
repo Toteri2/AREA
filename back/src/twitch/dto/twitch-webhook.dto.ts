@@ -3,7 +3,15 @@ import { IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class CreateTwitchWebhookDto {
     @ApiProperty({
-        description: 'Event type to subscribe to',
+        description: 'Broadcaster user ID to monitor',
+        example: '123456'
+    })
+    @IsString()
+    @IsNotEmpty()
+    broadcasterUserId: string;
+
+    @ApiProperty({
+        description: 'Event type to subscribe to (stream.online, stream.offline, channel.update, channel.follow)',
         example: 'stream.online'
     })
     @IsString()
@@ -11,27 +19,10 @@ export class CreateTwitchWebhookDto {
     eventType: string;
 
     @ApiProperty({
-        description: 'Condition for the subscription',
-        example: { broadcaster_user_id: '123456' }
+        description: 'Webhook secret for signature verification',
+        required: false
     })
-    @IsObject()
-    @IsNotEmpty()
-    condition: any;
-}
-
-export class EventSubCallbackDto {
-    @ApiProperty({ description: 'Challenge string for verification', required: false })
     @IsString()
     @IsOptional()
-    challenge?: string;
-
-    @ApiProperty({ description: 'Subscription details', required: false })
-    @IsObject()
-    @IsOptional()
-    subscription?: any;
-
-    @ApiProperty({ description: 'Event data', required: false })
-    @IsObject()
-    @IsOptional()
-    event?: any;
+    secret?: string;
 }
