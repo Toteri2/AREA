@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import axios from 'axios';
 import { AuthService } from 'src/auth/auth.service';
 import { DiscordService } from 'src/discord/discord.service';
 import { Hook } from 'src/shared/entities/hook.entity';
@@ -118,28 +119,22 @@ export class ReactionsService {
 
       const processedConfig = this.replaceVariables(config, webhookPayload);
 
-      const response = await fetch(
+      await axios.post(
         'https://gmail.googleapis.com/gmail/v1/users/me/messages/send',
         {
-          method: 'POST',
+          raw: this.createEmailRaw(
+            processedConfig.to,
+            processedConfig.subject,
+            processedConfig.body
+          ),
+        },
+        {
           headers: {
             Authorization: `Bearer ${gmailToken}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            raw: this.createEmailRaw(
-              processedConfig.to,
-              processedConfig.subject,
-              processedConfig.body
-            ),
-          }),
         }
       );
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Failed to send email via Gmail: ${error}`);
-      }
 
       return { success: true, message: 'Email sent via Gmail successfully' };
     } catch (error) {
@@ -195,22 +190,16 @@ export class ReactionsService {
         },
       };
 
-      const response = await fetch(
+      await axios.post(
         'https://graph.microsoft.com/v1.0/me/sendMail',
+        emailBody,
         {
-          method: 'POST',
           headers: {
             Authorization: `Bearer ${microsoftToken}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(emailBody),
         }
       );
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Failed to send email: ${error}`);
-      }
 
       return { success: true, message: 'Email sent successfully' };
     } catch (error) {
@@ -445,27 +434,19 @@ export class ReactionsService {
           : processedConfig.labels.split(',').map((l: string) => l.trim());
       }
 
-      const response = await fetch(
+      const response = await axios.post(
         `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/issue`,
+        issueData,
         {
-          method: 'POST',
           headers: {
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
-          body: JSON.stringify(issueData),
         }
       );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(
-          `Failed to create Jira issue: ${JSON.stringify(error)}`
-        );
-      }
-
-      const result = await response.json();
+      const result = response.data;
       return {
         success: true,
         issueKey: result.key,
@@ -512,25 +493,19 @@ export class ReactionsService {
         },
       };
 
-      const response = await fetch(
+      const response = await axios.post(
         `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/issue/${processedConfig.issueKey}/comment`,
+        commentBody,
         {
-          method: 'POST',
           headers: {
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
-          body: JSON.stringify(commentBody),
         }
       );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`Failed to add Jira comment: ${JSON.stringify(error)}`);
-      }
-
-      const result = await response.json();
+      const result = response.data;
       return {
         success: true,
         commentId: result.id,
@@ -558,7 +533,7 @@ export class ReactionsService {
 
       const processedConfig = this.replaceVariables(config, webhookPayload);
 
-      const transitionsResponse = await fetch(
+      const transitionsResponse = await axios.get(
         `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/issue/${processedConfig.issueKey}/transitions`,
         {
           headers: {
@@ -568,11 +543,7 @@ export class ReactionsService {
         }
       );
 
-      if (!transitionsResponse.ok) {
-        throw new Error('Failed to fetch available transitions');
-      }
-
-      const transitionsData = await transitionsResponse.json();
+      const transitionsData = transitionsResponse.data;
 
       const transition = transitionsData.transitions.find(
         (t: any) =>
@@ -588,29 +559,21 @@ export class ReactionsService {
         );
       }
 
-      const response = await fetch(
+      await axios.post(
         `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/issue/${processedConfig.issueKey}/transitions`,
         {
-          method: 'POST',
+          transition: {
+            id: transition.id,
+          },
+        },
+        {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
             Accept: 'application/json',
           },
-          body: JSON.stringify({
-            transition: {
-              id: transition.id,
-            },
-          }),
         }
       );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(
-          `Failed to update Jira status: ${JSON.stringify(error)}`
-        );
-      }
 
       return {
         success: true,

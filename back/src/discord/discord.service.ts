@@ -1,5 +1,6 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 import {
   AddRoleDto,
   CreatePrivateChannelDto,
@@ -19,7 +20,7 @@ export class DiscordService {
   }
 
   async getChannelMessages(userAccessToken: string, channelId: string) {
-    const response = await fetch(
+    const response = await axios.get(
       `${this.baseUrl}/channels/${channelId}/messages?limit=10`,
       {
         headers: this.getBotHeaders(),
@@ -29,7 +30,7 @@ export class DiscordService {
   }
 
   async getGuildMembers(userAccessToken: string, guildId: string) {
-    const response = await fetch(
+    const response = await axios.get(
       `${this.baseUrl}/guilds/${guildId}/members?limit=100`,
       {
         headers: this.getBotHeaders(),
@@ -43,7 +44,7 @@ export class DiscordService {
     channelId: string,
     messageId: string
   ) {
-    const response = await fetch(
+    const response = await axios.get(
       `${this.baseUrl}/channels/${channelId}/messages/${messageId}`,
       {
         headers: this.getBotHeaders(),
@@ -53,16 +54,19 @@ export class DiscordService {
   }
 
   async listUserGuilds(userAccessToken: string) {
-    const response = await fetch(`${this.baseUrl}/users/@me/guilds`, {
+    const response = await axios.get(`${this.baseUrl}/users/@me/guilds`, {
       headers: this.getHeaders(userAccessToken),
     });
     return this.handleResponse(response);
   }
 
   async listGuildChannels(userAccessToken: string, guildId: string) {
-    const response = await fetch(`${this.baseUrl}/guilds/${guildId}/channels`, {
-      headers: this.getBotHeaders(),
-    });
+    const response = await axios.get(
+      `${this.baseUrl}/guilds/${guildId}/channels`,
+      {
+        headers: this.getBotHeaders(),
+      }
+    );
     return this.handleResponse(response);
   }
 
@@ -74,12 +78,11 @@ export class DiscordService {
       body.embeds = embeds;
     }
 
-    const response = await fetch(
+    const response = await axios.post(
       `${this.baseUrl}/channels/${channelId}/messages`,
+      body,
       {
-        method: 'POST',
         headers: this.getBotHeaders(),
-        body: JSON.stringify(body),
       }
     );
     return this.handleResponse(response);
@@ -88,10 +91,10 @@ export class DiscordService {
   async addRoleToUser(userAccessToken: string, dto: AddRoleDto) {
     const { guildId, userId, roleId } = dto;
 
-    const response = await fetch(
+    const response = await axios.put(
       `${this.baseUrl}/guilds/${guildId}/members/${userId}/roles/${roleId}`,
+      {},
       {
-        method: 'PUT',
         headers: this.getBotHeaders(),
       }
     );
@@ -117,25 +120,30 @@ export class DiscordService {
       body.permission_overwrites = permissionOverwrites;
     }
 
-    const response = await fetch(`${this.baseUrl}/guilds/${guildId}/channels`, {
-      method: 'POST',
-      headers: this.getBotHeaders(),
-      body: JSON.stringify(body),
-    });
+    const response = await axios.post(
+      `${this.baseUrl}/guilds/${guildId}/channels`,
+      body,
+      {
+        headers: this.getBotHeaders(),
+      }
+    );
     return this.handleResponse(response);
   }
 
   async getCurrentUser(userAccessToken: string) {
-    const response = await fetch(`${this.baseUrl}/users/@me`, {
+    const response = await axios.get(`${this.baseUrl}/users/@me`, {
       headers: this.getHeaders(userAccessToken),
     });
     return this.handleResponse(response);
   }
 
   async listGuildRoles(userAccessToken: string, guildId: string) {
-    const response = await fetch(`${this.baseUrl}/guilds/${guildId}/roles`, {
-      headers: this.getBotHeaders(),
-    });
+    const response = await axios.get(
+      `${this.baseUrl}/guilds/${guildId}/roles`,
+      {
+        headers: this.getBotHeaders(),
+      }
+    );
     return this.handleResponse(response);
   }
 
@@ -153,18 +161,11 @@ export class DiscordService {
     };
   }
 
-  async handleResponse(response: Response) {
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new HttpException(
-        error.message || 'Discord request failed',
-        response.status
-      );
-    }
+  async handleResponse(response: any) {
     if (response.status === 204) {
       return null;
     }
-    return response.json();
+    return response.data;
   }
 
   getServiceMetadata() {
@@ -312,12 +313,11 @@ export class DiscordService {
       body.avatar = avatar;
     }
 
-    const response = await fetch(
+    const response = await axios.post(
       `${this.baseUrl}/channels/${channelId}/webhooks`,
+      body,
       {
-        method: 'POST',
         headers: this.getBotHeaders(),
-        body: JSON.stringify(body),
       }
     );
     return this.handleResponse(response);
@@ -327,7 +327,7 @@ export class DiscordService {
    * Get all webhooks for a channel
    */
   async getChannelWebhooks(channelId: string) {
-    const response = await fetch(
+    const response = await axios.get(
       `${this.baseUrl}/channels/${channelId}/webhooks`,
       {
         headers: this.getBotHeaders(),
@@ -340,9 +340,12 @@ export class DiscordService {
    * Get all webhooks for a guild
    */
   async getGuildWebhooks(guildId: string) {
-    const response = await fetch(`${this.baseUrl}/guilds/${guildId}/webhooks`, {
-      headers: this.getBotHeaders(),
-    });
+    const response = await axios.get(
+      `${this.baseUrl}/guilds/${guildId}/webhooks`,
+      {
+        headers: this.getBotHeaders(),
+      }
+    );
     return this.handleResponse(response);
   }
 
@@ -350,10 +353,12 @@ export class DiscordService {
    * Delete a webhook
    */
   async deleteWebhook(webhookId: string) {
-    const response = await fetch(`${this.baseUrl}/webhooks/${webhookId}`, {
-      method: 'DELETE',
-      headers: this.getBotHeaders(),
-    });
+    const response = await axios.delete(
+      `${this.baseUrl}/webhooks/${webhookId}`,
+      {
+        headers: this.getBotHeaders(),
+      }
+    );
 
     if (response.status === 204) {
       return { success: true, message: 'Webhook deleted successfully' };
@@ -375,14 +380,13 @@ export class DiscordService {
       body.embeds = embeds;
     }
 
-    const response = await fetch(
+    const response = await axios.post(
       `${this.baseUrl}/webhooks/${webhookId}/${webhookToken}`,
+      body,
       {
-        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(body),
       }
     );
 

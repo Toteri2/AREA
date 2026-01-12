@@ -11,7 +11,8 @@ async function bootstrap() {
   const corsOrigins =
     configService.getOrThrow<string>('FRONTEND_URL') || 'http://localhost:5173';
 
-  const isProduction = configService.getOrThrow<string>('NODE_ENV') === 'production';
+  const isProduction =
+    configService.getOrThrow<string>('NODE_ENV') === 'production';
 
   if (isProduction) app.getHttpAdapter().getInstance().set('trust proxy', 1);
 

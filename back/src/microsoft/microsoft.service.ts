@@ -1,5 +1,6 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import axios from 'axios';
 import { CreateMicrosoftDto } from 'src/microsoft/dto/create_microsoft_dto';
 import { Hook } from 'src/shared/entities/hook.entity';
 import { Repository } from 'typeorm';
@@ -12,20 +13,20 @@ export class MicrosoftService {
   ) {}
   private readonly baseUrl = 'https://graph.microsoft.com/v1.0/';
   async listUserWebhooks(accessToken: string): Promise<any> {
-    const response = await fetch(
-      'https://graph.microsoft.com/v1.0/subscriptions',
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-    if (!response.ok) {
-      console.log('Failed to fetch webhooks:', response.statusText);
+    try {
+      const response = await axios.get(
+        'https://graph.microsoft.com/v1.0/subscriptions',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      return response.data.value;
+    } catch (error) {
+      console.log('Failed to fetch webhooks:', error.message);
       throw new Error('Failed to fetch webhooks from Microsoft Graph API');
     }
-    const data = await response.json();
-    return data.value;
   }
 
   async createWebhook(
@@ -37,18 +38,20 @@ export class MicrosoftService {
   ) {
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 2);
-    const response = await fetch(`${this.baseUrl}/subscriptions`, {
-      method: 'POST',
-      headers: this.getHeaders(accessToken),
-      body: JSON.stringify({
+    const response = await axios.post(
+      `${this.baseUrl}/subscriptions`,
+      {
         changeType: body.changeType,
         notificationUrl: webhookUrl,
         lifecycleNotificationUrl: webhookUrl,
         resource: body.resource,
         expirationDateTime: expirationDate.toISOString(),
         clientState: state,
-      }),
-    });
+      },
+      {
+        headers: this.getHeaders(accessToken),
+      }
+    );
     const valid = await this.handleResponse(response);
     if (!valid) return null;
     const hook = this.hookRepository.create({
@@ -68,24 +71,15 @@ export class MicrosoftService {
     };
   }
 
-  async handleResponse(response: Response) {
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      console.log(error);
-      throw new HttpException(
-        error.message || 'Microsoft request failed',
-        response.status
-      );
-    }
+  async handleResponse(response: any) {
     if (response.status === 204) {
       return null;
     }
-    return response.json();
+    return response.data;
   }
 
   async deleteSubscription(id: string, accessToken: string) {
-    const response = await fetch(`${this.baseUrl}/subscriptions/${id}`, {
-      method: 'DELETE',
+    const response = await axios.delete(`${this.baseUrl}/subscriptions/${id}`, {
       headers: this.getHeaders(accessToken),
     });
     await this.hookRepository.delete({ webhookId: id });
