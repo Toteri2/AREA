@@ -83,7 +83,7 @@ export class TwitchController {
         const provider = await this.authService.getTwitchProvider(req.user.id);
         if (!provider) throw new UnauthorizedException('Twitch account not linked');
 
-        const webhookUrl = process.env.TWITCH_WEBHOOK_URL || '';
+        const webhookUrl = process.env.TWITCH_WEBHOOK_CALLBACK_URL || '';
         const result = await this.twitchService.createWebhook(
             provider.accessToken,
             createWebhookDto,
