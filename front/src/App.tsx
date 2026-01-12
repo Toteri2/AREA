@@ -7,6 +7,7 @@ import {
   useGetProfileQuery,
 } from 'shared-redux/web';
 import { Navbar } from './components';
+import { GoogleCallback } from './components/GoogleCallback';
 import {
   Dashboard,
   GitHub,
@@ -22,7 +23,6 @@ import {
   Services,
 } from './pages';
 import './App.css';
-import { GoogleCallback } from './components/GoogleCallback';
 
 function App() {
   const { isAuthenticated, token } = useAppSelector((state) => state.auth);
@@ -79,11 +79,11 @@ function App() {
                 <Route path='/login' element={<Login />} />
                 <Route path='/register' element={<Register />} />
                 <Route path='/github/callback' element={<GitHubCallback />} />
-                <Route path='/google/callback' element={<GoogleCallback />} />
                 <Route
                   path='/microsoft/callback'
                   element={<MicrosoftCallback />}
                 />
+                <Route path='/google/callback' element={<GoogleCallback />} />
                 <Route path='*' element={<Navigate to='/login' replace />} />
               </>
             )}
