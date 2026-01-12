@@ -283,7 +283,13 @@ describe('GmailService', () => {
     });
 
     it('should return false for unknown event type', async () => {
-      const mockHook = { id: 1, eventType: 999, userId: 1, webhookId: 'test', service: 'gmail' } as unknown as Hook;
+      const mockHook = {
+        id: 1,
+        eventType: 999,
+        userId: 1,
+        webhookId: 'test',
+        service: 'gmail',
+      } as unknown as Hook;
 
       const result = await service.handleGmailEvent(
         mockHook,

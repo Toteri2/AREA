@@ -91,7 +91,9 @@ export class TwitchController {
     const provider = await this.authService.getTwitchProvider(req.user.id);
     if (!provider) throw new UnauthorizedException('Twitch account not linked');
 
-    const webhookUrl = this.configService.getOrThrow<string>('TWITCH_WEBHOOK_CALLBACK_URL');
+    const webhookUrl = this.configService.getOrThrow<string>(
+      'TWITCH_WEBHOOK_CALLBACK_URL'
+    );
     const result = await this.twitchService.createWebhook(
       createWebhookDto,
       webhookUrl
@@ -141,7 +143,6 @@ export class TwitchController {
     }
 
     if (messageType === 'notification') {
-
       if (body.subscription) {
         const subscriptionId = body.subscription.id;
         const hooks = await this.hooksRepository.find({

@@ -341,7 +341,9 @@ export class AuthController {
   })
   async googleAuthUrl(@Query('mobile') mobile: string) {
     const clientId = this.configService.getOrThrow<string>('GMAIL_CLIENT_ID');
-    const redirectUri = this.configService.getOrThrow<string>('GOOGLE_CALLBACK_URL');
+    const redirectUri = this.configService.getOrThrow<string>(
+      'GOOGLE_CALLBACK_URL'
+    );
 
     const stateData = {
       platform: mobile === 'true' ? 'mobile' : 'web',
