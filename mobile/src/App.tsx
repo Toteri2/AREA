@@ -62,7 +62,7 @@ function AppNavigator() {
 
     const sub = Linking.addEventListener('url', handleDeepLink);
     return () => sub.remove();
-  }, [validateGithub, validateMicrosoft]);
+  }, [validateGithub, validateGoogle, validateMicrosoft]);
 
   if (isLoading) {
     return (

@@ -80,6 +80,12 @@ const authSlice = createSlice({
         }
       )
       .addMatcher(
+        apiSlice.endpoints.validateGoogle.matchFulfilled,
+        (state, { payload }: PayloadAction<ApiAuthResponse>) => {
+          state.user = payload.user;
+        }
+      )
+      .addMatcher(
         apiSlice.endpoints.getProfile.matchFulfilled,
         (state, { payload }: PayloadAction<User>) => {
           state.user = payload;

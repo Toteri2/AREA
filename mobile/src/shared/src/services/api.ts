@@ -128,12 +128,22 @@ export const apiSlice = createApi({
         body: { code },
       }),
     }),
-    validateGoogle: builder.mutation<{ success: boolean }, { code: string }>({
+    validateGoogle: builder.mutation<ApiAuthResponse, { code: string }>({
       query: ({ code }) => ({
         url: '/auth/google/validate',
         method: 'POST',
         body: { code },
       }),
+      async onQueryStarted(args, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          await dispatch(persistToken(data.access_token)).unwrap();
+          dispatch(apiSlice.util.invalidateTags(['User']));
+        } catch (error) {
+          console.error('Google login failed:', error);
+        }
+      },
+      invalidatesTags: ['User'],
     }),
     getMicrosoftAuthUrl: builder.query<
       { url: string },
