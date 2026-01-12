@@ -1,61 +1,17 @@
-import { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import {
-  useGoogleAuthUrlQuery,
-  useGoogleAuthValidateMutation,
-} from '../shared/src/web';
-
-// import './GoogleAuthButton.css';
+import { useGoogleAuthUrlQuery } from '../shared/src/web';
 
 interface GoogleAuthButtonProps {
   onError?: (message: string) => void;
-  redirectTo?: string;
   buttonText?: string;
   mobile?: string;
 }
 
 export function GoogleAuthButton({
   onError,
-  redirectTo = '/dashboard',
   buttonText = 'Continue with Google',
   mobile = 'false',
 }: GoogleAuthButtonProps) {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-
-  const { data: googleAuthData } = useGoogleAuthUrlQuery({ mobile });
-  const [googleAuthValidate, { isLoading: isGoogleLoading }] =
-    useGoogleAuthValidateMutation();
-
-  // Handle Google OAuth callback
-  useEffect(() => {
-    const code = searchParams.get('code');
-    const state = searchParams.get('state');
-
-    if (code) {
-      handleGoogleCallback(code, state);
-    }
-  }, [searchParams]);
-
-  const handleGoogleCallback = async (code: string, state: string | null) => {
-    try {
-      const data = await googleAuthValidate({
-        code,
-        ...(state && { state }),
-      }).unwrap();
-      if (data.token) {
-        navigate(redirectTo);
-      } else {
-        const errorMsg = 'Failed to get authentication token from Google.';
-        onError?.(errorMsg);
-      }
-    } catch (err) {
-      const apiError = err as { data?: { message: string } };
-      const message = apiError.data?.message || 'Google authentication failed.';
-      onError?.(message);
-      console.error('Failed to authenticate with Google:', err);
-    }
-  };
+  const { data: googleAuthData, isLoading } = useGoogleAuthUrlQuery({ mobile });
 
   const handleGoogleLogin = () => {
     if (googleAuthData?.url) {
@@ -70,7 +26,7 @@ export function GoogleAuthButton({
       type='button'
       className='btn-google'
       onClick={handleGoogleLogin}
-      disabled={isGoogleLoading || !googleAuthData}
+      disabled={isLoading || !googleAuthData}
     >
       <svg
         width='18'
@@ -98,7 +54,7 @@ export function GoogleAuthButton({
           fill='#EA4335'
         />
       </svg>
-      {isGoogleLoading ? 'Connecting...' : buttonText}
+      {isLoading ? 'Loading...' : buttonText}
     </button>
   );
 }
