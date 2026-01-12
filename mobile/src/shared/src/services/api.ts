@@ -86,13 +86,13 @@ export const apiSlice = createApi({
       query: ({ mobile }) => ({
         url: `/auth/google/url?mobile=${mobile}`,
         method: 'GET',
-        responseHandler: 'text', // ← Ajoutez ceci pour traiter la réponse comme du texte
+        responseHandler: 'text',
       }),
-      transformResponse: (response: string) => ({ url: response }), // ← Transformez le texte en objet
+      transformResponse: (response: string) => ({ url: response }),
     }),
 
     googleAuthValidate: builder.mutation<
-      { id: number; email: string; name: string; token: string },
+      { access_token: string },
       { code: string; state?: string }
     >({
       query: (authData) => ({
@@ -102,7 +102,7 @@ export const apiSlice = createApi({
       }),
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
-        dispatch(persistToken(data.token));
+        dispatch(persistToken(data.access_token));
       },
     }),
 

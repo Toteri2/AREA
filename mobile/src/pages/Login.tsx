@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { GoogleAuthButton } from '../components/GoogleAuthButton';
 import type { RootStackParamList } from '../navigation';
 import { useLoginMutation } from '../shared/src/native';
 
@@ -103,6 +104,14 @@ export function Login() {
               <Text style={styles.link}>Register</Text>
             </TouchableOpacity>
           </View>
+
+          <View style={styles.dividerContainer}>
+            <View style={styles.line} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.line} />
+          </View>
+
+          <GoogleAuthButton onError={setErrorMessage} mobile='true' />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -188,5 +197,20 @@ const styles = StyleSheet.create({
   link: {
     color: '#e94560',
     fontWeight: '500',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#ccc',
+  },
+  dividerText: {
+    marginHorizontal: 10,
+    fontSize: 14,
+    color: '#666',
   },
 });

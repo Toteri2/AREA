@@ -13,7 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import { GoogleAuthButton } from '../components/GoogleAuthButton';
 import type { RootStackParamList } from '../navigation';
 import { useRegisterMutation } from '../shared/src/native';
 
@@ -228,6 +229,14 @@ export function Register() {
               <Text style={styles.link}>Login</Text>
             </TouchableOpacity>
           </View>
+
+          <View style={styles.dividerContainer}>
+            <View style={styles.line} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.line} />
+          </View>
+
+          <GoogleAuthButton onError={setErrorMessage} mobile='true' />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -320,5 +329,20 @@ const styles = StyleSheet.create({
   link: {
     color: '#e94560',
     fontWeight: '500',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#ccc',
+  },
+  dividerText: {
+    marginHorizontal: 10,
+    fontSize: 14,
+    color: '#666',
   },
 });
