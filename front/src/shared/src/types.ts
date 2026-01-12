@@ -105,3 +105,25 @@ export interface CreateReactionDto {
     [key: string]: any;
   };
 }
+
+// About/Services Types
+
+export interface AboutResponse {
+  client: {
+    host: string;
+  };
+  server: {
+    current_time: number;
+    services: Array<{
+      name: string;
+      actions: Array<{
+        name: string;
+        description: string;
+      }>;
+      reactions: Array<{
+        name: string;
+        description: string;
+      }>;
+    }>;
+  };
+}

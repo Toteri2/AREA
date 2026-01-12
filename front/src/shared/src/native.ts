@@ -14,9 +14,13 @@ export const store = createStore({
   storage: nativeStorage,
 });
 
-const baseUrl = 'https://api.mambokara.dev';
-store.dispatch(setBaseUrl(baseUrl));
+const initializeBaseUrl = async () => {
+  const savedBaseUrl = await AsyncStorage.getItem('baseUrl');
+  const baseUrl = savedBaseUrl || 'https://api.mambokara.dev';
+  store.dispatch(setBaseUrl(baseUrl));
+};
 
+initializeBaseUrl();
 store.dispatch(loadToken());
 
 export * from '.';
