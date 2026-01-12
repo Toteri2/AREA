@@ -10,6 +10,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,7 +18,7 @@ import { Repository } from 'typeorm';
 import { AuthService } from '../auth/auth.service';
 import { ReactionsService } from '../reactions/reactions.service';
 import { Hook } from '../shared/entities/hook.entity';
-import { CreateTwitchWebhookDto } from './dto/twitch-webhook.dto';
+import { CreateTwitchWebhookDto } from './dto/twitch.dto';
 import { TwitchService } from './twitch.service';
 
 @ApiTags('twitch')
@@ -27,6 +28,7 @@ export class TwitchController {
     private readonly twitchService: TwitchService,
     private readonly authService: AuthService,
     private readonly reactionsService: ReactionsService,
+    private readonly configService: ConfigService,
     @InjectRepository(Hook)
     private hooksRepository: Repository<Hook>
   ) {}
@@ -89,9 +91,8 @@ export class TwitchController {
     const provider = await this.authService.getTwitchProvider(req.user.id);
     if (!provider) throw new UnauthorizedException('Twitch account not linked');
 
-    const webhookUrl = process.env.TWITCH_WEBHOOK_CALLBACK_URL || '';
+    const webhookUrl = this.configService.getOrThrow<string>('TWITCH_WEBHOOK_CALLBACK_URL');
     const result = await this.twitchService.createWebhook(
-      provider.accessToken,
       createWebhookDto,
       webhookUrl
     );

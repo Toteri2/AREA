@@ -228,7 +228,6 @@ export class AuthController {
         state,
         ProviderType.DISCORD
       );
-      console.log('Discord auth callback for user ID:', userId);
       if (!userId) throw new Error('Invalid or expired state token');
       const accessToken = await this.authService.getDiscordToken(code);
       await this.authService.linkDiscordAccount(userId, accessToken);
@@ -254,8 +253,8 @@ export class AuthController {
       userId,
       ProviderType.TWITCH
     );
-    const clientId = process.env.TWITCH_CLIENT_ID;
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const clientId = this.configService.getOrThrow<string>('TWITCH_CLIENT_ID');
+    const frontendUrl = this.configService.getOrThrow<string>('FRONTEND_URL');
     const redirectUri = encodeURIComponent(`${frontendUrl}/twitch/callback`);
     const scope = encodeURIComponent(
       'user:read:email moderator:read:followers channel:read:subscriptions'
@@ -280,7 +279,6 @@ export class AuthController {
         state,
         ProviderType.TWITCH
       );
-      console.log('Twitch auth callback for user ID:', userId);
       if (!userId) throw new Error('Invalid or expired state token');
       const accessToken = await this.authService.getTwitchToken(code);
       await this.authService.linkTwitchAccount(userId, accessToken);
@@ -342,8 +340,8 @@ export class AuthController {
     description: 'Google authentication url received.',
   })
   async googleAuthUrl(@Query('mobile') mobile: string) {
-    const clientId = process.env.GMAIL_CLIENT_ID;
-    const redirectUri = process.env.GOOGLE_CALLBACK_URL;
+    const clientId = this.configService.getOrThrow<string>('GMAIL_CLIENT_ID');
+    const redirectUri = this.configService.getOrThrow<string>('GOOGLE_CALLBACK_URL');
 
     const stateData = {
       platform: mobile === 'true' ? 'mobile' : 'web',
