@@ -234,7 +234,7 @@ export class AuthController {
       await this.authService.linkDiscordAccount(userId, accessToken);
       return { success: true, message: 'Discord account linked successfully' };
     } catch (error) {
-      console.error('Discord auth callback error:', error); 
+      console.error('Discord auth callback error:', error);
       throw error;
     }
   }
@@ -257,8 +257,10 @@ export class AuthController {
     const clientId = process.env.TWITCH_CLIENT_ID;
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const redirectUri = encodeURIComponent(`${frontendUrl}/twitch/callback`);
-    const scope = encodeURIComponent('user:read:email');
-    const url = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`;
+    const scope = encodeURIComponent(
+      'user:read:email moderator:read:followers channel:read:subscriptions'
+    );
+    const url = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}&force_verify=true`;
     return url;
   }
 
