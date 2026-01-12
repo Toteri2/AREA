@@ -1,4 +1,5 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import axios from 'axios';
 import { CreateWebhookDto } from './dto/create_git_webhook.dto';
 
 @Injectable()
@@ -11,22 +12,21 @@ export class GithubService {
     webhookUrl: string
   ) {
     const { owner, repo, events, secret } = dto;
-    const response = await fetch(
+    const response = await axios.post(
       `${this.baseUrl}/repos/${owner}/${repo}/hooks`,
       {
-        method: 'POST',
+        name: 'web',
+        active: true,
+        events,
+        config: {
+          url: webhookUrl,
+          content_type: 'json',
+          insecure_ssl: '0',
+          ...(secret && { secret }),
+        },
+      },
+      {
         headers: this.getHeaders(userAccessToken),
-        body: JSON.stringify({
-          name: 'web',
-          active: true,
-          events,
-          config: {
-            url: webhookUrl,
-            content_type: 'json',
-            insecure_ssl: '0',
-            ...(secret && { secret }),
-          },
-        }),
       }
     );
     const result = await this.handleResponse(response);
@@ -34,14 +34,17 @@ export class GithubService {
   }
 
   async listUserRepositories(userAccessToken: string) {
-    const response = await fetch(`${this.baseUrl}/user/repos?per_page=100`, {
-      headers: this.getHeaders(userAccessToken),
-    });
+    const response = await axios.get(
+      `${this.baseUrl}/user/repos?per_page=100`,
+      {
+        headers: this.getHeaders(userAccessToken),
+      }
+    );
     return this.handleResponse(response);
   }
 
   async listWebhooks(userAccessToken: string, owner: string, repo: string) {
-    const response = await fetch(
+    const response = await axios.get(
       `${this.baseUrl}/repos/${owner}/${repo}/hooks`,
       {
         headers: this.getHeaders(userAccessToken),
@@ -58,17 +61,10 @@ export class GithubService {
     };
   }
 
-  async handleResponse(response: Response) {
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new HttpException(
-        error.message || 'GitHub request failed',
-        response.status
-      );
-    }
+  async handleResponse(response: any) {
     if (response.status === 204) {
       return null;
     }
-    return response.json();
+    return response.data;
   }
 }
