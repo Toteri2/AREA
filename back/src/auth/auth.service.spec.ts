@@ -5,6 +5,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { OAuthState } from '../shared/entities/oauthstates.entity';
 import { Provider } from '../shared/entities/provider.entity';
 import { User } from '../shared/entities/user.entity';
+import { ProviderType } from '../shared/enums/provider.enum';
 import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
@@ -483,6 +484,130 @@ describe('AuthService', () => {
 
       expect(result).toBeNull();
       expect(oauthStatesRepository.delete).toHaveBeenCalled();
+    });
+  });
+
+  describe('getGithubToken', () => {
+    it('should exchange code for GitHub access token', async () => {
+      const mockResponse = {
+        data: { access_token: 'github_access_token' },
+      };
+
+      const axios = require('axios');
+      jest.spyOn(axios, 'post').mockResolvedValue(mockResponse);
+
+      const result = await service.getGithubToken('auth_code');
+
+      expect(result).toBe('github_access_token');
+    });
+  });
+
+  describe('getDiscordProvider', () => {
+    it('should return Discord provider for user', async () => {
+      const mockProvider = {
+        id: 1,
+        userId: 1,
+        provider: ProviderType.DISCORD,
+        accessToken: 'discord_token',
+      };
+
+      providerRepository.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+
+      const result = await service.getDiscordProvider(1);
+
+      expect(result).toEqual(mockProvider);
+    });
+  });
+
+  describe('getGmailProvider', () => {
+    it('should return Gmail provider for user', async () => {
+      const mockProvider = {
+        id: 1,
+        userId: 1,
+        provider: ProviderType.GMAIL,
+        accessToken: 'gmail_token',
+      };
+
+      providerRepository.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+
+      const result = await service.getGmailProvider(1);
+
+      expect(result).toEqual(mockProvider);
+    });
+  });
+
+  describe('getMicrosoftProvider', () => {
+    it('should return Microsoft provider for user', async () => {
+      const mockProvider = {
+        id: 1,
+        userId: 1,
+        provider: ProviderType.MICROSOFT,
+        accessToken: 'microsoft_token',
+      };
+
+      providerRepository.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+
+      const result = await service.getMicrosoftProvider(1);
+
+      expect(result).toEqual(mockProvider);
+    });
+  });
+
+  describe('getJiraProvider', () => {
+    it('should return Jira provider for user', async () => {
+      const mockProvider = {
+        id: 1,
+        userId: 1,
+        provider: ProviderType.JIRA,
+        accessToken: 'jira_token',
+      };
+
+      providerRepository.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+
+      const result = await service.getJiraProvider(1);
+
+      expect(result).toEqual(mockProvider);
+    });
+  });
+
+  describe('getMicrosoftToken', () => {
+    it('should throw error if no provider', async () => {
+      providerRepository.findOneBy = jest.fn().mockResolvedValue(null);
+
+      await expect(service.getMicrosoftToken(1)).rejects.toThrow(
+        'Microsoft account not linked'
+      );
+    });
+  });
+
+  describe('findOauthState', () => {
+    it('should return true if state found', async () => {
+      const mockState = {
+        id: 1,
+        userId: 1,
+        state: 'test-state',
+        provider: ProviderType.GITHUB,
+      };
+
+      oauthStatesRepository.findOneBy = jest.fn().mockResolvedValue(mockState);
+
+      const result = await service.findOauthState(
+        'test-state',
+        ProviderType.GITHUB
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false if not found', async () => {
+      oauthStatesRepository.findOneBy = jest.fn().mockResolvedValue(null);
+
+      const result = await service.findOauthState(
+        'unknown-state',
+        ProviderType.GITHUB
+      );
+
+      expect(result).toBe(false);
     });
   });
 });
