@@ -282,8 +282,8 @@ export class AuthController {
       );
       console.log('Twitch auth callback for user ID:', userId);
       if (!userId) throw new Error('Invalid or expired state token');
-      const access_token = await this.authService.getTwitchToken(code);
-      await this.authService.linkTwitchAccount(userId, access_token);
+      const accessToken = await this.authService.getTwitchToken(code);
+      await this.authService.linkTwitchAccount(userId, accessToken);
       return { success: true, message: 'Twitch account linked successfully' };
     } catch (error) {
       console.error('Twitch auth callback error:', error);

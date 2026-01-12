@@ -1,6 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
+export class CreateTwitchWebhookDto {
+  @ApiProperty({ description: 'Broadcaster user ID to monitor' })
+  @IsString()
+  @IsNotEmpty()
+  broadcasterUserId: string;
+
+  @ApiProperty({ description: 'Event type to subscribe to' })
+  @IsString()
+  @IsNotEmpty()
+  eventType: string;
+
+  @ApiProperty({
+    description: 'Webhook secret for signature verification',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  secret?: string;
+}
+
 export class CreateClipDto {
   @ApiProperty({ description: 'Broadcaster ID to create clip from' })
   @IsString()
