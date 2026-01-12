@@ -7,13 +7,9 @@ import { TwitchController } from './twitch.controller';
 import { TwitchService } from './twitch.service';
 
 @Module({
-    imports: [
-        AuthModule,
-        ReactionsModule,
-        TypeOrmModule.forFeature([Hook]),
-    ],
-    controllers: [TwitchController],
-    providers: [TwitchService],
-    exports: [TwitchService],
+  imports: [AuthModule, ReactionsModule, TypeOrmModule.forFeature([Hook])],
+  controllers: [TwitchController],
+  providers: [TwitchService],
+  exports: [TwitchService],
 })
-export class TwitchModule { }
+export class TwitchModule {}

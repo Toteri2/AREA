@@ -714,21 +714,26 @@ export class AuthService {
 
   async getTwitchToken(code: string): Promise<string> {
     const params = new URLSearchParams();
-    params.append('client_id', this.configService.getOrThrow('TWITCH_CLIENT_ID'));
-    params.append('client_secret', this.configService.getOrThrow('TWITCH_CLIENT_SECRET'));
+    params.append(
+      'client_id',
+      this.configService.getOrThrow('TWITCH_CLIENT_ID')
+    );
+    params.append(
+      'client_secret',
+      this.configService.getOrThrow('TWITCH_CLIENT_SECRET')
+    );
     params.append('grant_type', 'authorization_code');
     params.append('code', code);
-    params.append('redirect_uri', this.configService.getOrThrow('TWITCH_CALLBACK_URL'));
-
-    const res = await axios.post(
-      'https://id.twitch.tv/oauth2/token',
-      params,
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      }
+    params.append(
+      'redirect_uri',
+      this.configService.getOrThrow('TWITCH_CALLBACK_URL')
     );
+
+    const res = await axios.post('https://id.twitch.tv/oauth2/token', params, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
     return res.data.access_token;
   }
 }
