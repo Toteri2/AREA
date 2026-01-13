@@ -133,7 +133,7 @@ export class GithubController {
     return this.githubService.listWebhooks(provider.accessToken, owner, repo);
   }
 
-  @Delete('webhooks/:hookId')
+  @Delete('webhook/:hookId')
   @ApiOperation({ summary: 'Delete a GitHub webhook' })
   @ApiResponse({
     status: 200,
