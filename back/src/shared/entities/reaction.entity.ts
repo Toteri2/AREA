@@ -24,6 +24,9 @@ export class Reaction {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ name: 'name' })
+  name: string;
+
   @Column({ name: 'user_id' })
   userId: number;
 

@@ -158,18 +158,6 @@ export class DiscordController {
     );
   }
 
-  @Get('metadata')
-  @ApiOperation({
-    summary: 'Get Discord service metadata (actions and reactions)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Service metadata retrieved successfully.',
-  })
-  async getMetadata() {
-    return this.discordService.getServiceMetadata();
-  }
-
   @Post('webhook')
   @ApiOperation({ summary: 'Handle Discord webhook events' })
   @ApiResponse({

@@ -118,11 +118,6 @@ export class GmailController {
     return this.gmailService.getUserWebhook(req.user.id, hookId);
   }
 
-  @Post('alive')
-  async alive() {
-    return { status: 'alive' };
-  }
-
   @Post('create-webhook')
   @ApiOperation({ summary: 'Create a Gmail webhook' })
   @ApiResponse({
