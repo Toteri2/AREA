@@ -299,9 +299,6 @@ export class DiscordService {
     };
   }
 
-  /**
-   * Create a Discord webhook in a specific channel
-   */
   async createWebhook(
     userAccessToken: string,
     channelId: string,
@@ -323,9 +320,6 @@ export class DiscordService {
     return this.handleResponse(response);
   }
 
-  /**
-   * Get all webhooks for a channel
-   */
   async getChannelWebhooks(channelId: string) {
     const response = await axios.get(
       `${this.baseUrl}/channels/${channelId}/webhooks`,
@@ -336,9 +330,6 @@ export class DiscordService {
     return this.handleResponse(response);
   }
 
-  /**
-   * Get all webhooks for a guild
-   */
   async getGuildWebhooks(guildId: string) {
     const response = await axios.get(
       `${this.baseUrl}/guilds/${guildId}/webhooks`,
@@ -349,9 +340,16 @@ export class DiscordService {
     return this.handleResponse(response);
   }
 
-  /**
-   * Delete a webhook
-   */
+  async getWebhook(webhookId: string) {
+    const response = await axios.get(
+      `${this.baseUrl}/webhooks/${webhookId}`,
+      {
+        headers: this.getBotHeaders(),
+      }
+    );
+    return this.handleResponse(response);
+  }
+
   async deleteWebhook(webhookId: string) {
     const response = await axios.delete(
       `${this.baseUrl}/webhooks/${webhookId}`,
@@ -366,9 +364,6 @@ export class DiscordService {
     return this.handleResponse(response);
   }
 
-  /**
-   * Execute a webhook (send a message via webhook)
-   */
   async executeWebhook(
     webhookId: string,
     webhookToken: string,

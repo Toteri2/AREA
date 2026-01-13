@@ -201,6 +201,48 @@ export class DiscordController {
     return { success: true };
   }
 
+  @Get('webhook')
+  @ApiOperation({ summary: 'List all webhooks for the current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhooks retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async getAllWebhooks(@Req() req) {
+    const provider = await this.authService.getDiscordProvider(req.user.id);
+    if (!provider)
+      throw new UnauthorizedException('Discord account not linked');
+
+    const hooks = await this.hooksRepository.find({
+      where: { userId: req.user.id, service: 'discord' },
+    });
+
+    return hooks;
+  }
+
+  @Get('webhook/:hookId')
+  @ApiOperation({ summary: 'Get details of a specific webhook' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook details retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
+    const provider = await this.authService.getDiscordProvider(req.user.id);
+    if (!provider)
+      throw new UnauthorizedException('Discord account not linked');
+
+    const hook = await this.hooksRepository.findOne({
+      where: { id: hookId, userId: req.user.id, service: 'discord' },
+    });
+
+    if (!hook) {
+      throw new NotFoundException('Hook not found');
+    }
+
+    return hook;
+  }
+
   @Post('create-webhook')
   @ApiOperation({ summary: 'Create a Discord webhook' })
   @ApiResponse({
@@ -216,6 +258,19 @@ export class DiscordController {
     if (!provider)
       throw new UnauthorizedException('Discord account not linked');
 
+    const guilds = await this.discordService.listUserGuilds(
+      provider.accessToken
+    );
+    const guild = guilds.find((g: any) => g.id === createWebhookDto.guildId);
+
+    const channels = await this.discordService.listGuildChannels(
+      provider.accessToken,
+      createWebhookDto.guildId
+    );
+    const channel = channels.find(
+      (c: any) => c.id === createWebhookDto.channelId
+    );
+
     const result = await this.discordService.createWebhook(
       provider.accessToken,
       createWebhookDto.channelId,
@@ -227,6 +282,12 @@ export class DiscordController {
       userId: req.user.id,
       webhookId: result.id,
       service: 'discord',
+      additionalInfos: {
+        guildName: guild?.name || 'Unknown',
+        guildId: createWebhookDto.guildId,
+        channelName: channel?.name || 'Unknown',
+        channelId: createWebhookDto.channelId,
+      },
     });
     const savedHook = await this.hooksRepository.save(hook);
 
