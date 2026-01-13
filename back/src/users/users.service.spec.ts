@@ -182,15 +182,42 @@ describe('UsersService', () => {
   describe('getUserWebhooks', () => {
     it('should return user webhooks', async () => {
       const mockHooks = [
-        { id: 1, userId: 1, webhookId: 'webhook1' },
-        { id: 2, userId: 1, webhookId: 'webhook2' },
+        {
+          id: 1,
+          userId: 1,
+          webhookId: 'webhook1',
+          service: 'gmail',
+          eventType: 'message',
+        },
+        {
+          id: 2,
+          userId: 1,
+          webhookId: 'webhook2',
+          service: 'microsoft',
+          eventType: 'email',
+        },
       ];
 
       hooksRepository.find.mockResolvedValue(mockHooks);
 
       const result = await service.getUserWebhooks(1);
 
-      expect(result).toEqual(mockHooks);
+      expect(result).toEqual([
+        {
+          id: 1,
+          userId: 1,
+          service: 'gmail',
+          eventType: 'message',
+          lastHistoryId: undefined,
+        },
+        {
+          id: 2,
+          userId: 1,
+          service: 'microsoft',
+          eventType: 'email',
+          lastHistoryId: undefined,
+        },
+      ]);
       expect(hooksRepository.find).toHaveBeenCalledWith({
         where: { userId: 1 },
       });

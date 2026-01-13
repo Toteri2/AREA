@@ -109,6 +109,10 @@ describe('JiraController', () => {
         webhookEvent: 'jira:issue_created',
         issue: { id: '123', key: 'TEST-1' },
       };
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      };
       const hooks = [{ id: 1, userId: 1, service: 'jira' }];
       const reactions = [{ id: 1, action: 'test' }];
 
@@ -117,7 +121,10 @@ describe('JiraController', () => {
       mockReactionsService.executeReaction.mockResolvedValue(undefined);
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-      const result = await controller.handleWebhook(webhookData as any);
+      await controller.handleWebhook(
+        webhookData as any,
+        mockRes
+      );
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'Jira webhook received:',
@@ -132,7 +139,8 @@ describe('JiraController', () => {
         webhookData,
         1
       );
-      expect(result).toEqual({ success: true });
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith({ success: true });
       consoleSpy.mockRestore();
     });
 
@@ -140,6 +148,10 @@ describe('JiraController', () => {
       const webhookData = {
         webhookEvent: 'jira:issue_created',
         issue: { id: '123', key: 'TEST-1' },
+      };
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
       };
       const hooks = [{ id: 1, userId: 1, service: 'jira' }];
       const reactions = [{ id: 1, action: 'test' }];
@@ -151,13 +163,17 @@ describe('JiraController', () => {
       );
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      const result = await controller.handleWebhook(webhookData as any);
+      await controller.handleWebhook(
+        webhookData as any,
+        mockRes
+      );
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'Failed to execute reaction 1:',
         expect.any(Error)
       );
-      expect(result).toEqual({ success: true });
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith({ success: true });
       consoleSpy.mockRestore();
     });
 
@@ -165,6 +181,10 @@ describe('JiraController', () => {
       const webhookData = {
         webhookEvent: 'jira:issue_created',
         issue: { id: '123', key: 'TEST-1' },
+      };
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
       };
       const hooks = [{ id: 1, userId: 1, service: 'jira' }];
 
@@ -174,13 +194,17 @@ describe('JiraController', () => {
       );
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      const result = await controller.handleWebhook(webhookData as any);
+      await controller.handleWebhook(
+        webhookData as any,
+        mockRes
+      );
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'Error processing hook 1:',
         expect.any(Error)
       );
-      expect(result).toEqual({ success: true });
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith({ success: true });
       consoleSpy.mockRestore();
     });
 
@@ -189,12 +213,16 @@ describe('JiraController', () => {
         webhookEvent: 'jira:issue_created',
         issue: { id: '123', key: 'TEST-1' },
       };
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      };
 
       mockHooksRepository.find.mockRejectedValue(new Error('Database error'));
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
       await expect(
-        controller.handleWebhook(webhookData as any)
+        controller.handleWebhook(webhookData as any, mockRes)
       ).rejects.toThrow('Database error');
 
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -276,9 +304,16 @@ describe('JiraController', () => {
   describe('deleteWebhook', () => {
     it('should delete a webhook', async () => {
       const mockReq = { user: { id: 1 } };
-      const webhookId = '1';
+      const hookId = 1;
+      const mockHook = {
+        id: hookId,
+        userId: 1,
+        webhookId: 'webhook-uuid-123',
+        service: 'jira',
+      };
       const mockProvider = { accessToken: 'test_token' };
 
+      mockHooksRepository.findOne.mockResolvedValue(mockHook);
       mockAuthService.getJiraProvider.mockResolvedValue({
         ...mockProvider,
         providerId: 'cloud-123',
@@ -286,25 +321,45 @@ describe('JiraController', () => {
       mockAuthService.getValidJiraToken.mockResolvedValue('test_token');
       mockJiraService.deleteWebhook.mockResolvedValue({ success: true });
 
-      const result = await controller.deleteWebhook(mockReq, webhookId);
+      const result = await controller.deleteWebhook(mockReq, hookId);
 
+      expect(mockHooksRepository.findOne).toHaveBeenCalledWith({
+        where: { id: hookId, userId: 1, service: 'jira' },
+      });
       expect(authService.getJiraProvider).toHaveBeenCalledWith(1);
       expect(authService.getValidJiraToken).toHaveBeenCalledWith(1);
-      expect(jiraService.deleteWebhook).toHaveBeenCalled();
+      expect(jiraService.deleteWebhook).toHaveBeenCalledWith(
+        'webhook-uuid-123',
+        'test_token',
+        'cloud-123'
+      );
       expect(result).toEqual({ message: 'Webhook deleted successfully' });
+    });
+
+    it('should throw NotFoundException when hook not found', async () => {
+      const mockReq = { user: { id: 1 } };
+      const hookId = 1;
+
+      mockHooksRepository.findOne.mockResolvedValue(null);
+      mockAuthService.getValidJiraToken.mockResolvedValue('test_token');
+      mockAuthService.getJiraProvider.mockResolvedValue({
+        providerId: 'cloud-123',
+      });
+
+      await expect(controller.deleteWebhook(mockReq, hookId)).rejects.toThrow(
+        'Hook not found'
+      );
     });
 
     it('should throw UnauthorizedException if provider not found', async () => {
       const mockReq = { user: { id: 1 } };
-      const webhookId = '1';
+      const hookId = 1;
 
       mockAuthService.getValidJiraToken.mockResolvedValue('test_token');
       mockAuthService.getJiraProvider.mockResolvedValue(null);
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      await expect(
-        controller.deleteWebhook(mockReq, webhookId)
-      ).rejects.toThrow();
+      await expect(controller.deleteWebhook(mockReq, hookId)).rejects.toThrow();
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'Error deleting webhook:',
@@ -315,8 +370,15 @@ describe('JiraController', () => {
 
     it('should handle deletion error', async () => {
       const mockReq = { user: { id: 1 } };
-      const webhookId = '1';
+      const hookId = 1;
+      const mockHook = {
+        id: hookId,
+        userId: 1,
+        webhookId: 'webhook-uuid-123',
+        service: 'jira',
+      };
 
+      mockHooksRepository.findOne.mockResolvedValue(mockHook);
       mockAuthService.getValidJiraToken.mockResolvedValue('test_token');
       mockAuthService.getJiraProvider.mockResolvedValue({
         providerId: 'cloud-123',
@@ -326,9 +388,7 @@ describe('JiraController', () => {
       );
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      await expect(
-        controller.deleteWebhook(mockReq, webhookId)
-      ).rejects.toThrow();
+      await expect(controller.deleteWebhook(mockReq, hookId)).rejects.toThrow();
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'Error deleting webhook:',

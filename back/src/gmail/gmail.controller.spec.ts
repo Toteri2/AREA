@@ -337,53 +337,40 @@ describe('GmailController', () => {
   describe('deleteSubscription', () => {
     it('should delete a subscription', async () => {
       const mockReq = { user: { id: 1 } };
-      const webhookId = '1';
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
+      const hookId = 1;
+      const mockHook = {
+        id: hookId,
+        userId: 1,
+        webhookId: 'webhook-uuid-123',
+        service: 'gmail',
       };
 
+      mockHooksRepository.findOne.mockResolvedValue(mockHook);
       mockAuthService.getValidGmailToken.mockResolvedValue('test_token');
       mockGmailService.deleteSubscription.mockResolvedValue(null);
 
-      await controller.deleteSubscription(mockReq, mockRes, webhookId);
+      const result = await controller.deleteSubscription(mockReq, hookId);
 
+      expect(mockHooksRepository.findOne).toHaveBeenCalledWith({
+        where: { id: hookId, userId: 1, service: 'gmail' },
+      });
       expect(authService.getValidGmailToken).toHaveBeenCalledWith(1);
       expect(gmailService.deleteSubscription).toHaveBeenCalledWith(
-        webhookId,
+        'webhook-uuid-123',
         'test_token'
       );
-      expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        message: 'Subscription deleted',
-      });
+      expect(result).toEqual({ message: 'Subscription deleted' });
     });
 
-    it('should handle deletion error', async () => {
+    it('should throw NotFoundException when hook not found', async () => {
       const mockReq = { user: { id: 1 } };
-      const webhookId = '1';
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
-      };
+      const hookId = 1;
 
-      mockAuthService.getValidGmailToken.mockResolvedValue('test_token');
-      mockGmailService.deleteSubscription.mockRejectedValue(
-        new Error('Deletion failed')
-      );
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockHooksRepository.findOne.mockResolvedValue(null);
 
-      await controller.deleteSubscription(mockReq, mockRes, webhookId);
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Error deleting subscription:',
-        expect.any(Error)
-      );
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        message: 'Failed to delete subscription',
-      });
-      consoleSpy.mockRestore();
+      await expect(
+        controller.deleteSubscription(mockReq, hookId)
+      ).rejects.toThrow('Hook not found');
     });
   });
 });

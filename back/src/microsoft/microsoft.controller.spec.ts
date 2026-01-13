@@ -315,12 +315,15 @@ describe('MicrosoftController', () => {
   describe('deleteSubscription', () => {
     it('should delete a subscription successfully', async () => {
       const req = { user: { id: 1 } };
-      const res = {
-        send: jest.fn(),
-        status: jest.fn().mockReturnThis(),
+      const hookId = 1;
+      const mockHook = {
+        id: hookId,
+        userId: 1,
+        webhookId: 'sub-123',
+        service: 'microsoft',
       };
-      const id = 'sub-123';
 
+      jest.spyOn(hooksRepository, 'findOne').mockResolvedValue(mockHook);
       jest
         .spyOn(authService, 'getMicrosoftToken')
         .mockResolvedValue('test-token');
@@ -328,46 +331,28 @@ describe('MicrosoftController', () => {
         .spyOn(microsoftService, 'deleteSubscription')
         .mockResolvedValue(undefined);
 
-      await controller.deleteSubscription(req, res, id);
+      const result = await controller.deleteSubscription(req, hookId);
 
+      expect(hooksRepository.findOne).toHaveBeenCalledWith({
+        where: { id: hookId, userId: 1, service: 'microsoft' },
+      });
       expect(authService.getMicrosoftToken).toHaveBeenCalledWith(1);
       expect(microsoftService.deleteSubscription).toHaveBeenCalledWith(
-        id,
+        'sub-123',
         'test-token'
       );
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith({
-        message: 'Subscription deleted',
-      });
+      expect(result).toEqual({ message: 'Subscription deleted' });
     });
 
-    it('should handle deletion error', async () => {
+    it('should throw NotFoundException when hook not found', async () => {
       const req = { user: { id: 1 } };
-      const res = {
-        send: jest.fn(),
-        status: jest.fn().mockReturnThis(),
-      };
-      const id = 'sub-123';
+      const hookId = 1;
 
-      jest
-        .spyOn(authService, 'getMicrosoftToken')
-        .mockResolvedValue('test-token');
-      jest
-        .spyOn(microsoftService, 'deleteSubscription')
-        .mockRejectedValue(new Error('Deletion failed'));
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      jest.spyOn(hooksRepository, 'findOne').mockResolvedValue(null);
 
-      await controller.deleteSubscription(req, res, id);
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Error deleting subscription:',
-        expect.any(Error)
+      await expect(controller.deleteSubscription(req, hookId)).rejects.toThrow(
+        'Hook not found'
       );
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.send).toHaveBeenCalledWith({
-        message: 'Failed to delete subscription',
-      });
-      consoleSpy.mockRestore();
     });
   });
 });

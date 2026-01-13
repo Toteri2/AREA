@@ -203,7 +203,7 @@ describe('MicrosoftService', () => {
 
       expect(result).toBeNull();
       expect(mockedAxios.delete).toHaveBeenCalledWith(
-        'https://graph.microsoft.com/v1.0//subscriptions/subscription-123',
+        'https://graph.microsoft.com/v1.0/subscriptions/subscription-123',
         {
           headers: {
             Authorization: 'Bearer access-token',
