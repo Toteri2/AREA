@@ -29,6 +29,17 @@ export class JiraService {
     userId: number
   ): Promise<any> {
     try {
+      const projectResponse = await axios.get(
+        `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/project/${body.projectKey}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: 'application/json',
+          },
+        }
+      );
+
+      const projectName = projectResponse.data.name;
       const webhookData = {
         url: webhookUrl,
         webhooks: [
@@ -71,6 +82,10 @@ export class JiraService {
         userId: userId,
         webhookId: webhookId.toString(),
         service: 'jira',
+        additionalInfos: {
+          projectName: projectName,
+          projectKey: body.projectKey,
+        },
       });
 
       await this.hookRepository.save(hook);
