@@ -1,95 +1,92 @@
-<div>
+# AREA - Action-REAction Platform
 
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18.1-blue.svg)](https://www.postgresql.org/)
-[![NestJS](https://img.shields.io/badge/NestJS-11.1.9-blue.svg)](https://nestjs.com/)
-[![React](https://img.shields.io/badge/React-19.2-blue.svg)](https://nestjs.com/)
-[![React Native](https://img.shields.io/badge/React%20Native-0.82.1-blue.svg)](https://nestjs.com/)
+Automation platform similar to IFTTT/Zapier, allowing users to create workflows by connecting Actions to REActions.
 
-[![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Android%20%7C%20IOS-lightgrey.svg)](https://github.com/Mamborea)
+## Project Structure
 
-</div>
+- **Server** (NestJS + PostgreSQL) - API on port 8080
+- **Web Client** (React + Vite) - UI on port 8081
+- **Mobile Client** (React Native) - Android/iOS app
 
-# AREA
-
-AREA is a third-year project focused on developing a cross-platform, dashboard-style application that allows users to create automated workflows—similar to services like IFTTT or Zapier.
-
-Here you can found the merge repo of our organisation.
-Each folder, corresponding to a part of the project, have it's on documentation.
-
-<div align="center">
-
-![AREA Logo](https://upload.wikimedia.org/wikipedia/fr/thumb/b/bb/AREA.svg/330px-AREA.svg.png)
-
-</div>
-
-## Features
-
-...
-
-## Dependencies & Requirements
-
-### System Requirements
-- **...**: ...
-...
-
-### Libraries (Auto-downloaded via CPM)
-- **...**: ...
-...
-
-### Supported Platforms
-- **Web** (Firefox, Google Chrome, Edge, Safari ...)
-- **Android** ()
+All business logic resides on the server. Clients are stateless interfaces.
 
 ## Quick Start
 
-### 1. Clone the Repository
-You can download the repo (zip) or use `git clone`
+```bash
+docker compose up
+```
 
-### 2. Build the Project
+- Web: http://localhost:8081
+- API: http://localhost:8080
+- API Docs: http://localhost:8080/api-docs
+- APK: http://localhost:8081/client.apk
 
+## Requirements
 
-## Running the AREA
+- Docker 20.10+
+- Docker Compose v2+
 
-### Start the Server
+## Configuration
 
-### Start the Client
+Create `.env` at project root:
 
-## Usage
+```env
+DB_HOST=postgres
+DB_USERNAME=area_user
+DB_PASSWORD=your_password
+DB_DATABASE=area_db
 
-See .example.env and the docs for the configuration
+JWT_SECRET=your-jwt-secret
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
 
-## Authors & Contributors
+FRONTEND_URL=http://localhost:8081
+VITE_API_URL=http://localhost:8080
+```
 
-- **Mattéo Milin** - matteo.milin@epitech.eu
-- **Nathan Callegari** - nathan.callegari@epitech.eu
-- **Corentin Bergaentzle** - corentin.bergaentzle@epitech.eu
-- **Thomas Richalet** - thomas.richalet@epitech.eu
-- **Axel Battigelli** - axel.battigelli@epitech.eu
+See [docs/SETUP.md](docs/SETUP.md) for detailed configuration.
+
+## Stack
+
+| Component | Technology      |
+| --------- | --------------- |
+| Server    | NestJS 11 + TS  |
+| Database  | PostgreSQL 16   |
+| Web       | React 19 + Vite |
+| Mobile    | React Native    |
+
+## Services Supported
+
+- **GitHub** - Push, issues, pull requests, releases
+- **Discord** - Messages, roles, channels
+- **Gmail** - Email notifications and sending
+- **Microsoft** - Outlook emails and Graph notifications
+- **Jira** - Issue tracking and management
+- **Twitch** - Stream events and channel updates
+
+See [API.md](docs/API.md) for complete actions and reactions list.
+
+## API
+
+REST API documented with Swagger: http://localhost:8080/api-docs
+
+Key endpoint: `GET /about.json` (server metadata)
+
+## Documentation
+
+- [Setup Guide](docs/SETUP.md)
+- [API Reference](docs/API.md)
+- [How to Contribute](docs/HOWTOCONTRIBUTE.md)
+- [Architecture](docs/ARCHITECTURE.md)
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request on GitHub
+See [HOWTOCONTRIBUTE.md](docs/HOWTOCONTRIBUTE.md) for adding services, actions, and reactions.
 
-## Coding Standards
-- Follow the best practices of each language
-- Document public APIs
-- Write unit tests for new features
+## Authors
 
-## Useful Links
-
-- [Official status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status)
-- [Github documentation](https://docs.github.com/en/rest)
-- [Oauth documentation](https://auth0.com/docs)
-- [PostgreSQL documentation](https://www.postgresql.org/docs)
-- [NestJS documentation](https://docs.nestjs.com)
-- [React documentation](https://react.dev/reference/react)
-- [React Native](https://reactnative.dev/docs/getting-started)
-
-## License
-
-This project is developed for educational purposes as part of the EPITECH curriculum.
-See LICENSE for more informations
+- Mattéo Milin
+- Nathan Callegari
+- Corentin Bergaentzle
+- Thomas Richalet
+- Axel Battigelli
