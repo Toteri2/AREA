@@ -32,6 +32,17 @@ export class TwitchService {
     return this.handleResponse(response);
   }
 
+  async getBroadcasterName(userAccessToken: string, broadcasterId: string) {
+    const response = await axios.get(
+      `${this.baseUrl}/users?id=${broadcasterId}`,
+      {
+        headers: this.getHeaders(userAccessToken),
+      }
+    );
+    const data = await this.handleResponse(response);
+    return data.data[0];
+  }
+
   async createWebhook(dto: CreateTwitchWebhookDto, webhookUrl: string) {
     const { broadcasterUserId, eventType, secret } = dto;
     const clientId = this.configService.getOrThrow<string>('TWITCH_CLIENT_ID');
