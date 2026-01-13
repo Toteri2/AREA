@@ -236,12 +236,17 @@ export const apiSlice = createApi({
     }),
 
     getDiscordAuthUrl: builder.query<
+      { url: string },
+      { mobile?: boolean } | undefined
+    >({
+      query: (args) => ({
         url: '/auth/discord/url',
         params: args?.mobile ? { mobile: 'true' } : undefined,
         responseHandler: (response) => response.text(),
       }),
       transformResponse: (response: string) => ({ url: response }),
     }),
+
     listDiscordWebhooks: builder.query<{ webhooks: any[] }, void>({
       query: () => ({
         url: '/discord/webhooks',
@@ -324,8 +329,6 @@ export const {
   useListMicrosoftWebhooksQuery,
   useCreateMicrosoftSubscriptionMutation,
   useDeleteMicrosoftSubscriptionMutation,
-
-  useConnectionQuery,
 
   useValidateDiscordMutation,
   useGetDiscordAuthUrlQuery,

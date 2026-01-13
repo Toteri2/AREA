@@ -80,6 +80,10 @@ export function Profile() {
     serviceNames.has('microsoft') ? undefined : skipToken
   );
 
+  const { refetch: getDiscordAuthUrl } = useGetDiscordAuthUrlQuery(
+    serviceNames.has('discord') ? undefined : skipToken
+  );
+
   const githubConnection = useConnectionQuery(
     serviceNames.has('github') ? { provider: 'github' } : skipToken
   );
@@ -90,6 +94,10 @@ export function Profile() {
 
   const microsoftConnection = useConnectionQuery(
     serviceNames.has('microsoft') ? { provider: 'microsoft' } : skipToken
+  );
+
+  const discordConnection = useConnectionQuery(
+    serviceNames.has('discord') ? { provider: 'discord' } : skipToken
   );
 
   const handleOAuthRedirect = async (getUrl: () => any, label: string) => {
@@ -165,6 +173,19 @@ export function Profile() {
                     isLinked={microsoftConnection.data?.connected === true}
                     onLink={() =>
                       handleOAuthRedirect(getMicrosoftAuthUrl, 'Microsoft')
+                    }
+                  />
+                );
+
+              case 'discord':
+                return (
+                  <ServiceLinker
+                    key='discord'
+                    label='Discord'
+                    isLoading={discordConnection.isLoading}
+                    isLinked={discordConnection.data?.connected === true}
+                    onLink={() =>
+                      handleOAuthRedirect(getDiscordAuthUrl, 'Discord')
                     }
                   />
                 );
