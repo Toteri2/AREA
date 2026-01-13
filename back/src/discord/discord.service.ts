@@ -341,12 +341,9 @@ export class DiscordService {
   }
 
   async getWebhook(webhookId: string) {
-    const response = await axios.get(
-      `${this.baseUrl}/webhooks/${webhookId}`,
-      {
-        headers: this.getBotHeaders(),
-      }
-    );
+    const response = await axios.get(`${this.baseUrl}/webhooks/${webhookId}`, {
+      headers: this.getBotHeaders(),
+    });
     return this.handleResponse(response);
   }
 

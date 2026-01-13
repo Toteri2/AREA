@@ -140,10 +140,7 @@ export class GithubController {
     description: 'Webhook deleted successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
-  async deleteWebhook(
-    @Req() req,
-    @Param('hookId') hookId: number
-  ) {
+  async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     const provider = await this.authService.getGithubProvider(req.user.id);
     if (!provider) throw new UnauthorizedException('GitHub account not linked');
 
@@ -155,7 +152,10 @@ export class GithubController {
       throw new NotFoundException('Hook not found');
     }
 
-    const { owner, repo } = hook.additionalInfos as { owner: string; repo: string };
+    const { owner, repo } = hook.additionalInfos as {
+      owner: string;
+      repo: string;
+    };
 
     await this.githubService.deleteWebhook(
       provider.accessToken,

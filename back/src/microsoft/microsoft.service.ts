@@ -60,7 +60,7 @@ export class MicrosoftService {
     await this.hookRepository.save(hook);
 
     return { valid, hookId: hook.id };
-}
+  }
 
   getHeaders(accessToken: string) {
     return {
@@ -93,9 +93,12 @@ export class MicrosoftService {
 
   async deleteSubscription(id: string, accessToken: string) {
     try {
-      const response = await axios.delete(`${this.baseUrl}subscriptions/${id}`, {
-        headers: this.getHeaders(accessToken),
-      });
+      const response = await axios.delete(
+        `${this.baseUrl}subscriptions/${id}`,
+        {
+          headers: this.getHeaders(accessToken),
+        }
+      );
       return this.handleResponse(response);
     } finally {
       await this.hookRepository.delete({ webhookId: id });
