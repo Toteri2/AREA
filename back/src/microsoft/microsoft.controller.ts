@@ -110,18 +110,22 @@ export class MicrosoftController {
   })
   @UseGuards(AuthGuard('jwt'))
   async createWebhook(@Req() req, @Body() body: CreateMicrosoftDto) {
+    const accessToken = await this.authService.getMicrosoftToken(req.user.id);
+    const profile = await this.microsoftService.getProfile(accessToken);
+    const email = profile?.mail;
     const webhookUrl = this.configService.getOrThrow<string>(
       'MICROSOFT_WEBHOOK_URL'
     );
     return this.microsoftService.createWebhook(
       body,
-      await this.authService.getMicrosoftToken(req.user.id),
+      accessToken,
       webhookUrl,
       req.user.id,
       await this.authService.createOAuthStateToken(
         req.user.id,
         ProviderType.MICROSOFT
-      )
+      ),
+      email
     );
   }
 

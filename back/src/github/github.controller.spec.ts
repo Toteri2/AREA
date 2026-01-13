@@ -78,6 +78,27 @@ describe('GithubController', () => {
             }),
           },
         },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              const config = {
+                GITHUB_CLIENT_ID: 'test-github-id',
+                GITHUB_CLIENT_SECRET: 'test-github-secret',
+                GITHUB_WEBHOOK_URL: 'https://test.com/webhook',
+              };
+              return config[key];
+            }),
+            getOrThrow: jest.fn((key: string) => {
+              const config = {
+                GITHUB_CLIENT_ID: 'test-github-id',
+                GITHUB_CLIENT_SECRET: 'test-github-secret',
+                GITHUB_WEBHOOK_URL: 'https://test.com/webhook',
+              };
+              return config[key];
+            }),
+          },
+        },
       ],
     }).compile();
 

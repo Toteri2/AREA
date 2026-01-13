@@ -1,4 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Provider } from 'src/shared/entities/provider.entity';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
@@ -23,6 +25,16 @@ describe('UsersController', () => {
         {
           provide: UsersService,
           useValue: mockUsersService,
+        },
+        {
+          provide: getRepositoryToken(Provider),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            remove: jest.fn(),
+          },
         },
       ],
     }).compile();

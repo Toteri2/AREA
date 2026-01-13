@@ -121,10 +121,7 @@ describe('JiraController', () => {
       mockReactionsService.executeReaction.mockResolvedValue(undefined);
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-      await controller.handleWebhook(
-        webhookData as any,
-        mockRes
-      );
+      await controller.handleWebhook(webhookData as any, mockRes);
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'Jira webhook received:',
@@ -163,10 +160,7 @@ describe('JiraController', () => {
       );
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      await controller.handleWebhook(
-        webhookData as any,
-        mockRes
-      );
+      await controller.handleWebhook(webhookData as any, mockRes);
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'Failed to execute reaction 1:',
@@ -194,10 +188,7 @@ describe('JiraController', () => {
       );
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      await controller.handleWebhook(
-        webhookData as any,
-        mockRes
-      );
+      await controller.handleWebhook(webhookData as any, mockRes);
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'Error processing hook 1:',

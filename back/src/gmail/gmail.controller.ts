@@ -123,10 +123,14 @@ export class GmailController {
     const provider = await this.authService.getGmailProvider(req.user.id);
     if (!provider) throw new UnauthorizedException('Gmail account not linked');
 
+    const gmailToken = await this.authService.getValidGmailToken(req.user.id);
+    const profile = await this.gmailService.getProfile(gmailToken);
+
     return this.gmailService.createWebhook(
       body,
-      await this.authService.getValidGmailToken(req.user.id),
-      req.user.id
+      gmailToken,
+      req.user.id,
+      profile?.emailAddress
     );
   }
 

@@ -29,6 +29,9 @@ export class Hook {
   @Column({ name: 'last_history_id', nullable: true })
   lastHistoryId?: string;
 
+  @Column({ name: 'additional_infos', type: 'jsonb', nullable: true })
+  additionalInfos?: Record<string, unknown> | null;
+
   @Column({ name: 'event_type', type: 'int', nullable: true, default: 1 })
   eventType?: GmailEventType;
 }

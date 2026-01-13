@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { CreateMicrosoftDto } from 'src/microsoft/dto/create_microsoft_dto';
@@ -34,7 +34,8 @@ export class MicrosoftService {
     accessToken: string,
     webhookUrl: string,
     userId: number,
-    state: string
+    state: string,
+    emailAddress?: string
   ) {
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 2);
@@ -58,6 +59,7 @@ export class MicrosoftService {
       userId: userId,
       webhookId: valid.id,
       service: 'microsoft',
+      additionalInfos: { emailAddress: emailAddress },
     });
     await this.hookRepository.save(hook);
 
@@ -71,7 +73,22 @@ export class MicrosoftService {
     };
   }
 
+  async getProfile(accessToken: string) {
+    const response = await axios.get(`${this.baseUrl}me`, {
+      headers: this.getHeaders(accessToken),
+    });
+    return this.handleResponse(response);
+  }
+
   async handleResponse(response: any) {
+    if (response.status >= 400) {
+      const error = response.data || {};
+      console.log(error);
+      throw new HttpException(
+        error.message || 'Microsoft request failed',
+        response.status
+      );
+    }
     if (response.status === 204) {
       return null;
     }

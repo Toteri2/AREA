@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { CreateGmailDto } from 'src/gmail/dto/create_gmail_dto';
@@ -12,7 +13,8 @@ export class GmailService {
   constructor(
     @InjectRepository(Hook)
     private hookRepository: Repository<Hook>,
-    private readonly reactionsService: ReactionsService
+    private readonly reactionsService: ReactionsService,
+    private readonly configService: ConfigService
   ) {}
   private readonly baseUrl = 'https://gmail.googleapis.com/gmail/v1/';
 
@@ -26,12 +28,14 @@ export class GmailService {
   async createWebhook(
     body: CreateGmailDto,
     accessToken: string,
-    userId: number
+    userId: number,
+    emailAddress?: string
   ) {
+    const topicName = this.configService.getOrThrow<string>('GMAIL_TOPIC_NAME');
     const response = await axios.post(
       `${this.baseUrl}users/me/watch`,
       {
-        topicName: body.topicName,
+        topicName: topicName,
       },
       {
         headers: this.getHeaders(accessToken),
@@ -48,10 +52,21 @@ export class GmailService {
       webhookId: valid.historyId,
       service: 'gmail',
       eventType: body.eventType || 1,
+      additionalInfos: { emailAddress: emailAddress },
     });
     await this.hookRepository.save(hook);
 
     return { valid, hookId: hook.id };
+  }
+
+  async getProfile(accessToken: string) {
+    const response = await fetch(
+      'https://gmail.googleapis.com/gmail/v1/users/me/profile',
+      {
+        headers: this.getHeaders(accessToken),
+      }
+    );
+    return this.handleResponse(response);
   }
 
   getHeaders(accessToken: string) {
