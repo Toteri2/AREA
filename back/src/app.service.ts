@@ -158,6 +158,28 @@ export class AppService {
               },
             ],
           },
+          {
+            name: 'twitch',
+            actions: [
+              {
+                name: 'stream.online',
+                description: 'Triggered when a channel goes live',
+              },
+              {
+                name: 'stream.offline',
+                description: 'Triggered when a stream ends',
+              },
+              {
+                name: 'channel.update',
+                description: 'Triggered when channel information is updated',
+              },
+              {
+                name: 'channel.follow',
+                description: 'Triggered when someone follows a channel',
+              },
+            ],
+            reactions: [],
+          },
         ],
       },
     };
