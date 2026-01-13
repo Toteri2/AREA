@@ -97,11 +97,6 @@ export class MicrosoftController {
     );
   }
 
-  @Post('alive')
-  async alive() {
-    return { status: 'alive' };
-  }
-
   @Post('create-webhook')
   @ApiOperation({ summary: 'Create a Microsoft webhook' })
   @ApiResponse({

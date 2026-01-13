@@ -68,18 +68,6 @@ export class TwitchController {
     return this.twitchService.getFollowedChannels(provider.accessToken, userId);
   }
 
-  @Get('metadata')
-  @ApiOperation({
-    summary: 'Get Twitch service metadata (actions and reactions)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Service metadata retrieved successfully.',
-  })
-  async getMetadata() {
-    return this.twitchService.getServiceMetadata();
-  }
-
   @Post('create-webhook')
   @ApiOperation({ summary: 'Create a Twitch EventSub webhook' })
   @ApiResponse({
