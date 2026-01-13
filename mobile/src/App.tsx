@@ -11,14 +11,7 @@ import {
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 import type { RootStackParamList } from './navigation';
-import {
-  Dashboard,
-  GitHub,
-  Login,
-  Profile,
-  Reactions,
-  Register,
-} from './pages';
+import { Area, Dashboard, Login, Profile, Register } from './pages';
 import {
   store,
   useAppSelector,
@@ -54,6 +47,9 @@ function AppNavigator() {
         } else if (url.includes('auth/google')) {
           await validateGoogle({ code }).unwrap();
           Alert.alert('Success', 'Google account linked successfully!');
+        } else if (url.includes('auth/discord')) {
+          await validateDiscord({ code }).unwrap();
+          Alert.alert('Success', 'Discord account linked successfully!');
         }
       } catch (_error) {
         Alert.alert('Error', 'Failed to link account. Please try again.');
@@ -85,8 +81,7 @@ function AppNavigator() {
         <>
           <Stack.Screen name='Dashboard' component={Dashboard} />
           <Stack.Screen name='Profile' component={Profile} />
-          <Stack.Screen name='GitHub' component={GitHub} />
-          <Stack.Screen name='Reactions' component={Reactions} />
+          <Stack.Screen name='Area' component={Area} />
         </>
       ) : (
         <>

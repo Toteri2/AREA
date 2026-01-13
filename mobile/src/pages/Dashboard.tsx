@@ -52,16 +52,6 @@ export function Dashboard() {
       <View style={styles.cardsContainer}>
         <TouchableOpacity
           style={styles.card}
-          onPress={() => navigation.navigate('GitHub')}
-        >
-          <Text style={styles.cardTitle}>GitHub Integration</Text>
-          <Text style={styles.cardDescription}>
-            Manage your repositories and webhooks
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.card}
           onPress={() => navigation.navigate('Profile')}
         >
           <Text style={styles.cardTitle}>Profile</Text>
@@ -70,10 +60,10 @@ export function Dashboard() {
 
         <TouchableOpacity
           style={styles.card}
-          onPress={() => navigation.navigate('Reactions')}
+          onPress={() => navigation.navigate('Area')}
         >
-          <Text style={styles.cardTitle}>Reactions</Text>
-          <Text style={styles.cardDescription}>View and edit reactions</Text>
+          <Text style={styles.cardTitle}>Area</Text>
+          <Text style={styles.cardDescription}>Area page (automation)</Text>
         </TouchableOpacity>
       </View>
 
