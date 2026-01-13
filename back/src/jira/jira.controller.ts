@@ -7,6 +7,7 @@ import {
   Post,
   Query,
   Req,
+  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -40,7 +41,7 @@ export class JiraController {
     status: 200,
     description: 'Webhook processed successfully.',
   })
-  async handleWebhook(@Body() webhookData: JiraWebhookDto) {
+  async handleWebhook(@Body() webhookData: JiraWebhookDto, @Res() res) {
     try {
       console.log('Jira webhook received:', webhookData.webhookEvent);
 
@@ -71,7 +72,7 @@ export class JiraController {
         }
       }
 
-      return { success: true };
+      return res.status(200).send({ success: true });
     } catch (error) {
       console.error('Error handling Jira webhook:', error.message);
       throw error;

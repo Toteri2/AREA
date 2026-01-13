@@ -45,7 +45,7 @@ export class MicrosoftController {
     @Query('validationToken') token: string
   ) {
     if (token) {
-      return res.send(token);
+      return res.status(200).send(token);
     }
 
     const oauthState = await this.authService.findOauthState(
