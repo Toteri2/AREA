@@ -12,6 +12,9 @@ import NoNavbarLayout from './layout/NoNavbarLayout';
 import {
   Area,
   Dashboard,
+  Discord,
+  DiscordCallback,
+  Dynamic-UI,
   GitHubCallback,
   GmailCallback,
   Login,
@@ -50,6 +53,7 @@ function App() {
           <Route path='/gmail/callback' element={<GmailCallback />} />
           <Route path='/microsoft/callback' element={<MicrosoftCallback />} />
           <Route path='/google/callback' element={<GoogleCallback />} />
+          <Route path='/discord/callback' element={<GoogleCallback />} />
         </Route>
 
         <Route element={<AppLayout />}>

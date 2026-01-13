@@ -1,5 +1,6 @@
 export { Area } from './Area';
 export { Dashboard } from './Dashboard';
+export { DiscordCallback } from './DiscordCallback';
 export { GitHubCallback } from './GitHubCallback';
 export { GmailCallback } from './GmailCallback';
 export { Login } from './Login';

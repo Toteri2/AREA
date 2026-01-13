@@ -198,6 +198,18 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['MicrosoftSubscriptions'],
     }),
+
+    ValidateDiscord: builder.mutation<
+      { success: boolean },
+      { code: string; state: string }
+    >({
+      query: ({ code, state }) => ({
+        url: '/auth/discord/validate',
+        method: 'POST',
+        body: { code, state },
+      }),
+    }),
+
     listReactions: builder.query<Reaction[], void>({
       query: () => '/reactions',
       providesTags: ['Reactions'],
@@ -221,6 +233,19 @@ export const apiSlice = createApi({
     listUserWebhooks: builder.query<Webhook[], void>({
       query: () => '/users/webhooks',
       providesTags: ['Webhooks'],
+    }),
+
+    getDiscordAuthUrl: builder.query<
+        url: '/auth/discord/url',
+        params: args?.mobile ? { mobile: 'true' } : undefined,
+        responseHandler: (response) => response.text(),
+      }),
+      transformResponse: (response: string) => ({ url: response }),
+    }),
+    listDiscordWebhooks: builder.query<{ webhooks: any[] }, void>({
+      query: () => ({
+        url: '/discord/webhooks',
+      }),
     }),
 
     getGmailAuthUrl: builder.query<
@@ -299,6 +324,13 @@ export const {
   useListMicrosoftWebhooksQuery,
   useCreateMicrosoftSubscriptionMutation,
   useDeleteMicrosoftSubscriptionMutation,
+
+  useConnectionQuery,
+
+  useValidateDiscordMutation,
+  useGetDiscordAuthUrlQuery,
+  useListDiscordWebhooksQuery,
+
   useListReactionsQuery,
   useCreateReactionMutation,
   useDeleteReactionMutation,
