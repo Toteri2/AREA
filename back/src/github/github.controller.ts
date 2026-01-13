@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
   Param,
@@ -127,5 +128,30 @@ export class GithubController {
     const provider = await this.authService.getGithubProvider(req.user.id);
     if (!provider) throw new UnauthorizedException('GitHub account not linked');
     return this.githubService.listWebhooks(provider.accessToken, owner, repo);
+  }
+
+  @Delete('repositories/:owner/:repo/webhooks/:hookId')
+  @ApiOperation({ summary: 'Delete a GitHub webhook' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook deleted successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async deleteWebhook(
+    @Req() req,
+    @Param('owner') owner: string,
+    @Param('repo') repo: string,
+    @Param('hookId') hookId: string
+  ) {
+    const provider = await this.authService.getGithubProvider(req.user.id);
+    if (!provider) throw new UnauthorizedException('GitHub account not linked');
+    await this.githubService.deleteWebhook(
+      provider.accessToken,
+      owner,
+      repo,
+      hookId
+    );
+    await this.hooksRepository.delete({ webhookId: hookId, service: 'github' });
+    return { success: true };
   }
 }

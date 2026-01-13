@@ -53,6 +53,21 @@ export class GithubService {
     return this.handleResponse(response);
   }
 
+  async deleteWebhook(
+    userAccessToken: string,
+    owner: string,
+    repo: string,
+    hookId: string
+  ) {
+    const response = await axios.delete(
+      `${this.baseUrl}/repos/${owner}/${repo}/hooks/${hookId}`,
+      {
+        headers: this.getHeaders(userAccessToken),
+      }
+    );
+    return this.handleResponse(response);
+  }
+
   getHeaders(accessToken: string) {
     return {
       Authorization: `Bearer ${accessToken}`,
