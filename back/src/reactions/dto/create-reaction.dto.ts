@@ -1,8 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsObject } from 'class-validator';
+import { IsEnum, IsNumber, IsObject, IsString } from 'class-validator';
 import { ReactionType } from 'src/shared/entities/reaction.entity';
 
 export class CreateReactionDto {
+  @ApiProperty({
+    description: 'Name of the reaction',
+    example: 'Send email on new issue',
+  })
+  @IsString()
+  name: string;
+
   @ApiProperty({
     description: 'ID of the webhook/hook to attach this reaction to',
     example: 1,

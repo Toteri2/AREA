@@ -133,7 +133,7 @@ export class GithubController {
     return this.githubService.listWebhooks(provider.accessToken, owner, repo);
   }
 
-  @Delete('repositories/:owner/:repo/webhooks/:hookId')
+  @Delete('webhook/:hookId')
   @ApiOperation({ summary: 'Delete a GitHub webhook' })
   @ApiResponse({
     status: 200,
@@ -142,8 +142,6 @@ export class GithubController {
   @UseGuards(AuthGuard('jwt'))
   async deleteWebhook(
     @Req() req,
-    @Param('owner') owner: string,
-    @Param('repo') repo: string,
     @Param('hookId') hookId: number
   ) {
     const provider = await this.authService.getGithubProvider(req.user.id);
@@ -156,6 +154,8 @@ export class GithubController {
     if (!hook) {
       throw new NotFoundException('Hook not found');
     }
+
+    const { owner, repo } = hook.additionalInfos as { owner: string; repo: string };
 
     await this.githubService.deleteWebhook(
       provider.accessToken,
