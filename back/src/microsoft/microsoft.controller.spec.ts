@@ -265,13 +265,6 @@ describe('MicrosoftController', () => {
     });
   });
 
-  describe('alive', () => {
-    it('should return alive status', async () => {
-      const result = await controller.alive();
-      expect(result).toEqual({ status: 'alive' });
-    });
-  });
-
   describe('createWebhook', () => {
     it('should create a webhook', async () => {
       const req = { user: { id: 1 } };

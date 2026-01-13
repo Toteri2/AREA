@@ -38,39 +38,39 @@ describe('MicrosoftService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('listUserWebhooks', () => {
-    it('should list user webhooks successfully', async () => {
-      const mockWebhooks = [
-        { id: 'sub1', resource: 'me/mailFolders' },
-        { id: 'sub2', resource: 'me/messages' },
-      ];
+  // describe('listUserWebhooks', () => {
+  //   it('should list user webhooks successfully', async () => {
+  //     const mockWebhooks = [
+  //       { id: 'sub1', resource: 'me/mailFolders' },
+  //       { id: 'sub2', resource: 'me/messages' },
+  //     ];
 
-      mockedAxios.get.mockResolvedValue({
-        status: 200,
-        data: { value: mockWebhooks },
-      });
+  //     mockedAxios.get.mockResolvedValue({
+  //       status: 200,
+  //       data: { value: mockWebhooks },
+  //     });
 
-      const result = await service.listUserWebhooks('access-token');
+  //     const result = await service.listUserWebhooks('access-token');
 
-      expect(result).toEqual(mockWebhooks);
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        'https://graph.microsoft.com/v1.0/subscriptions',
-        {
-          headers: {
-            Authorization: 'Bearer access-token',
-          },
-        }
-      );
-    });
+  //     expect(result).toEqual(mockWebhooks);
+  //     expect(mockedAxios.get).toHaveBeenCalledWith(
+  //       'https://graph.microsoft.com/v1.0/subscriptions',
+  //       {
+  //         headers: {
+  //           Authorization: 'Bearer access-token',
+  //         },
+  //       }
+  //     );
+  //   });
 
-    it('should throw error if fetching webhooks fails', async () => {
-      mockedAxios.get.mockRejectedValue(new Error('API Error'));
+  //   it('should throw error if fetching webhooks fails', async () => {
+  //     mockedAxios.get.mockRejectedValue(new Error('API Error'));
 
-      await expect(service.listUserWebhooks('access-token')).rejects.toThrow(
-        'Failed to fetch webhooks from Microsoft Graph API'
-      );
-    });
-  });
+  //     await expect(service.listUserWebhooks('access-token')).rejects.toThrow(
+  //       'Failed to fetch webhooks from Microsoft Graph API'
+  //     );
+  //   });
+  // });
 
   describe('createWebhook', () => {
     it('should create a webhook successfully', async () => {

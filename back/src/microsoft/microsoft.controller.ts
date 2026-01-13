@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   NotFoundException,
+  Param,
   Post,
   Query,
   Req,
@@ -45,6 +46,7 @@ export class MicrosoftController {
     @Res() res,
     @Query('validationToken') token: string
   ) {
+    console.log('Microsoft webhook received:', body);
     if (token) {
       return res.status(200).send(token);
     }
@@ -84,7 +86,7 @@ export class MicrosoftController {
     return res.status(200).send();
   }
 
-  @Get('webhooks')
+  @Get('webhook')
   @ApiOperation({ summary: 'List user Microsoft webhooks' })
   @ApiResponse({
     status: 200,
@@ -92,9 +94,18 @@ export class MicrosoftController {
   })
   @UseGuards(AuthGuard('jwt'))
   async listUserWebhooks(@Req() req) {
-    return this.microsoftService.listUserWebhooks(
-      await this.authService.getMicrosoftToken(req.user.id)
-    );
+    return this.microsoftService.listUserWebhooks(req.user.id);
+  }
+
+  @Get('webhook/:hookId')
+  @ApiOperation({ summary: 'Get a specific user Microsoft webhook' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async getUserWebhook(@Req() req, @Param('hookId') hookId: number) {
+    return this.microsoftService.getUserWebhook(req.user.id, hookId);
   }
 
   @Post('create-webhook')
@@ -124,17 +135,17 @@ export class MicrosoftController {
     );
   }
 
-  @Delete('webhook')
+  @Delete('webhook/:hookId')
   @ApiOperation({ summary: 'Delete a Microsoft subscription' })
   @ApiResponse({
     status: 200,
     description: 'The subscription has been successfully deleted.',
   })
   @UseGuards(AuthGuard('jwt'))
-  async deleteSubscription(@Req() req, @Query('id') id: number) {
+  async deleteSubscription(@Req() req, @Param('hookId') hookId: number) {
     const hook = await this.hooksRepository.findOne({
       where: {
-        id: id,
+        id: hookId,
         userId: req.user.id,
         service: 'microsoft',
       },
