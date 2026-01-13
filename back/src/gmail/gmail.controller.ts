@@ -140,16 +140,16 @@ export class GmailController {
     );
   }
 
-  @Delete('webhook')
+  @Delete('webhook/:hookId')
   @ApiOperation({ summary: 'Delete a Gmail subscription' })
   @ApiResponse({
     status: 200,
     description: 'The subscription has been successfully deleted.',
   })
   @UseGuards(AuthGuard('jwt'))
-  async deleteSubscription(@Req() req, @Query('id') id: number) {
+  async deleteSubscription(@Req() req, @Query('hookId') hookId: number) {
     const hook = await this.hooksRepository.findOne({
-      where: { id: id, userId: req.user.id, service: 'gmail' },
+      where: { id: hookId, userId: req.user.id, service: 'gmail' },
     });
 
     if (!hook) {
