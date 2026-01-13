@@ -23,6 +23,8 @@ async function bootstrap() {
       const allowed = [
         'https://front.mambokara.dev',
         'https://front.mambokara.dev/',
+        'https://matfront.mambokara.dev',
+        'https://matfront.mambokara.dev/',
         'http://localhost:5173',
         'http://localhost:5173/',
       ];
