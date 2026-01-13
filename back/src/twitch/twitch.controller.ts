@@ -2,9 +2,12 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
+  NotFoundException,
   Post,
+  Query,
   Req,
   Res,
   UnauthorizedException,
@@ -177,5 +180,30 @@ export class TwitchController {
     }
 
     return res.status(200).send({ status: 'ok' });
+  }
+
+  @Delete('webhook')
+  @ApiOperation({ summary: 'Delete a Twitch webhook' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook deleted successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async deleteWebhook(@Req() req, @Query('id') id: number) {
+    const provider = await this.authService.getTwitchProvider(req.user.id);
+    if (!provider) throw new UnauthorizedException('Twitch account not linked');
+
+    const hook = await this.hooksRepository.findOne({
+      where: { id: id, userId: req.user.id, service: 'twitch' },
+    });
+
+    if (!hook) {
+      throw new NotFoundException('Hook not found');
+    }
+
+    await this.twitchService.deleteWebhook(hook.webhookId);
+    await this.hooksRepository.delete({ id: id, service: 'twitch' });
+
+    return { message: 'Webhook deleted successfully' };
   }
 }

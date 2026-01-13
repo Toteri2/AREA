@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Headers,
+  NotFoundException,
   Param,
   Post,
   Req,
@@ -141,17 +142,26 @@ export class GithubController {
     @Req() req,
     @Param('owner') owner: string,
     @Param('repo') repo: string,
-    @Param('hookId') hookId: string
+    @Param('hookId') hookId: number
   ) {
     const provider = await this.authService.getGithubProvider(req.user.id);
     if (!provider) throw new UnauthorizedException('GitHub account not linked');
+
+    const hook = await this.hooksRepository.findOne({
+      where: { id: hookId, userId: req.user.id, service: 'github' },
+    });
+
+    if (!hook) {
+      throw new NotFoundException('Hook not found');
+    }
+
     await this.githubService.deleteWebhook(
       provider.accessToken,
       owner,
       repo,
-      hookId
+      hook.webhookId
     );
-    await this.hooksRepository.delete({ webhookId: hookId, service: 'github' });
+    await this.hooksRepository.delete({ id: hookId, service: 'github' });
     return { success: true };
   }
 }

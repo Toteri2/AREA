@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Headers,
+  NotFoundException,
   Param,
   Post,
   Req,
@@ -272,24 +273,32 @@ export class DiscordController {
     return this.discordService.getChannelWebhooks(channelId);
   }
 
-  @Delete('webhooks/:webhookId')
+  @Delete('webhooks/:hookId')
   @ApiOperation({ summary: 'Delete a Discord webhook' })
   @ApiResponse({
     status: 200,
     description: 'Webhook deleted successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
-  async deleteWebhook(@Req() req, @Param('webhookId') webhookId: string) {
+  async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     const provider = await this.authService.getDiscordProvider(req.user.id);
     if (!provider)
       throw new UnauthorizedException('Discord account not linked');
 
+    const hook = await this.hooksRepository.findOne({
+      where: { id: hookId, userId: req.user.id, service: 'discord' },
+    });
+
+    if (!hook) {
+      throw new NotFoundException('Hook not found');
+    }
+
     await this.hooksRepository.delete({
-      webhookId,
+      id: hookId,
       userId: req.user.id,
       service: 'discord',
     });
 
-    return this.discordService.deleteWebhook(webhookId);
+    return this.discordService.deleteWebhook(hook.webhookId);
   }
 }

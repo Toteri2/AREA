@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { HookResponseDto } from 'src/shared/dto/hook-response.dto';
 import { Hook } from 'src/shared/entities/hook.entity';
 import { Provider } from 'src/shared/entities/provider.entity';
 import { User } from 'src/shared/entities/user.entity';
@@ -48,8 +49,20 @@ export class UsersService {
     return bcrypt.compare(password, user);
   }
 
-  async getUserWebhooks(userId: number): Promise<Hook[]> {
-    return this.hooksRepository.find({ where: { userId: userId } });
+  async getUserWebhooks(userId: number): Promise<HookResponseDto[]> {
+    const hooks = await this.hooksRepository.find({
+      where: { userId: userId },
+    });
+    return hooks.map(
+      (hook) =>
+        new HookResponseDto({
+          id: hook.id,
+          userId: hook.userId,
+          service: hook.service,
+          eventType: hook.eventType,
+          lastHistoryId: hook.lastHistoryId,
+        })
+    );
   }
 
   async isUserConnected(

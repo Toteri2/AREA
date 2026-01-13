@@ -64,6 +64,23 @@ export class TwitchService {
     return this.handleResponse(response);
   }
 
+  async deleteWebhook(subscriptionId: string) {
+    const clientId = this.configService.getOrThrow<string>('TWITCH_CLIENT_ID');
+    const appAccessToken = await this.getAppAccessToken();
+
+    const response = await axios.delete(
+      `https://api.twitch.tv/helix/eventsub/subscriptions?id=${subscriptionId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${appAccessToken}`,
+          'Client-Id': clientId,
+        },
+      }
+    );
+
+    return this.handleResponse(response);
+  }
+
   verifyWebhookSignature(
     messageId: string,
     timestamp: string,

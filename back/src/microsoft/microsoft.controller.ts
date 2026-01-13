@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Post,
   Query,
   Req,
@@ -131,16 +132,23 @@ export class MicrosoftController {
     description: 'The subscription has been successfully deleted.',
   })
   @UseGuards(AuthGuard('jwt'))
-  async deleteSubscription(@Req() req, @Res() res, @Query('id') id: string) {
-    try {
-      await this.microsoftService.deleteSubscription(
-        id,
-        await this.authService.getMicrosoftToken(req.user.id)
-      );
-      return res.status(200).send({ message: 'Subscription deleted' });
-    } catch (error) {
-      console.error('Error deleting subscription:', error);
-      return res.status(500).send({ message: 'Failed to delete subscription' });
+  async deleteSubscription(@Req() req, @Query('id') id: number) {
+    const hook = await this.hooksRepository.findOne({
+      where: {
+        id: id,
+        userId: req.user.id,
+        service: 'microsoft',
+      },
+    });
+
+    if (!hook) {
+      throw new NotFoundException('Hook not found');
     }
+
+    await this.microsoftService.deleteSubscription(
+      hook.webhookId,
+      await this.authService.getMicrosoftToken(req.user.id)
+    );
+    return { message: 'Subscription deleted' };
   }
 }

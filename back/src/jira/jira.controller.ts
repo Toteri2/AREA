@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Post,
   Query,
@@ -127,7 +128,7 @@ export class JiraController {
     description: 'The webhook has been successfully deleted.',
   })
   @UseGuards(AuthGuard('jwt'))
-  async deleteWebhook(@Req() req, @Query('id') id: string) {
+  async deleteWebhook(@Req() req, @Query('id') id: number) {
     try {
       const accessToken = await this.authService.getValidJiraToken(req.user.id);
       const provider = await this.authService.getJiraProvider(req.user.id);
@@ -136,8 +137,16 @@ export class JiraController {
         throw new UnauthorizedException('Jira account not linked');
       }
 
+      const hook = await this.hooksRepository.findOne({
+        where: { id: id, userId: req.user.id, service: 'jira' },
+      });
+
+      if (!hook) {
+        throw new NotFoundException('Hook not found');
+      }
+
       await this.jiraService.deleteWebhook(
-        id,
+        hook.webhookId,
         accessToken,
         provider.providerId
       );
