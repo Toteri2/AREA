@@ -25,6 +25,13 @@ export class GmailService {
     return hooks;
   }
 
+  async getUserWebhook(userId: number, hookId: number): Promise<any> {
+    const hooks = await this.hookRepository.find({
+      where: { service: 'gmail', userId: userId, id: hookId },
+    });
+    return hooks;
+  }
+
   async createWebhook(
     body: CreateGmailDto,
     accessToken: string,

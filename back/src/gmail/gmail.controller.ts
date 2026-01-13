@@ -96,7 +96,7 @@ export class GmailController {
     return res.status(200).send();
   }
 
-  @Get('webhooks')
+  @Get('webhook')
   @ApiOperation({ summary: 'List user Gmail webhooks' })
   @ApiResponse({
     status: 200,
@@ -105,6 +105,17 @@ export class GmailController {
   @UseGuards(AuthGuard('jwt'))
   async listUserWebhooks(@Req() req) {
     return this.gmailService.listUserWebhooks(req.user.id);
+  }
+
+  @Get('webhook/:hookId')
+  @ApiOperation({ summary: 'Get a specific user Gmail webhook' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async getUserWebhook(@Req() req, @Query('hookId') hookId: number) {
+    return this.gmailService.getUserWebhook(req.user.id, hookId);
   }
 
   @Post('alive')
