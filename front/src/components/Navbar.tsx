@@ -21,8 +21,7 @@ export function Navbar() {
         {isAuthenticated ? (
           <>
             <Link to='/dashboard'>Dashboard</Link>
-            <Link to='/services'>Services</Link>
-            <Link to='/reactions'>Reactions</Link>
+            <Link to='/area'>Area</Link>
             <Link to='/profile'>Profile</Link>
             <ApkDownloadButton />
             <button type='button' onClick={handleLogout} className='btn-logout'>

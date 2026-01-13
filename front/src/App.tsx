@@ -10,18 +10,15 @@ import { GoogleCallback } from './components/GoogleCallback';
 import AppLayout from './layout/AppLayout';
 import NoNavbarLayout from './layout/NoNavbarLayout';
 import {
+  Area,
   Dashboard,
-  GitHub,
   GitHubCallback,
-  Gmail,
   GmailCallback,
   Login,
-  Microsoft,
   MicrosoftCallback,
+  NotFound,
   Profile,
-  Reactions,
   Register,
-  Services,
 } from './pages';
 import './App.css';
 
@@ -60,18 +57,16 @@ function App() {
             <>
               <Route path='/dashboard' element={<Dashboard />} />
               <Route path='/profile' element={<Profile />} />
-              <Route path='/github' element={<GitHub />} />
-              <Route path='/gmail' element={<Gmail />} />
-              <Route path='/microsoft' element={<Microsoft />} />
-              <Route path='/reactions' element={<Reactions />} />
-              <Route path='/services' element={<Services />} />
-              <Route path='*' element={<Navigate to='/dashboard' replace />} />
+              <Route path='/area' element={<Area />} />
+              <Route path='/notfound' element={<NotFound />} />
+              <Route path='*' element={<Navigate to='/notfound' replace />} />
             </>
           ) : (
             <>
               <Route path='/login' element={<Login />} />
               <Route path='/register' element={<Register />} />
-              <Route path='*' element={<Navigate to='/login' replace />} />
+              <Route path='/notfound' element={<NotFound />} />
+              <Route path='*' element={<Navigate to='/notfound' replace />} />
             </>
           )}
         </Route>

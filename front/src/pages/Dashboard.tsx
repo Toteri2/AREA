@@ -12,9 +12,9 @@ export function Dashboard() {
         <p>Email: {user?.email}</p>
       </div>
       <div className='dashboard-links'>
-        <Link to='/github' className='dashboard-card'>
-          <h3>GitHub Integration</h3>
-          <p>Manage your repositories and webhooks</p>
+        <Link to='/area' className='dashboard-card'>
+          <h3>Area (actions - reactions)</h3>
+          <p>Manage and link your actions and recations</p>
         </Link>
         <Link to='/profile' className='dashboard-card'>
           <h3>Profile</h3>
