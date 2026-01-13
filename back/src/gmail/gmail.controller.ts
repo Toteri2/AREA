@@ -4,8 +4,8 @@ import {
   Delete,
   Get,
   NotFoundException,
+  Param,
   Post,
-  Query,
   Req,
   Res,
   UnauthorizedException,
@@ -114,7 +114,7 @@ export class GmailController {
     description: 'Webhook retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
-  async getUserWebhook(@Req() req, @Query('hookId') hookId: number) {
+  async getUserWebhook(@Req() req, @Param('hookId') hookId: number) {
     return this.gmailService.getUserWebhook(req.user.id, hookId);
   }
 
@@ -147,7 +147,7 @@ export class GmailController {
     description: 'The subscription has been successfully deleted.',
   })
   @UseGuards(AuthGuard('jwt'))
-  async deleteSubscription(@Req() req, @Query('hookId') hookId: number) {
+  async deleteSubscription(@Req() req, @Param('hookId') hookId: number) {
     const hook = await this.hooksRepository.findOne({
       where: { id: hookId, userId: req.user.id, service: 'gmail' },
     });

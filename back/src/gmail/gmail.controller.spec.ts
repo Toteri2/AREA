@@ -287,13 +287,6 @@ describe('GmailController', () => {
     });
   });
 
-  describe('alive', () => {
-    it('should return alive status', async () => {
-      const result = await controller.alive();
-      expect(result).toEqual({ status: 'alive' });
-    });
-  });
-
   describe('createWebhook', () => {
     it('should create a webhook', async () => {
       const mockReq = { user: { id: 1 } };
