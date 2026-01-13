@@ -1,6 +1,9 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { AuthService } from '../auth/auth.service';
+import { ReactionsService } from '../reactions/reactions.service';
+import { Hook } from '../shared/entities/hook.entity';
 import { DiscordController } from './discord.controller';
 import { DiscordService } from './discord.service';
 
@@ -27,6 +30,10 @@ describe('DiscordController', () => {
     getDiscordProvider: jest.fn(),
   };
 
+  const mockReactionsService = {
+    execute: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DiscordController],
@@ -38,6 +45,21 @@ describe('DiscordController', () => {
         {
           provide: AuthService,
           useValue: mockAuthService,
+        },
+        {
+          provide: ReactionsService,
+          useValue: mockReactionsService,
+        },
+        {
+          provide: getRepositoryToken(Hook),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            findOneBy: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            remove: jest.fn(),
+          },
         },
       ],
     }).compile();
@@ -208,6 +230,115 @@ describe('DiscordController', () => {
 
       expect(discordService.getServiceMetadata).toHaveBeenCalled();
       expect(result).toEqual(mockMetadata);
+    });
+  });
+
+  describe('listGuildChannels', () => {
+    it('should return guild channels', async () => {
+      const mockReq = { user: { id: 1 } };
+      const mockProvider = { accessToken: 'test_token' };
+      const mockChannels = [{ id: '1', name: 'general' }];
+
+      mockAuthService.getDiscordProvider.mockResolvedValue(mockProvider);
+      mockDiscordService.listGuildChannels.mockResolvedValue(mockChannels);
+
+      const result = await controller.listGuildChannels(mockReq, '123');
+
+      expect(discordService.listGuildChannels).toHaveBeenCalledWith(
+        'test_token',
+        '123'
+      );
+      expect(result).toEqual(mockChannels);
+    });
+
+    it('should throw UnauthorizedException if Discord not linked', async () => {
+      const mockReq = { user: { id: 1 } };
+      mockAuthService.getDiscordProvider.mockResolvedValue(null);
+
+      await expect(
+        controller.listGuildChannels(mockReq, '123')
+      ).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  describe('listGuildMembers', () => {
+    it('should return guild members', async () => {
+      const mockReq = { user: { id: 1 } };
+      const mockProvider = { accessToken: 'test_token' };
+      const mockMembers = [{ id: '1', username: 'user1' }];
+
+      mockAuthService.getDiscordProvider.mockResolvedValue(mockProvider);
+      mockDiscordService.getGuildMembers.mockResolvedValue(mockMembers);
+
+      const result = await controller.listGuildMembers(mockReq, '123');
+
+      expect(discordService.getGuildMembers).toHaveBeenCalledWith(
+        'test_token',
+        '123'
+      );
+      expect(result).toEqual(mockMembers);
+    });
+
+    it('should throw UnauthorizedException if Discord not linked', async () => {
+      const mockReq = { user: { id: 1 } };
+      mockAuthService.getDiscordProvider.mockResolvedValue(null);
+
+      await expect(controller.listGuildMembers(mockReq, '123')).rejects.toThrow(
+        UnauthorizedException
+      );
+    });
+  });
+
+  describe('listGuildRoles', () => {
+    it('should return guild roles', async () => {
+      const mockReq = { user: { id: 1 } };
+      const mockProvider = { accessToken: 'test_token' };
+      const mockRoles = [{ id: '1', name: 'Admin' }];
+
+      mockAuthService.getDiscordProvider.mockResolvedValue(mockProvider);
+      mockDiscordService.listGuildRoles.mockResolvedValue(mockRoles);
+
+      const result = await controller.listGuildRoles(mockReq, '123');
+
+      expect(discordService.listGuildRoles).toHaveBeenCalledWith(
+        'test_token',
+        '123'
+      );
+      expect(result).toEqual(mockRoles);
+    });
+
+    it('should throw UnauthorizedException if Discord not linked', async () => {
+      const mockReq = { user: { id: 1 } };
+      mockAuthService.getDiscordProvider.mockResolvedValue(null);
+
+      await expect(controller.listGuildRoles(mockReq, '123')).rejects.toThrow(
+        UnauthorizedException
+      );
+    });
+  });
+
+  describe('getCurrentUser', () => {
+    it('should return current Discord user', async () => {
+      const mockReq = { user: { id: 1 } };
+      const mockProvider = { accessToken: 'test_token' };
+      const mockUser = { id: '999', username: 'testuser' };
+
+      mockAuthService.getDiscordProvider.mockResolvedValue(mockProvider);
+      mockDiscordService.getCurrentUser.mockResolvedValue(mockUser);
+
+      const result = await controller.getCurrentUser(mockReq);
+
+      expect(discordService.getCurrentUser).toHaveBeenCalledWith('test_token');
+      expect(result).toEqual(mockUser);
+    });
+
+    it('should throw UnauthorizedException if Discord not linked', async () => {
+      const mockReq = { user: { id: 1 } };
+      mockAuthService.getDiscordProvider.mockResolvedValue(null);
+
+      await expect(controller.getCurrentUser(mockReq)).rejects.toThrow(
+        UnauthorizedException
+      );
     });
   });
 });
