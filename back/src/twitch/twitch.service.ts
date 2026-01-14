@@ -8,6 +8,8 @@ import { CreateTwitchWebhookDto } from './dto/twitch.dto';
 export class TwitchService {
   private readonly baseUrl = 'https://api.twitch.tv/helix';
   private readonly webhookSecret: string;
+  private lastRequestTime = 0;
+  private readonly minRequestInterval = 100; // 100ms between API calls to Twitch
 
   constructor(private configService: ConfigService) {
     this.webhookSecret = this.configService.getOrThrow<string>(
@@ -15,7 +17,19 @@ export class TwitchService {
     );
   }
 
+  private async rateLimit() {
+    const now = Date.now();
+    const timeSinceLastRequest = now - this.lastRequestTime;
+    if (timeSinceLastRequest < this.minRequestInterval) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, this.minRequestInterval - timeSinceLastRequest)
+      );
+    }
+    this.lastRequestTime = Date.now();
+  }
+
   async getCurrentUser(userAccessToken: string) {
+    await this.rateLimit();
     const response = await axios.get(`${this.baseUrl}/users`, {
       headers: this.getHeaders(userAccessToken),
     });
@@ -23,6 +37,7 @@ export class TwitchService {
   }
 
   async getFollowedChannels(userAccessToken: string, userId: string) {
+    await this.rateLimit();
     const response = await axios.get(
       `${this.baseUrl}/channels/followed?user_id=${userId}`,
       {
@@ -44,6 +59,7 @@ export class TwitchService {
   }
 
   async createWebhook(dto: CreateTwitchWebhookDto, webhookUrl: string) {
+    await this.rateLimit();
     const { broadcasterUserId, eventType, secret } = dto;
     const clientId = this.configService.getOrThrow<string>('TWITCH_CLIENT_ID');
     const appAccessToken = await this.getAppAccessToken();
@@ -76,6 +92,7 @@ export class TwitchService {
   }
 
   async deleteWebhook(subscriptionId: string) {
+    await this.rateLimit();
     const clientId = this.configService.getOrThrow<string>('TWITCH_CLIENT_ID');
     const appAccessToken = await this.getAppAccessToken();
 

@@ -10,6 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateReactionDto } from './dto/create-reaction.dto';
@@ -22,6 +23,7 @@ export class ReactionsController {
   constructor(private readonly reactionsService: ReactionsService) {}
 
   @Post()
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @ApiOperation({ summary: 'Create a new reaction attached to a webhook' })
   @ApiResponse({
     status: 201,

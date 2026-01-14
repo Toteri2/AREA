@@ -16,6 +16,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -147,6 +148,8 @@ export class TwitchController {
   })
   @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.TWITCH)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @UseGuards(AuthGuard('jwt'))
   async createWebhook(
     @Req() req,
     @Body() createWebhookDto: CreateTwitchWebhookDto
