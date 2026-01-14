@@ -96,10 +96,10 @@ export class MicrosoftService {
     return response.data;
   }
 
-  async deleteSubscription(id: number, accessToken: string) {
+  async deleteSubscription(id: number, accessToken: string, webhookId: string) {
     try {
       const response = await axios.delete(
-        `${this.baseUrl}subscriptions/${id}`,
+        `${this.baseUrl}subscriptions/${webhookId}`,
         {
           headers: this.getHeaders(accessToken),
         }

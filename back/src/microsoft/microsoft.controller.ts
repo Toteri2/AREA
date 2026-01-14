@@ -179,7 +179,8 @@ export class MicrosoftController {
 
     await this.microsoftService.deleteSubscription(
       hookId,
-      await this.authService.getMicrosoftToken(userId)
+      await this.authService.getMicrosoftToken(userId),
+      hook.webhookId
     );
     return { message: 'Subscription deleted' };
   }
