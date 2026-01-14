@@ -21,6 +21,7 @@ import {
   useGetMicrosoftAuthUrlQuery,
   useGetServicesQuery,
 } from '../shared/src/native';
+import styles from '../style/index';
 
 type Service = { name: string };
 
@@ -173,62 +174,3 @@ export function Profile() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a1a2e' },
-  content: { padding: 20 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#fff', marginBottom: 24 },
-  card: { backgroundColor: '#16213e', borderRadius: 12, padding: 20 },
-  infoSection: { marginBottom: 24 },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#0f3460',
-  },
-  label: { fontSize: 14, color: '#888', fontWeight: '500' },
-  value: { fontSize: 14, color: '#fff' },
-  actionsSection: { paddingTop: 8 },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 16,
-  },
-  baseUrlSection: { marginBottom: 24 },
-  input: {
-    backgroundColor: '#1a1a2e',
-    borderColor: '#0f3460',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    color: '#fff',
-    marginBottom: 10,
-  },
-  button: {
-    backgroundColor: '#24292e',
-    borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  linkedContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#16213e',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 10,
-  },
-  linkedText: { color: '#28a745', fontSize: 16, fontWeight: '600' },
-  changeButton: {
-    backgroundColor: '#0f3460',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-  },
-  changeButtonText: { color: '#fff', fontSize: 14 },
-});

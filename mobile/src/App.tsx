@@ -20,6 +20,7 @@ import {
   useValidateGoogleMutation,
   useValidateMicrosoftMutation,
 } from './shared/src/native';
+import styles from './style/index';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -71,10 +72,10 @@ function AppNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#16213e' },
+        headerStyle: styles.headerApp,
         headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: '600' },
-        contentStyle: { backgroundColor: '#1a1a2e' },
+        headerTitleStyle: styles.headerTitleApp,
+        contentStyle: styles.contentApp,
       }}
     >
       {isAuthenticated ? (
@@ -112,14 +113,5 @@ function App() {
     </Provider>
   );
 }
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#1a1a2e',
-  },
-});
 
 export default App;

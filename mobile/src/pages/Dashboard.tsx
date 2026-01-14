@@ -15,6 +15,7 @@ import {
   useAppDispatch,
   useAppSelector,
 } from '../shared/src/native';
+import styles from '../style/index';
 
 type DashboardNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -71,69 +72,3 @@ export function Dashboard() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1a1a2e',
-  },
-  content: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 24,
-  },
-  welcomeCard: {
-    backgroundColor: '#16213e',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 24,
-  },
-  welcomeTitle: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  welcomeEmail: {
-    fontSize: 14,
-    color: '#888',
-  },
-  cardsContainer: {
-    gap: 16,
-  },
-  card: {
-    backgroundColor: '#16213e',
-    borderRadius: 12,
-    padding: 20,
-    borderLeftWidth: 4,
-    borderLeftColor: '#e94560',
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  cardDescription: {
-    fontSize: 14,
-    color: '#888',
-  },
-  logoutButton: {
-    backgroundColor: '#0f3460',
-    borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 32,
-    borderWidth: 1,
-    borderColor: '#e94560',
-  },
-  logoutText: {
-    color: '#e94560',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});

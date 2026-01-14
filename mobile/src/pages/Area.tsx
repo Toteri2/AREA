@@ -1,25 +1,11 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { AreaWebView } from '../components/AreaWebView';
+import styles from '../style/index';
 
 export function Area() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Area</Text>
-      <AreaWebView url='https://front.mambokara.dev/area' />
+      <AreaWebView url='https://front.mambokara.dev/dashboard' />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1a1a2e',
-    padding: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 16,
-  },
-});

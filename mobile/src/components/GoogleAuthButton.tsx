@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import GoogleIcon from '../assets/google.svg';
 import { useGoogleAuthUrlQuery } from '../shared/src/native';
+import styles from '../style/index';
 
 interface GoogleAuthButtonProps {
   onError?: (message: string) => void;
@@ -50,21 +51,21 @@ export function GoogleAuthButton({
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#4285F4',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 4,
-  },
-  disabledButton: {
-    opacity: 0.6,
-  },
-  text: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-});
+// const styles = StyleSheet.create({
+//   button: {
+//     flexDirection: 'row',
+//     alignItems: 'center',
+//     backgroundColor: '#4285F4',
+//     paddingVertical: 12,
+//     paddingHorizontal: 20,
+//     borderRadius: 4,
+//   },
+//   disabledButton: {
+//     opacity: 0.6,
+//   },
+//   text: {
+//     color: '#fff',
+//     fontWeight: 'bold',
+//     fontSize: 16,
+//   },
+// });
