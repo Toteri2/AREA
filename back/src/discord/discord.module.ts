@@ -1,6 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
+import { ProviderGuard } from '../auth/guards/provider.guard';
 import { ReactionsModule } from '../reactions/reactions.module';
 import { Hook } from '../shared/entities/hook.entity';
 import { DiscordController } from './discord.controller';
@@ -13,7 +14,7 @@ import { DiscordService } from './discord.service';
     TypeOrmModule.forFeature([Hook]),
   ],
   controllers: [DiscordController],
-  providers: [DiscordService],
+  providers: [DiscordService, ProviderGuard],
   exports: [DiscordService],
 })
 export class DiscordModule {}

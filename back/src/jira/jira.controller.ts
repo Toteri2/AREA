@@ -10,7 +10,6 @@ import {
   Post,
   Req,
   Res,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -18,8 +17,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
+import { RequireProvider } from 'src/auth/guards/provider.guard';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { Hook } from 'src/shared/entities/hook.entity';
+import { ProviderType } from 'src/shared/enums/provider.enum';
 import { Repository } from 'typeorm';
 import { CreateJiraWebhookDto } from './dto/create_jira_webhook.dto';
 import { JiraWebhookDto } from './dto/jira-webhook.dto';
@@ -91,12 +92,9 @@ export class JiraController {
     description: 'Jira webhooks retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.JIRA)
   async listWebhooks(@Req() req) {
     const userId = req.user.id;
-    const provider = await this.authService.getJiraProvider(userId);
-    if (!provider) {
-      throw new UnauthorizedException('Jira account not linked');
-    }
     return this.jiraService.listUserWebhooks(userId);
   }
 
@@ -107,12 +105,9 @@ export class JiraController {
     description: 'Webhooks retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.JIRA)
   async getAllWebhooks(@Req() req) {
     const userId = req.user.id;
-    const provider = await this.authService.getJiraProvider(userId);
-    if (!provider) {
-      throw new UnauthorizedException('Jira account not linked');
-    }
     return this.jiraService.listUserWebhooks(userId);
   }
 
@@ -123,13 +118,9 @@ export class JiraController {
     description: 'Webhook details retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.JIRA)
   async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
-    const provider = await this.authService.getJiraProvider(userId);
-    if (!provider) {
-      throw new UnauthorizedException('Jira account not linked');
-    }
-
     const hook = await this.hooksRepository.findOne({
       where: { id: hookId, userId: userId, service: 'jira' },
     });
@@ -148,12 +139,9 @@ export class JiraController {
     description: 'The webhook has been successfully created.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.JIRA)
   async createWebhook(@Req() req, @Body() body: CreateJiraWebhookDto) {
     const userId = req.user.id;
-    const provider = await this.authService.getJiraProvider(userId);
-    if (!provider) {
-      throw new UnauthorizedException('Jira account not linked');
-    }
 
     const webhookUrl =
       this.configService.getOrThrow<string>('JIRA_WEBHOOK_URL');
@@ -162,7 +150,7 @@ export class JiraController {
     return this.jiraService.createWebhook(
       body,
       accessToken,
-      provider.providerId,
+      req.provider.providerId,
       webhookUrl,
       userId
     );
@@ -175,15 +163,11 @@ export class JiraController {
     description: 'The webhook has been successfully deleted.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.JIRA)
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     try {
       const userId = req.user.id;
       const accessToken = await this.authService.getValidJiraToken(userId);
-      const provider = await this.authService.getJiraProvider(userId);
-
-      if (!provider || !provider.providerId) {
-        throw new UnauthorizedException('Jira account not linked');
-      }
 
       const hook = await this.hooksRepository.findOne({
         where: { id: hookId, userId: userId, service: 'jira' },
@@ -196,7 +180,7 @@ export class JiraController {
       await this.jiraService.deleteWebhook(
         hook.webhookId,
         accessToken,
-        provider.providerId
+        req.provider.providerId
       );
       return { message: 'Webhook deleted successfully' };
     } catch (error) {
@@ -212,13 +196,9 @@ export class JiraController {
     description: 'Projects retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.JIRA)
   async listProjects(@Req() req) {
     const userId = req.user.id;
-    const provider = await this.authService.getJiraProvider(userId);
-    if (!provider) {
-      throw new UnauthorizedException('Jira account not linked');
-    }
-
     try {
       const projects = await this.jiraService.listProjects(userId);
       return projects;
@@ -235,12 +215,9 @@ export class JiraController {
     description: 'Issue details retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.JIRA)
   async getIssue(@Req() req, @Param('issueKey') issueKey: string) {
     const userId = req.user.id;
-    const provider = await this.authService.getJiraProvider(userId);
-    if (!provider) {
-      throw new UnauthorizedException('Jira account not linked');
-    }
 
     try {
       const issue = await this.jiraService.getIssue(userId, issueKey);
@@ -258,12 +235,9 @@ export class JiraController {
     description: 'Issues retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.JIRA)
   async listProjectIssues(@Req() req, @Param('projectKey') projectKey: string) {
     const userId = req.user.id;
-    const provider = await this.authService.getJiraProvider(userId);
-    if (!provider) {
-      throw new UnauthorizedException('Jira account not linked');
-    }
 
     try {
       const issues = await this.jiraService.listProjectIssues(

@@ -22,8 +22,10 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuthService } from '../auth/auth.service';
+import { RequireProvider } from '../auth/guards/provider.guard';
 import { ReactionsService } from '../reactions/reactions.service';
 import { Hook } from '../shared/entities/hook.entity';
+import { ProviderType } from '../shared/enums/provider.enum';
 import { CreateTwitchWebhookDto } from './dto/twitch.dto';
 import { TwitchService } from './twitch.service';
 
@@ -32,7 +34,6 @@ import { TwitchService } from './twitch.service';
 export class TwitchController {
   constructor(
     private readonly twitchService: TwitchService,
-    private readonly authService: AuthService,
     private readonly reactionsService: ReactionsService,
     private readonly configService: ConfigService,
     @InjectRepository(Hook)
@@ -50,14 +51,10 @@ export class TwitchController {
     description: 'Twitch account not linked.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.TWITCH)
   async getCurrentUser(@Req() req) {
     try {
-      const userId = req.user.id;
-      const provider = await this.authService.getTwitchProvider(userId);
-      if (!provider) {
-        throw new UnauthorizedException('Twitch account not linked');
-      }
-      return await this.twitchService.getCurrentUser(provider.accessToken);
+      return await this.twitchService.getCurrentUser(req.provider.accessToken);
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;
@@ -80,20 +77,15 @@ export class TwitchController {
     description: 'Twitch account not linked.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.TWITCH)
   async getFollowedChannels(@Req() req) {
     try {
-      const userId = req.user.id;
-      const provider = await this.authService.getTwitchProvider(userId);
-      if (!provider) {
-        throw new UnauthorizedException('Twitch account not linked');
-      }
-
       const userData = await this.twitchService.getCurrentUser(
-        provider.accessToken
+        req.provider.accessToken
       );
       const userIdTwitch = userData.data[0].id;
       return await this.twitchService.getFollowedChannels(
-        provider.accessToken,
+        req.provider.accessToken,
         userIdTwitch
       );
     } catch (error) {
@@ -114,10 +106,9 @@ export class TwitchController {
     description: 'Webhooks retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.TWITCH)
   async getAllWebhooks(@Req() req) {
     const userId = req.user.id;
-    const provider = await this.authService.getTwitchProvider(userId);
-    if (!provider) throw new UnauthorizedException('Twitch account not linked');
 
     const hooks = await this.hooksRepository.find({
       where: { userId: userId, service: 'twitch' },
@@ -133,10 +124,9 @@ export class TwitchController {
     description: 'Webhook details retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.TWITCH)
   async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
-    const provider = await this.authService.getTwitchProvider(userId);
-    if (!provider) throw new UnauthorizedException('Twitch account not linked');
 
     const hook = await this.hooksRepository.findOne({
       where: { id: hookId, userId: userId, service: 'twitch' },
@@ -157,14 +147,12 @@ export class TwitchController {
     description: 'Webhook subscription created successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.TWITCH)
   async createWebhook(
     @Req() req,
     @Body() createWebhookDto: CreateTwitchWebhookDto
   ) {
     const userId = req.user.id;
-    const provider = await this.authService.getTwitchProvider(userId);
-    if (!provider) throw new UnauthorizedException('Twitch account not linked');
-
     const webhookUrl = this.configService.getOrThrow<string>(
       'TWITCH_WEBHOOK_CALLBACK_URL'
     );
@@ -174,7 +162,7 @@ export class TwitchController {
     );
 
     const broadcasterData = await this.twitchService.getBroadcasterName(
-      provider.accessToken,
+      req.provider.accessToken,
       createWebhookDto.broadcasterUserId
     );
 
@@ -273,11 +261,9 @@ export class TwitchController {
     description: 'Webhook deleted successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.TWITCH)
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
-    const provider = await this.authService.getTwitchProvider(userId);
-    if (!provider) throw new UnauthorizedException('Twitch account not linked');
-
     const hook = await this.hooksRepository.findOne({
       where: { id: hookId, userId: userId, service: 'twitch' },
     });

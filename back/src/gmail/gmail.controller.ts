@@ -10,15 +10,16 @@ import {
   Post,
   Req,
   Res,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
+import { RequireProvider } from 'src/auth/guards/provider.guard';
 import { CreateGmailDto } from 'src/gmail/dto/create_gmail_dto';
 import { Hook } from 'src/shared/entities/hook.entity';
+import { ProviderType } from 'src/shared/enums/provider.enum';
 import { Repository } from 'typeorm';
 import { GmailService } from './gmail.service';
 
@@ -119,6 +120,7 @@ export class GmailController {
     description: 'List of webhooks retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.GMAIL)
   async listUserWebhooks(@Req() req) {
     const userId = req.user.id;
     return this.gmailService.listUserWebhooks(userId);
@@ -131,6 +133,7 @@ export class GmailController {
     description: 'Webhook retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.GMAIL)
   async getUserWebhook(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
     return this.gmailService.getUserWebhook(userId, hookId);
@@ -144,10 +147,9 @@ export class GmailController {
     description: 'The webhook has been successfully created.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.GMAIL)
   async createWebhook(@Req() req, @Body() body: CreateGmailDto) {
     const userId = req.user.id;
-    const provider = await this.authService.getGmailProvider(userId);
-    if (!provider) throw new UnauthorizedException('Gmail account not linked');
 
     const gmailToken = await this.authService.getValidGmailToken(userId);
     const profile = await this.gmailService.getProfile(gmailToken);
@@ -168,6 +170,7 @@ export class GmailController {
     description: 'The subscription has been successfully deleted.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.GMAIL)
   async deleteSubscription(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
     const hook = await this.hooksRepository.findOne({

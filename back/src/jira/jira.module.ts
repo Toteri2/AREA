@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
+import { ProviderGuard } from '../auth/guards/provider.guard';
 import { ReactionsModule } from '../reactions/reactions.module';
 import { Hook } from '../shared/entities/hook.entity';
 import { OAuthState } from '../shared/entities/oauthstates.entity';
@@ -16,7 +17,7 @@ import { JiraService } from './jira.service';
     ReactionsModule,
   ],
   controllers: [JiraController],
-  providers: [JiraService],
+  providers: [JiraService, ProviderGuard],
   exports: [JiraService],
 })
 export class JiraModule {}

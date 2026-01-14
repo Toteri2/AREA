@@ -3,12 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReactionsModule } from 'src/reactions/reactions.module';
 import { Hook } from 'src/shared/entities/hook.entity';
 import { AuthModule } from '../auth/auth.module';
+import { ProviderGuard } from '../auth/guards/provider.guard';
 import { GithubController } from './github.controller';
 import { GithubService } from './github.service';
 
 @Module({
   imports: [AuthModule, TypeOrmModule.forFeature([Hook]), ReactionsModule],
   controllers: [GithubController],
-  providers: [GithubService],
+  providers: [GithubService, ProviderGuard],
 })
 export class GithubModule {}

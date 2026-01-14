@@ -22,7 +22,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { Hook } from 'src/shared/entities/hook.entity';
 import { Repository } from 'typeorm';
-import { AuthService } from '../auth/auth.service';
+import { RequireProvider } from '../auth/guards/provider.guard';
+import { ProviderType } from '../shared/enums/provider.enum';
 import { CreateWebhookDto } from './dto/create_git_webhook.dto';
 import { GithubService } from './github.service';
 
@@ -31,7 +32,6 @@ import { GithubService } from './github.service';
 export class GithubController {
   constructor(
     private readonly githubService: GithubService,
-    private readonly authService: AuthService,
     private readonly reactionsService: ReactionsService,
     private readonly configService: ConfigService,
     @InjectRepository(Hook)
@@ -92,13 +92,10 @@ export class GithubController {
     description: 'Invalid webhook data.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.GITHUB)
   async createWebhook(@Req() req, @Body() createWebhookDto: CreateWebhookDto) {
     try {
       const userId = req.user.id;
-      const provider = await this.authService.getGithubProvider(userId);
-      if (!provider) {
-        throw new UnauthorizedException('GitHub account not linked');
-      }
 
       if (!createWebhookDto.owner || !createWebhookDto.repo) {
         throw new BadRequestException('Owner and repository are required');
@@ -108,7 +105,7 @@ export class GithubController {
         this.configService.getOrThrow<string>('GITHUB_WEBHOOK_URL');
       const { owner, repo, events } = createWebhookDto;
       const result = await this.githubService.createWebhook(
-        provider.accessToken,
+        req.provider.accessToken,
         createWebhookDto,
         webhookUrl
       );
@@ -174,11 +171,9 @@ export class GithubController {
     description: 'List of repositories retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.GITHUB)
   async listRepositories(@Req() req) {
-    const userId = req.user.id;
-    const provider = await this.authService.getGithubProvider(userId);
-    if (!provider) throw new UnauthorizedException('GitHub account not linked');
-    return this.githubService.listUserRepositories(provider.accessToken);
+    return this.githubService.listUserRepositories(req.provider.accessToken);
   }
 
   @Get('repositories/:owner/:repo/webhooks')
@@ -188,15 +183,13 @@ export class GithubController {
     description: 'List of webhooks retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.GITHUB)
   async listWebhooks(
     @Req() req,
     @Param('owner') owner: string,
     @Param('repo') repo: string
   ) {
-    const userId = req.user.id;
-    const provider = await this.authService.getGithubProvider(userId);
-    if (!provider) throw new UnauthorizedException('GitHub account not linked');
-    return this.githubService.listWebhooks(provider.accessToken, owner, repo);
+    return this.githubService.listWebhooks(req.provider.accessToken, owner, repo);
   }
 
   @Delete('webhook/:hookId')
@@ -207,10 +200,9 @@ export class GithubController {
     description: 'Webhook deleted successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.GITHUB)
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
-    const provider = await this.authService.getGithubProvider(userId);
-    if (!provider) throw new UnauthorizedException('GitHub account not linked');
 
     const hook = await this.hooksRepository.findOne({
       where: { id: hookId, userId: userId, service: 'github' },
@@ -226,7 +218,7 @@ export class GithubController {
     };
 
     await this.githubService.deleteWebhook(
-      provider.accessToken,
+      req.provider.accessToken,
       owner,
       repo,
       hook.webhookId

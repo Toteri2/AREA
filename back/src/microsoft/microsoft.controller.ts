@@ -18,6 +18,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
+import { RequireProvider } from 'src/auth/guards/provider.guard';
 import { CreateMicrosoftDto } from 'src/microsoft/dto/create_microsoft_dto';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { Hook } from 'src/shared/entities/hook.entity';
@@ -96,6 +97,7 @@ export class MicrosoftController {
     description: 'List of webhooks retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.MICROSOFT)
   async listUserWebhooks(@Req() req) {
     const userId = req.user.id;
     return this.microsoftService.listUserWebhooks(userId);
@@ -108,6 +110,7 @@ export class MicrosoftController {
     description: 'Webhook retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.MICROSOFT)
   async getUserWebhook(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
     return this.microsoftService.getUserWebhook(userId, hookId);
@@ -121,6 +124,7 @@ export class MicrosoftController {
     description: 'The webhook has been successfully created.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.MICROSOFT)
   async createWebhook(@Req() req, @Body() body: CreateMicrosoftDto) {
     const userId = req.user.id;
     const accessToken = await this.authService.getMicrosoftToken(userId);
@@ -150,6 +154,7 @@ export class MicrosoftController {
     description: 'The subscription has been successfully deleted.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.MICROSOFT)
   async deleteSubscription(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
     const hook = await this.hooksRepository.findOne({

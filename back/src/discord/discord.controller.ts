@@ -19,9 +19,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AuthService } from '../auth/auth.service';
+import { RequireProvider } from '../auth/guards/provider.guard';
 import { ReactionsService } from '../reactions/reactions.service';
 import { Hook } from '../shared/entities/hook.entity';
+import { ProviderType } from '../shared/enums/provider.enum';
 import { DiscordService } from './discord.service';
 import {
   AddRoleDto,
@@ -35,7 +36,6 @@ import {
 export class DiscordController {
   constructor(
     private readonly discordService: DiscordService,
-    private readonly authService: AuthService,
     private readonly reactionsService: ReactionsService,
     @InjectRepository(Hook)
     private hooksRepository: Repository<Hook>
@@ -48,12 +48,9 @@ export class DiscordController {
     description: 'List of guilds retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.DISCORD)
   async listGuilds(@Req() req) {
-    const userId = req.user.id;
-    const provider = await this.authService.getDiscordProvider(userId);
-    if (!provider)
-      throw new UnauthorizedException('Discord account not linked');
-    return this.discordService.listUserGuilds(provider.accessToken);
+    return this.discordService.listUserGuilds(req.provider.accessToken);
   }
 
   @Get('guilds/:guildId/channels')
@@ -63,12 +60,9 @@ export class DiscordController {
     description: 'List of channels retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.DISCORD)
   async listGuildChannels(@Req() req, @Param('guildId') guildId: string) {
-    const userId = req.user.id;
-    const provider = await this.authService.getDiscordProvider(userId);
-    if (!provider)
-      throw new UnauthorizedException('Discord account not linked');
-    return this.discordService.listGuildChannels(provider.accessToken, guildId);
+    return this.discordService.listGuildChannels(req.provider.accessToken, guildId);
   }
 
   @Get('guilds/:guildId/members')
@@ -78,12 +72,9 @@ export class DiscordController {
     description: 'List of members retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.DISCORD)
   async listGuildMembers(@Req() req, @Param('guildId') guildId: string) {
-    const userId = req.user.id;
-    const provider = await this.authService.getDiscordProvider(userId);
-    if (!provider)
-      throw new UnauthorizedException('Discord account not linked');
-    return this.discordService.getGuildMembers(provider.accessToken, guildId);
+    return this.discordService.getGuildMembers(req.provider.accessToken, guildId);
   }
 
   @Get('guilds/:guildId/roles')
@@ -93,12 +84,9 @@ export class DiscordController {
     description: 'List of roles retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.DISCORD)
   async listGuildRoles(@Req() req, @Param('guildId') guildId: string) {
-    const userId = req.user.id;
-    const provider = await this.authService.getDiscordProvider(userId);
-    if (!provider)
-      throw new UnauthorizedException('Discord account not linked');
-    return this.discordService.listGuildRoles(provider.accessToken, guildId);
+    return this.discordService.listGuildRoles(req.provider.accessToken, guildId);
   }
 
   @Get('me')
@@ -108,12 +96,9 @@ export class DiscordController {
     description: 'User information retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.DISCORD)
   async getCurrentUser(@Req() req) {
-    const userId = req.user.id;
-    const provider = await this.authService.getDiscordProvider(userId);
-    if (!provider)
-      throw new UnauthorizedException('Discord account not linked');
-    return this.discordService.getCurrentUser(provider.accessToken);
+    return this.discordService.getCurrentUser(req.provider.accessToken);
   }
 
   @Post('messages')
@@ -128,21 +113,14 @@ export class DiscordController {
     description: 'Invalid message data.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.DISCORD)
   async sendMessage(@Req() req, @Body() sendMessageDto: SendMessageDto) {
     try {
-      const userId = req.user.id;
-      const provider = await this.authService.getDiscordProvider(userId);
-      if (!provider) {
-        throw new UnauthorizedException('Discord account not linked');
-      }
       return await this.discordService.sendMessage(
-        provider.accessToken,
+        req.provider.accessToken,
         sendMessageDto
       );
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
       console.error('Failed to send Discord message:', error);
       throw new InternalServerErrorException('Failed to send message');
     }
@@ -160,21 +138,14 @@ export class DiscordController {
     description: 'Invalid role data.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.DISCORD)
   async addRoleToUser(@Req() req, @Body() addRoleDto: AddRoleDto) {
     try {
-      const userId = req.user.id;
-      const provider = await this.authService.getDiscordProvider(userId);
-      if (!provider) {
-        throw new UnauthorizedException('Discord account not linked');
-      }
       return await this.discordService.addRoleToUser(
-        provider.accessToken,
+        req.provider.accessToken,
         addRoleDto
       );
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
       console.error('Failed to add role:', error);
       throw new InternalServerErrorException('Failed to add role to user');
     }
@@ -192,24 +163,17 @@ export class DiscordController {
     description: 'Invalid channel data.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.DISCORD)
   async createPrivateChannel(
     @Req() req,
     @Body() createChannelDto: CreatePrivateChannelDto
   ) {
     try {
-      const userId = req.user.id;
-      const provider = await this.authService.getDiscordProvider(userId);
-      if (!provider) {
-        throw new UnauthorizedException('Discord account not linked');
-      }
       return await this.discordService.createPrivateChannel(
-        provider.accessToken,
+        req.provider.accessToken,
         createChannelDto
       );
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
       console.error('Failed to create channel:', error);
       throw new InternalServerErrorException(
         'Failed to create private channel'
@@ -280,16 +244,12 @@ export class DiscordController {
     description: 'Webhooks retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.DISCORD)
   async getAllWebhooks(@Req() req) {
     const userId = req.user.id;
-    const provider = await this.authService.getDiscordProvider(userId);
-    if (!provider)
-      throw new UnauthorizedException('Discord account not linked');
-
     const hooks = await this.hooksRepository.find({
       where: { userId: userId, service: 'discord' },
     });
-
     return hooks;
   }
 
@@ -300,12 +260,9 @@ export class DiscordController {
     description: 'Webhook details retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.DISCORD)
   async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
-    const provider = await this.authService.getDiscordProvider(userId);
-    if (!provider)
-      throw new UnauthorizedException('Discord account not linked');
-
     const hook = await this.hooksRepository.findOne({
       where: { id: hookId, userId: userId, service: 'discord' },
     });
@@ -333,16 +290,13 @@ export class DiscordController {
     description: 'Guild or channel not found.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.DISCORD)
   async createWebhook(
     @Req() req,
     @Body() createWebhookDto: CreateDiscordWebhookDto
   ) {
     try {
       const userId = req.user.id;
-      const provider = await this.authService.getDiscordProvider(userId);
-      if (!provider) {
-        throw new UnauthorizedException('Discord account not linked');
-      }
 
       if (
         !createWebhookDto.guildId ||
@@ -355,12 +309,12 @@ export class DiscordController {
       }
 
       const guilds = await this.discordService.listUserGuilds(
-        provider.accessToken
+        req.provider.accessToken
       );
       const guild = guilds.find((g: any) => g.id === createWebhookDto.guildId);
 
       const channels = await this.discordService.listGuildChannels(
-        provider.accessToken,
+        req.provider.accessToken,
         createWebhookDto.guildId
       );
       const channel = channels.find(
@@ -372,7 +326,7 @@ export class DiscordController {
       }
 
       const result = await this.discordService.createWebhook(
-        provider.accessToken,
+        req.provider.accessToken,
         createWebhookDto.channelId,
         createWebhookDto.name,
         createWebhookDto.avatar
@@ -413,11 +367,8 @@ export class DiscordController {
     description: 'List of webhooks retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.DISCORD)
   async listGuildWebhooks(@Req() req, @Param('guildId') guildId: string) {
-    const userId = req.user.id;
-    const provider = await this.authService.getDiscordProvider(userId);
-    if (!provider)
-      throw new UnauthorizedException('Discord account not linked');
     return this.discordService.getGuildWebhooks(guildId);
   }
 
@@ -428,11 +379,8 @@ export class DiscordController {
     description: 'List of webhooks retrieved successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.DISCORD)
   async listChannelWebhooks(@Req() req, @Param('channelId') channelId: string) {
-    const userId = req.user.id;
-    const provider = await this.authService.getDiscordProvider(userId);
-    if (!provider)
-      throw new UnauthorizedException('Discord account not linked');
     return this.discordService.getChannelWebhooks(channelId);
   }
 
@@ -448,13 +396,10 @@ export class DiscordController {
     description: 'Webhook not found.',
   })
   @UseGuards(AuthGuard('jwt'))
+  @RequireProvider(ProviderType.DISCORD)
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     try {
       const userId = req.user.id;
-      const provider = await this.authService.getDiscordProvider(userId);
-      if (!provider) {
-        throw new UnauthorizedException('Discord account not linked');
-      }
 
       const hook = await this.hooksRepository.findOne({
         where: { id: hookId, userId: userId, service: 'discord' },
