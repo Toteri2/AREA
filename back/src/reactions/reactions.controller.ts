@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Req,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -37,8 +38,12 @@ export class ReactionsController {
   })
   async create(@Req() req, @Body() dto: CreateReactionDto) {
     try {
+      const userId = req.user.id;
+      if (!userId) {
+        throw new UnauthorizedException('No user session found');
+      }
       return await this.reactionsService.create(
-        req.user.id,
+        userId,
         dto.hookId,
         dto.reactionType,
         dto.config,
@@ -63,7 +68,11 @@ export class ReactionsController {
   })
   async findAll(@Req() req) {
     try {
-      return await this.reactionsService.findByUserId(req.user.id);
+      const userId = req.user.id;
+      if (!userId) {
+        throw new UnauthorizedException('No user session found');
+      }
+      return await this.reactionsService.findByUserId(userId);
     } catch (_error) {
       throw new HttpException(
         'Failed to retrieve reactions',
@@ -84,7 +93,11 @@ export class ReactionsController {
   })
   async delete(@Req() req, @Param('id') id: number) {
     try {
-      await this.reactionsService.delete(id, req.user.id);
+      const userId = req.user.id;
+      if (!userId) {
+        throw new UnauthorizedException('No user session found');
+      }
+      await this.reactionsService.delete(id, userId);
       return { message: 'Reaction deleted successfully' };
     } catch (error) {
       if (error instanceof HttpException) {

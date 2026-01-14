@@ -3,12 +3,15 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   NotFoundException,
   Param,
   Post,
   Query,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -36,6 +39,7 @@ export class MicrosoftController {
   ) {}
 
   @Post('webhook')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Handle Microsoft webhook events' })
   @ApiResponse({
     status: 200,
@@ -48,7 +52,7 @@ export class MicrosoftController {
   ) {
     console.log('Microsoft webhook received:', body);
     if (token) {
-      return res.status(200).send(token);
+      return res.status(HttpStatus.OK).send(token);
     }
 
     const oauthState = await this.authService.findOauthState(
@@ -83,7 +87,7 @@ export class MicrosoftController {
         }
       }
     }
-    return res.status(200).send();
+    return res.status(HttpStatus.OK).send();
   }
 
   @Get('webhook')
@@ -94,7 +98,11 @@ export class MicrosoftController {
   })
   @UseGuards(AuthGuard('jwt'))
   async listUserWebhooks(@Req() req) {
-    return this.microsoftService.listUserWebhooks(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    return this.microsoftService.listUserWebhooks(userId);
   }
 
   @Get('webhook/:hookId')
@@ -105,10 +113,15 @@ export class MicrosoftController {
   })
   @UseGuards(AuthGuard('jwt'))
   async getUserWebhook(@Req() req, @Param('hookId') hookId: number) {
-    return this.microsoftService.getUserWebhook(req.user.id, hookId);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    return this.microsoftService.getUserWebhook(userId, hookId);
   }
 
   @Post('create-webhook')
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a Microsoft webhook' })
   @ApiResponse({
     status: 201,
@@ -116,7 +129,11 @@ export class MicrosoftController {
   })
   @UseGuards(AuthGuard('jwt'))
   async createWebhook(@Req() req, @Body() body: CreateMicrosoftDto) {
-    const accessToken = await this.authService.getMicrosoftToken(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const accessToken = await this.authService.getMicrosoftToken(userId);
     const profile = await this.microsoftService.getProfile(accessToken);
     const email = profile?.mail;
     const webhookUrl = this.configService.getOrThrow<string>(
@@ -126,9 +143,9 @@ export class MicrosoftController {
       body,
       accessToken,
       webhookUrl,
-      req.user.id,
+      userId,
       await this.authService.createOAuthStateToken(
-        req.user.id,
+        userId,
         ProviderType.MICROSOFT
       ),
       email
@@ -136,6 +153,7 @@ export class MicrosoftController {
   }
 
   @Delete('webhook/:hookId')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a Microsoft subscription' })
   @ApiResponse({
     status: 200,
@@ -143,10 +161,14 @@ export class MicrosoftController {
   })
   @UseGuards(AuthGuard('jwt'))
   async deleteSubscription(@Req() req, @Param('hookId') hookId: number) {
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
     const hook = await this.hooksRepository.findOne({
       where: {
         id: hookId,
-        userId: req.user.id,
+        userId: userId,
         service: 'microsoft',
       },
     });
@@ -156,8 +178,8 @@ export class MicrosoftController {
     }
 
     await this.microsoftService.deleteSubscription(
-      hook.webhookId,
-      await this.authService.getMicrosoftToken(req.user.id)
+      hookId,
+      await this.authService.getMicrosoftToken(userId)
     );
     return { message: 'Subscription deleted' };
   }

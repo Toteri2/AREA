@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   NotFoundException,
   Param,
   Post,
@@ -36,6 +38,7 @@ export class JiraController {
   ) {}
 
   @Post('webhook')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Receive Jira webhook events' })
   @ApiResponse({
     status: 200,
@@ -72,10 +75,12 @@ export class JiraController {
         }
       }
 
-      return res.status(200).send({ success: true });
+      return res.status(HttpStatus.OK).send({ success: true });
     } catch (error) {
       console.error('Error handling Jira webhook:', error.message);
-      throw error;
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send({ error: 'Failed to process webhook' });
     }
   }
 
@@ -87,11 +92,15 @@ export class JiraController {
   })
   @UseGuards(AuthGuard('jwt'))
   async listWebhooks(@Req() req) {
-    const provider = await this.authService.getJiraProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getJiraProvider(userId);
     if (!provider) {
       throw new UnauthorizedException('Jira account not linked');
     }
-    return this.jiraService.listUserWebhooks(req.user.id);
+    return this.jiraService.listUserWebhooks(userId);
   }
 
   @Get('webhook')
@@ -102,11 +111,15 @@ export class JiraController {
   })
   @UseGuards(AuthGuard('jwt'))
   async getAllWebhooks(@Req() req) {
-    const provider = await this.authService.getJiraProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getJiraProvider(userId);
     if (!provider) {
       throw new UnauthorizedException('Jira account not linked');
     }
-    return this.jiraService.listUserWebhooks(req.user.id);
+    return this.jiraService.listUserWebhooks(userId);
   }
 
   @Get('webhook/:hookId')
@@ -117,13 +130,17 @@ export class JiraController {
   })
   @UseGuards(AuthGuard('jwt'))
   async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
-    const provider = await this.authService.getJiraProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getJiraProvider(userId);
     if (!provider) {
       throw new UnauthorizedException('Jira account not linked');
     }
 
     const hook = await this.hooksRepository.findOne({
-      where: { id: hookId, userId: req.user.id, service: 'jira' },
+      where: { id: hookId, userId: userId, service: 'jira' },
     });
 
     if (!hook) {
@@ -141,21 +158,25 @@ export class JiraController {
   })
   @UseGuards(AuthGuard('jwt'))
   async createWebhook(@Req() req, @Body() body: CreateJiraWebhookDto) {
-    const provider = await this.authService.getJiraProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getJiraProvider(userId);
     if (!provider) {
       throw new UnauthorizedException('Jira account not linked');
     }
 
     const webhookUrl =
       this.configService.getOrThrow<string>('JIRA_WEBHOOK_URL');
-    const accessToken = await this.authService.getValidJiraToken(req.user.id);
+    const accessToken = await this.authService.getValidJiraToken(userId);
 
     return this.jiraService.createWebhook(
       body,
       accessToken,
       provider.providerId,
       webhookUrl,
-      req.user.id
+      userId
     );
   }
 
@@ -168,15 +189,19 @@ export class JiraController {
   @UseGuards(AuthGuard('jwt'))
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     try {
-      const accessToken = await this.authService.getValidJiraToken(req.user.id);
-      const provider = await this.authService.getJiraProvider(req.user.id);
+      const userId = req.user.id;
+      if (!userId) {
+        throw new UnauthorizedException('No user session found');
+      }
+      const accessToken = await this.authService.getValidJiraToken(userId);
+      const provider = await this.authService.getJiraProvider(userId);
 
       if (!provider || !provider.providerId) {
         throw new UnauthorizedException('Jira account not linked');
       }
 
       const hook = await this.hooksRepository.findOne({
-        where: { id: hookId, userId: req.user.id, service: 'jira' },
+        where: { id: hookId, userId: userId, service: 'jira' },
       });
 
       if (!hook) {
@@ -203,13 +228,17 @@ export class JiraController {
   })
   @UseGuards(AuthGuard('jwt'))
   async listProjects(@Req() req) {
-    const provider = await this.authService.getJiraProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getJiraProvider(userId);
     if (!provider) {
       throw new UnauthorizedException('Jira account not linked');
     }
 
     try {
-      const projects = await this.jiraService.listProjects(req.user.id);
+      const projects = await this.jiraService.listProjects(userId);
       return projects;
     } catch (error) {
       console.error('Error fetching Jira projects:', error.message);
@@ -225,13 +254,17 @@ export class JiraController {
   })
   @UseGuards(AuthGuard('jwt'))
   async getIssue(@Req() req, @Param('issueKey') issueKey: string) {
-    const provider = await this.authService.getJiraProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getJiraProvider(userId);
     if (!provider) {
       throw new UnauthorizedException('Jira account not linked');
     }
 
     try {
-      const issue = await this.jiraService.getIssue(req.user.id, issueKey);
+      const issue = await this.jiraService.getIssue(userId, issueKey);
       return issue;
     } catch (error) {
       console.error('Error fetching Jira issue:', error.message);
@@ -247,14 +280,18 @@ export class JiraController {
   })
   @UseGuards(AuthGuard('jwt'))
   async listProjectIssues(@Req() req, @Param('projectKey') projectKey: string) {
-    const provider = await this.authService.getJiraProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getJiraProvider(userId);
     if (!provider) {
       throw new UnauthorizedException('Jira account not linked');
     }
 
     try {
       const issues = await this.jiraService.listProjectIssues(
-        req.user.id,
+        userId,
         projectKey
       );
       return issues;

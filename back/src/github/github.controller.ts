@@ -1,9 +1,13 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
   Headers,
+  HttpCode,
+  HttpStatus,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   Post,
@@ -35,6 +39,7 @@ export class GithubController {
   ) {}
 
   @Post('webhook')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Handle GitHub webhook events' })
   @ApiResponse({
     status: 200,
@@ -76,31 +81,58 @@ export class GithubController {
   }
 
   @Post('create-webhook')
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a GitHub webhook' })
   @ApiResponse({
     status: 201,
     description: 'The webhook has been successfully created.',
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid webhook data.',
+  })
   @UseGuards(AuthGuard('jwt'))
   async createWebhook(@Req() req, @Body() createWebhookDto: CreateWebhookDto) {
-    const provider = await this.authService.getGithubProvider(req.user.id);
-    const webhookUrl =
-      this.configService.getOrThrow<string>('GITHUB_WEBHOOK_URL');
-    if (!provider) throw new UnauthorizedException('GitHub account not linked');
-    const { owner, repo, events } = createWebhookDto;
-    const result = await this.githubService.createWebhook(
-      provider.accessToken,
-      createWebhookDto,
-      webhookUrl
-    );
-    const hook = this.hooksRepository.create({
-      userId: req.user.id,
-      webhookId: result.id,
-      service: 'github',
-      additionalInfos: { owner, repo, events },
-    });
-    const savedHook = await this.hooksRepository.save(hook);
-    return { result, hookId: savedHook.id };
+    try {
+      const userId = req.user.id;
+      if (!userId) {
+        throw new UnauthorizedException('No user session found');
+      }
+      const provider = await this.authService.getGithubProvider(userId);
+      if (!provider) {
+        throw new UnauthorizedException('GitHub account not linked');
+      }
+
+      if (!createWebhookDto.owner || !createWebhookDto.repo) {
+        throw new BadRequestException('Owner and repository are required');
+      }
+
+      const webhookUrl =
+        this.configService.getOrThrow<string>('GITHUB_WEBHOOK_URL');
+      const { owner, repo, events } = createWebhookDto;
+      const result = await this.githubService.createWebhook(
+        provider.accessToken,
+        createWebhookDto,
+        webhookUrl
+      );
+      const hook = this.hooksRepository.create({
+        userId: userId,
+        webhookId: result.id,
+        service: 'github',
+        additionalInfos: { owner, repo, events },
+      });
+      const savedHook = await this.hooksRepository.save(hook);
+      return { result, hookId: savedHook.id };
+    } catch (error) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      console.error('Failed to create GitHub webhook:', error);
+      throw new InternalServerErrorException('Failed to create webhook');
+    }
   }
 
   @Get('webhook')
@@ -111,8 +143,12 @@ export class GithubController {
   })
   @UseGuards(AuthGuard('jwt'))
   async getAllWebhooks(@Req() req) {
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
     const hooks = await this.hooksRepository.find({
-      where: { userId: req.user.id, service: 'github' },
+      where: { userId: userId, service: 'github' },
     });
     return hooks;
   }
@@ -125,8 +161,12 @@ export class GithubController {
   })
   @UseGuards(AuthGuard('jwt'))
   async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
     const hook = await this.hooksRepository.findOne({
-      where: { id: hookId, userId: req.user.id, service: 'github' },
+      where: { id: hookId, userId: userId, service: 'github' },
     });
 
     if (!hook) {
@@ -144,7 +184,11 @@ export class GithubController {
   })
   @UseGuards(AuthGuard('jwt'))
   async listRepositories(@Req() req) {
-    const provider = await this.authService.getGithubProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getGithubProvider(userId);
     if (!provider) throw new UnauthorizedException('GitHub account not linked');
     return this.githubService.listUserRepositories(provider.accessToken);
   }
@@ -161,12 +205,17 @@ export class GithubController {
     @Param('owner') owner: string,
     @Param('repo') repo: string
   ) {
-    const provider = await this.authService.getGithubProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getGithubProvider(userId);
     if (!provider) throw new UnauthorizedException('GitHub account not linked');
     return this.githubService.listWebhooks(provider.accessToken, owner, repo);
   }
 
   @Delete('webhook/:hookId')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a GitHub webhook' })
   @ApiResponse({
     status: 200,
@@ -174,11 +223,15 @@ export class GithubController {
   })
   @UseGuards(AuthGuard('jwt'))
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
-    const provider = await this.authService.getGithubProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getGithubProvider(userId);
     if (!provider) throw new UnauthorizedException('GitHub account not linked');
 
     const hook = await this.hooksRepository.findOne({
-      where: { id: hookId, userId: req.user.id, service: 'github' },
+      where: { id: hookId, userId: userId, service: 'github' },
     });
 
     if (!hook) {

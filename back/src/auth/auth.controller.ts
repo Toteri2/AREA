@@ -1,11 +1,17 @@
 import {
+  BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
+  InternalServerErrorException,
   Post,
   Query,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -24,6 +30,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({
     status: 201,
@@ -33,18 +40,26 @@ export class AuthController {
     status: 409,
     description: 'Credentials already in use.',
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input data.',
+  })
   async register(
     @Body() body: { email: string; password: string; name: string },
     @Res() res
   ) {
     try {
+      if (!body.email || !body.password || !body.name) {
+        throw new BadRequestException('Email, password, and name are required');
+      }
+
       const user = await this.authService.register(
         body.email,
         body.password,
         body.name
       );
       const token = await this.authService.login(user);
-      return res.status(201).send({
+      return res.status(HttpStatus.CREATED).send({
         id: user.id,
         email: user.email,
         name: user.name,
@@ -52,13 +67,21 @@ export class AuthController {
       });
     } catch (error) {
       if (error.code === '23505') {
-        return res.status(409).send({ message: 'Credentials already in use' });
+        throw new ConflictException('Credentials already in use');
       }
-      throw error;
+      if (
+        error instanceof BadRequestException ||
+        error instanceof ConflictException
+      ) {
+        throw error;
+      }
+      console.error('Registration error:', error);
+      throw new InternalServerErrorException('Failed to register user');
     }
   }
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login a user' })
   @ApiResponse({
     status: 200,
@@ -68,13 +91,36 @@ export class AuthController {
     status: 401,
     description: 'Invalid credentials.',
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input data.',
+  })
   async login(@Body() body: { email: string; password: string }, @Res() res) {
-    const user = await this.authService.validateUser(body.email, body.password);
-    if (!user) {
-      return res.status(401).send({ message: 'Invalid credentials' });
+    try {
+      if (!body.email || !body.password) {
+        throw new BadRequestException('Email and password are required');
+      }
+
+      const user = await this.authService.validateUser(
+        body.email,
+        body.password
+      );
+      if (!user) {
+        throw new UnauthorizedException('Invalid email or password');
+      }
+
+      const token = await this.authService.login(user);
+      return res.status(HttpStatus.OK).send(token);
+    } catch (error) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      console.error('Login error:', error);
+      throw new InternalServerErrorException('Failed to login');
     }
-    const token = await this.authService.login(user);
-    return res.status(200).send(token);
   }
 
   @Get('me')
@@ -85,7 +131,11 @@ export class AuthController {
   })
   @UseGuards(AuthGuard('jwt'))
   async getProfile(@Req() req) {
-    return { id: req.user.id, email: req.user.email, name: req.user.name };
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('Authentication required');
+    }
+    return { id: userId, email: req.user.email, name: req.user.name };
   }
 
   @Get('github/url')
@@ -113,6 +163,7 @@ export class AuthController {
   }
 
   @Post('github/validate')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:
       'GitHub authentication callback. Is going to validate the GitHub account and link it to the user',
@@ -121,13 +172,34 @@ export class AuthController {
     status: 200,
     description: 'GitHub account linked successfully.',
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid code or missing session.',
+  })
   @UseGuards(AuthGuard('jwt'))
   async githubAuthCallback(@Body() body: { code: string }, @Req() req) {
-    const userId = req.user.id;
-    if (!userId) throw new Error('No session found');
-    const accessToken = await this.authService.getGithubToken(body.code);
-    await this.authService.linkGithubAccount(userId, accessToken);
-    return { success: true, user: req.user.name };
+    try {
+      const userId = req.user.id;
+      if (!userId) {
+        throw new UnauthorizedException('No user session found');
+      }
+      if (!body.code) {
+        throw new BadRequestException('Authorization code is required');
+      }
+
+      const accessToken = await this.authService.getGithubToken(body.code);
+      await this.authService.linkGithubAccount(userId, accessToken);
+      return { success: true, user: req.user.name };
+    } catch (error) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      console.error('GitHub auth error:', error);
+      throw new InternalServerErrorException('Failed to link GitHub account');
+    }
   }
 
   @Get('microsoft/url')
@@ -153,6 +225,7 @@ export class AuthController {
   }
 
   @Post('microsoft/validate')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:
       'Microsoft authentication callback. Is going to validate the Microsoft account and link it to the user',
@@ -161,10 +234,32 @@ export class AuthController {
     status: 200,
     description: 'Microsoft account linked successfully.',
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid code.',
+  })
   @UseGuards(AuthGuard('jwt'))
   async microsoftAuthValidate(@Body() body: { code: string }, @Req() req) {
-    await this.authService.linkMicrosoftAccount(req.user.id, body.code);
-    return { success: true, user: req.user.name };
+    try {
+      const userId = req.user.id;
+      if (!userId) {
+        throw new UnauthorizedException('No user session found');
+      }
+      if (!body.code) {
+        throw new BadRequestException('Authorization code is required');
+      }
+
+      await this.authService.linkMicrosoftAccount(userId, body.code);
+      return { success: true, user: req.user.name };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.error('Microsoft auth error:', error);
+      throw new InternalServerErrorException(
+        'Failed to link Microsoft account'
+      );
+    }
   }
 
   @Get('discord/url')
@@ -213,6 +308,7 @@ export class AuthController {
   }
 
   @Post('discord/validate')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:
       'Discord authentication callback. Validates the code and links the Discord account to the user',
@@ -221,20 +317,37 @@ export class AuthController {
     status: 200,
     description: 'Discord account linked successfully.',
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid code or state.',
+  })
   async discordAuthCallback(@Body() body: { code: string; state: string }) {
     try {
       const { code, state } = body;
+      if (!code || !state) {
+        throw new BadRequestException('Code and state are required');
+      }
+
       const userId = await this.authService.validateOAuthState(
         state,
         ProviderType.DISCORD
       );
-      if (!userId) throw new Error('Invalid or expired state token');
+      if (!userId) {
+        throw new UnauthorizedException('Invalid or expired state token');
+      }
+
       const accessToken = await this.authService.getDiscordToken(code);
       await this.authService.linkDiscordAccount(userId, accessToken);
       return { success: true, message: 'Discord account linked successfully' };
     } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error;
+      }
       console.error('Discord auth callback error:', error);
-      throw error;
+      throw new InternalServerErrorException('Failed to link Discord account');
     }
   }
 
@@ -264,6 +377,7 @@ export class AuthController {
   }
 
   @Post('twitch/validate')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:
       'Twitch authentication callback. Validates the code and links the Twitch account to the user',
@@ -272,20 +386,37 @@ export class AuthController {
     status: 200,
     description: 'Twitch account linked successfully.',
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid code or state.',
+  })
   async twitchAuthCallback(@Body() body: { code: string; state: string }) {
     try {
       const { code, state } = body;
+      if (!code || !state) {
+        throw new BadRequestException('Code and state are required');
+      }
+
       const userId = await this.authService.validateOAuthState(
         state,
         ProviderType.TWITCH
       );
-      if (!userId) throw new Error('Invalid or expired state token');
+      if (!userId) {
+        throw new UnauthorizedException('Invalid or expired state token');
+      }
+
       const accessToken = await this.authService.getTwitchToken(code);
       await this.authService.linkTwitchAccount(userId, accessToken);
       return { success: true, message: 'Twitch account linked successfully' };
     } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof UnauthorizedException
+      ) {
+        throw error;
+      }
       console.error('Twitch auth callback error:', error);
-      throw error;
+      throw new InternalServerErrorException('Failed to link Twitch account');
     }
   }
   @Get('gmail/url')
@@ -312,6 +443,7 @@ export class AuthController {
   }
 
   @Post('gmail/validate')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:
       'Gmail authentication callback. Is going to validate the Gmail account and link it to the user',
@@ -320,15 +452,39 @@ export class AuthController {
     status: 200,
     description: 'Gmail account linked successfully.',
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid code or missing session.',
+  })
   @UseGuards(AuthGuard('jwt'))
   async gmailAuthCallback(@Body() body: { code: string }, @Req() req) {
-    const userId = req.user.id;
-    if (!userId) throw new Error('No session found');
-    const { accessToken, refreshToken } = await this.authService.getGmailToken(
-      body.code
-    );
-    await this.authService.linkGmailAccount(userId, accessToken, refreshToken);
-    return { success: true, user: req.user.name };
+    try {
+      const userId = req.user.id;
+      if (!userId) {
+        throw new UnauthorizedException('No user session found');
+      }
+      if (!body.code) {
+        throw new BadRequestException('Authorization code is required');
+      }
+
+      const { accessToken, refreshToken } =
+        await this.authService.getGmailToken(body.code);
+      await this.authService.linkGmailAccount(
+        userId,
+        accessToken,
+        refreshToken
+      );
+      return { success: true, user: req.user.name };
+    } catch (error) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      console.error('Gmail auth error:', error);
+      throw new InternalServerErrorException('Failed to link Gmail account');
+    }
   }
 
   @Get('google/url')
@@ -357,6 +513,7 @@ export class AuthController {
   }
 
   @Post('google/validate')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:
       'Google authentication callback. Authenticates or registers the user via Google OAuth',
@@ -365,16 +522,34 @@ export class AuthController {
     status: 200,
     description: 'User authenticated successfully.',
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid code.',
+  })
   async googleAuthCallback(@Body() body: { code: string }, @Res() res) {
-    const { accessToken, email, name } =
-      await this.authService.getGoogleUserInfo(body.code);
-    const user = await this.authService.findOrCreateGoogleUser(
-      email,
-      name,
-      accessToken
-    );
-    const token = await this.authService.login(user);
-    return res.status(200).send(token);
+    try {
+      if (!body.code) {
+        throw new BadRequestException('Authorization code is required');
+      }
+
+      const { accessToken, email, name } =
+        await this.authService.getGoogleUserInfo(body.code);
+      const user = await this.authService.findOrCreateGoogleUser(
+        email,
+        name,
+        accessToken
+      );
+      const token = await this.authService.login(user);
+      return res.status(HttpStatus.OK).send(token);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.error('Google auth error:', error);
+      throw new InternalServerErrorException(
+        'Failed to authenticate with Google'
+      );
+    }
   }
 
   @Get('jira/url')
@@ -404,6 +579,7 @@ export class AuthController {
   }
 
   @Post('jira/validate')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:
       'Jira authentication callback. Is going to validate the Jira account and link it to the user',
@@ -412,31 +588,51 @@ export class AuthController {
     status: 200,
     description: 'Jira account linked successfully.',
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid code or missing session.',
+  })
   @UseGuards(AuthGuard('jwt'))
   async jiraAuthCallback(@Body() body: { code: string }, @Req() req) {
-    const userId = req.user.id;
-    if (!userId) throw new Error('No session found');
-
-    let code = body.code;
-
-    if (code.includes('code=')) {
-      const match = code.match(/code=([^&]+)/);
-      if (match) {
-        code = decodeURIComponent(match[1]);
+    try {
+      const userId = req.user.id;
+      if (!userId) {
+        throw new UnauthorizedException('No user session found');
       }
+      if (!body.code) {
+        throw new BadRequestException('Authorization code is required');
+      }
+
+      let code = body.code;
+
+      if (code.includes('code=')) {
+        const match = code.match(/code=([^&]+)/);
+        if (match) {
+          code = decodeURIComponent(match[1]);
+        }
+      }
+
+      const { accessToken, refreshToken } =
+        await this.authService.getJiraToken(code);
+      const cloudId = await this.authService.getJiraCloudId(accessToken);
+
+      await this.authService.linkJiraAccount(
+        userId,
+        accessToken,
+        refreshToken,
+        cloudId
+      );
+
+      return { success: true, user: req.user.name };
+    } catch (error) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      console.error('Jira auth error:', error);
+      throw new InternalServerErrorException('Failed to link Jira account');
     }
-
-    const { accessToken, refreshToken } =
-      await this.authService.getJiraToken(code);
-    const cloudId = await this.authService.getJiraCloudId(accessToken);
-
-    await this.authService.linkJiraAccount(
-      userId,
-      accessToken,
-      refreshToken,
-      cloudId
-    );
-
-    return { success: true, user: req.user.name };
   }
 }

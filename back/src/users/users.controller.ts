@@ -8,6 +8,7 @@ import {
   Put,
   Query,
   Req,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -28,7 +29,11 @@ export class UsersController {
   })
   @UseGuards(AuthGuard('jwt'))
   getUserWebhooks(@Req() req) {
-    const hooks = this.usersService.getUserWebhooks(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const hooks = this.usersService.getUserWebhooks(userId);
     console.log('Retrieved user webhooks:', hooks);
     return hooks;
   }
@@ -44,12 +49,16 @@ export class UsersController {
     @Req() req,
     @Query('provider') provider?: string
   ): Promise<{ connected: boolean }> {
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
     const providerType = provider?.toLowerCase() as ProviderType;
     if (!providerType || !(providerType.toUpperCase() in ProviderType)) {
       return { connected: false };
     }
     const isConnected = await this.usersService.isUserConnected(
-      req.user.id,
+      userId,
       providerType
     );
     return { connected: isConnected };

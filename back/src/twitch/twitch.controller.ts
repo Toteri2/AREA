@@ -5,6 +5,9 @@ import {
   Delete,
   Get,
   Headers,
+  HttpCode,
+  HttpStatus,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   Post,
@@ -42,11 +45,31 @@ export class TwitchController {
     status: 200,
     description: 'User information retrieved successfully.',
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Twitch account not linked.',
+  })
   @UseGuards(AuthGuard('jwt'))
   async getCurrentUser(@Req() req) {
-    const provider = await this.authService.getTwitchProvider(req.user.id);
-    if (!provider) throw new UnauthorizedException('Twitch account not linked');
-    return this.twitchService.getCurrentUser(provider.accessToken);
+    try {
+      const userId = req.user.id;
+      if (!userId) {
+        throw new UnauthorizedException('No user session found');
+      }
+      const provider = await this.authService.getTwitchProvider(userId);
+      if (!provider) {
+        throw new UnauthorizedException('Twitch account not linked');
+      }
+      return await this.twitchService.getCurrentUser(provider.accessToken);
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      console.error('Failed to get Twitch user:', error);
+      throw new InternalServerErrorException(
+        'Failed to retrieve user information'
+      );
+    }
   }
 
   @Get('followed-channels')
@@ -55,17 +78,39 @@ export class TwitchController {
     status: 200,
     description: 'Followed channels retrieved successfully.',
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Twitch account not linked.',
+  })
   @UseGuards(AuthGuard('jwt'))
   async getFollowedChannels(@Req() req) {
-    const provider = await this.authService.getTwitchProvider(req.user.id);
-    if (!provider) throw new UnauthorizedException('Twitch account not linked');
+    try {
+      const userId = req.user.id;
+      if (!userId) {
+        throw new UnauthorizedException('No user session found');
+      }
+      const provider = await this.authService.getTwitchProvider(userId);
+      if (!provider) {
+        throw new UnauthorizedException('Twitch account not linked');
+      }
 
-    const userData = await this.twitchService.getCurrentUser(
-      provider.accessToken
-    );
-    const userId = userData.data[0].id;
-
-    return this.twitchService.getFollowedChannels(provider.accessToken, userId);
+      const userData = await this.twitchService.getCurrentUser(
+        provider.accessToken
+      );
+      const userIdTwitch = userData.data[0].id;
+      return await this.twitchService.getFollowedChannels(
+        provider.accessToken,
+        userIdTwitch
+      );
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      console.error('Failed to get followed channels:', error);
+      throw new InternalServerErrorException(
+        'Failed to retrieve followed channels'
+      );
+    }
   }
 
   @Get('webhook')
@@ -76,11 +121,15 @@ export class TwitchController {
   })
   @UseGuards(AuthGuard('jwt'))
   async getAllWebhooks(@Req() req) {
-    const provider = await this.authService.getTwitchProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getTwitchProvider(userId);
     if (!provider) throw new UnauthorizedException('Twitch account not linked');
 
     const hooks = await this.hooksRepository.find({
-      where: { userId: req.user.id, service: 'twitch' },
+      where: { userId: userId, service: 'twitch' },
     });
 
     return hooks;
@@ -94,11 +143,15 @@ export class TwitchController {
   })
   @UseGuards(AuthGuard('jwt'))
   async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
-    const provider = await this.authService.getTwitchProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getTwitchProvider(userId);
     if (!provider) throw new UnauthorizedException('Twitch account not linked');
 
     const hook = await this.hooksRepository.findOne({
-      where: { id: hookId, userId: req.user.id, service: 'twitch' },
+      where: { id: hookId, userId: userId, service: 'twitch' },
     });
 
     if (!hook) {
@@ -109,6 +162,7 @@ export class TwitchController {
   }
 
   @Post('create-webhook')
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a Twitch EventSub webhook' })
   @ApiResponse({
     status: 201,
@@ -119,7 +173,11 @@ export class TwitchController {
     @Req() req,
     @Body() createWebhookDto: CreateTwitchWebhookDto
   ) {
-    const provider = await this.authService.getTwitchProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getTwitchProvider(userId);
     if (!provider) throw new UnauthorizedException('Twitch account not linked');
 
     const webhookUrl = this.configService.getOrThrow<string>(
@@ -136,7 +194,7 @@ export class TwitchController {
     );
 
     const hook = this.hooksRepository.create({
-      userId: req.user.id,
+      userId: userId,
       webhookId: result.data[0].id,
       service: 'twitch',
       additionalInfos: {
@@ -152,6 +210,7 @@ export class TwitchController {
   }
 
   @Post('webhook')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Twitch EventSub webhook callback' })
   @ApiResponse({
     status: 200,
@@ -170,7 +229,7 @@ export class TwitchController {
     if (messageType.localeCompare('webhook_callback_verification') === 0) {
       return res
         .set('Content-Type', 'text/plain')
-        .status(200)
+        .status(HttpStatus.OK)
         .send(body.challenge);
     }
     const isValid = this.twitchService.verifyWebhookSignature(
@@ -211,17 +270,18 @@ export class TwitchController {
         }
       }
 
-      return res.status(200).send({ status: 'ok' });
+      return res.status(HttpStatus.OK).send({ status: 'ok' });
     }
 
     if (messageType === 'revocation') {
-      return res.status(200).send({ status: 'ok' });
+      return res.status(HttpStatus.OK).send({ status: 'ok' });
     }
 
-    return res.status(200).send({ status: 'ok' });
+    return res.status(HttpStatus.OK).send({ status: 'ok' });
   }
 
   @Delete('webhook/:hookId')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a Twitch webhook' })
   @ApiResponse({
     status: 200,
@@ -229,11 +289,15 @@ export class TwitchController {
   })
   @UseGuards(AuthGuard('jwt'))
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
-    const provider = await this.authService.getTwitchProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getTwitchProvider(userId);
     if (!provider) throw new UnauthorizedException('Twitch account not linked');
 
     const hook = await this.hooksRepository.findOne({
-      where: { id: hookId, userId: req.user.id, service: 'twitch' },
+      where: { id: hookId, userId: userId, service: 'twitch' },
     });
 
     if (!hook) {

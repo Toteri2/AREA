@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   NotFoundException,
   Param,
   Post,
@@ -31,69 +33,83 @@ export class GmailController {
   ) {}
 
   @Post('webhook')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Handle Gmail webhook events' })
   @ApiResponse({
     status: 200,
     description: 'Webhook event received successfully.',
   })
   async webhook(@Body() body: any, @Res() res) {
-    if (body.message?.data) {
-      const decodedData = JSON.parse(
-        Buffer.from(body.message.data, 'base64').toString('utf-8')
-      );
-
-      const emailAddress = decodedData.emailAddress;
-      const historyId = decodedData.historyId;
-
-      const hooks = await this.hooksRepository.find({
-        where: { service: 'gmail' },
-      });
-
-      for (const hook of hooks) {
-        if (hook.lastHistoryId && historyId <= hook.lastHistoryId) {
-          continue;
-        }
-
-        const provider = await this.authService.getGmailProvider(hook.userId);
-        if (!provider) {
-          continue;
-        }
-
-        const gmailToken = await this.authService.getValidGmailToken(
-          hook.userId
+    try {
+      if (body.message?.data) {
+        const decodedData = JSON.parse(
+          Buffer.from(body.message.data, 'base64').toString('utf-8')
         );
 
-        if (
-          !(await this.gmailService.verifyEmailAddress(
-            gmailToken,
-            emailAddress
-          ))
-        ) {
-          continue;
-        }
+        const emailAddress = decodedData.emailAddress;
+        const historyId = decodedData.historyId;
 
-        const oldHistoryId = hook.lastHistoryId || historyId;
+        const hooks = await this.hooksRepository.find({
+          where: { service: 'gmail' },
+        });
 
-        hook.lastHistoryId = historyId;
-        await this.hooksRepository.save(hook);
-        const shouldTrigger = await this.gmailService.handleGmailEvent(
-          hook,
-          gmailToken,
-          oldHistoryId
-        );
+        for (const hook of hooks) {
+          try {
+            if (hook.lastHistoryId && historyId <= hook.lastHistoryId) {
+              continue;
+            }
 
-        if (shouldTrigger) {
-          await this.gmailService.executeReactions(
-            hook,
-            body,
-            emailAddress,
-            historyId,
-            hook.userId
-          );
+            const provider = await this.authService.getGmailProvider(
+              hook.userId
+            );
+            if (!provider) {
+              continue;
+            }
+
+            const gmailToken = await this.authService.getValidGmailToken(
+              hook.userId
+            );
+
+            if (
+              !(await this.gmailService.verifyEmailAddress(
+                gmailToken,
+                emailAddress
+              ))
+            ) {
+              continue;
+            }
+
+            const oldHistoryId = hook.lastHistoryId || historyId;
+
+            hook.lastHistoryId = historyId;
+            await this.hooksRepository.save(hook);
+            const shouldTrigger = await this.gmailService.handleGmailEvent(
+              hook,
+              gmailToken,
+              oldHistoryId
+            );
+
+            if (shouldTrigger) {
+              await this.gmailService.executeReactions(
+                hook,
+                body,
+                emailAddress,
+                historyId,
+                hook.userId
+              );
+            }
+          } catch (error) {
+            console.error(`Error processing hook ${hook.id}:`, error);
+          }
         }
       }
+      return res.status(HttpStatus.OK).send();
+    } catch (error) {
+      console.error('Gmail webhook error:', error);
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send({ error: 'Failed to process webhook' });
     }
-    return res.status(200).send();
   }
 
   @Get('webhook')
@@ -104,7 +120,11 @@ export class GmailController {
   })
   @UseGuards(AuthGuard('jwt'))
   async listUserWebhooks(@Req() req) {
-    return this.gmailService.listUserWebhooks(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    return this.gmailService.listUserWebhooks(userId);
   }
 
   @Get('webhook/:hookId')
@@ -115,10 +135,15 @@ export class GmailController {
   })
   @UseGuards(AuthGuard('jwt'))
   async getUserWebhook(@Req() req, @Param('hookId') hookId: number) {
-    return this.gmailService.getUserWebhook(req.user.id, hookId);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    return this.gmailService.getUserWebhook(userId, hookId);
   }
 
   @Post('create-webhook')
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a Gmail webhook' })
   @ApiResponse({
     status: 201,
@@ -126,21 +151,26 @@ export class GmailController {
   })
   @UseGuards(AuthGuard('jwt'))
   async createWebhook(@Req() req, @Body() body: CreateGmailDto) {
-    const provider = await this.authService.getGmailProvider(req.user.id);
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
+    const provider = await this.authService.getGmailProvider(userId);
     if (!provider) throw new UnauthorizedException('Gmail account not linked');
 
-    const gmailToken = await this.authService.getValidGmailToken(req.user.id);
+    const gmailToken = await this.authService.getValidGmailToken(userId);
     const profile = await this.gmailService.getProfile(gmailToken);
 
     return this.gmailService.createWebhook(
       body,
       gmailToken,
-      req.user.id,
+      userId,
       profile?.emailAddress
     );
   }
 
   @Delete('webhook/:hookId')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a Gmail subscription' })
   @ApiResponse({
     status: 200,
@@ -148,8 +178,12 @@ export class GmailController {
   })
   @UseGuards(AuthGuard('jwt'))
   async deleteSubscription(@Req() req, @Param('hookId') hookId: number) {
+    const userId = req.user.id;
+    if (!userId) {
+      throw new UnauthorizedException('No user session found');
+    }
     const hook = await this.hooksRepository.findOne({
-      where: { id: hookId, userId: req.user.id, service: 'gmail' },
+      where: { id: hookId, userId: userId, service: 'gmail' },
     });
 
     if (!hook) {
@@ -158,7 +192,7 @@ export class GmailController {
 
     await this.gmailService.deleteSubscription(
       hookId,
-      await this.authService.getValidGmailToken(req.user.id)
+      await this.authService.getValidGmailToken(userId)
     );
 
     return { message: 'Subscription deleted' };
