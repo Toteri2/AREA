@@ -126,8 +126,6 @@ export function Profile() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Profile</Text>
-
       <View style={styles.card}>
         <View style={styles.infoSection}>
           <View style={styles.infoRow}>

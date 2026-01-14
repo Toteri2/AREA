@@ -42,8 +42,6 @@ export function Dashboard() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Dashboard</Text>
-
       <View style={styles.welcomeCard}>
         <Text style={styles.welcomeTitle}>Welcome, {user?.name}!</Text>
         <Text style={styles.welcomeEmail}>{user?.email}</Text>

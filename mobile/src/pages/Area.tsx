@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { AreaWebView } from '../components/Webview';
+import { AreaWebView } from '../components/AreaWebView';
 
 export function Area() {
   return (
