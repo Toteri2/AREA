@@ -113,11 +113,15 @@ export class JiraService {
   ): Promise<void> {
     try {
       await axios.delete(
-        `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/webhook/${webhookId}`,
+        `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/webhook`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          data: {
+            webhookIds: [webhookId],
           },
         }
       );
