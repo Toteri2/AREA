@@ -21,6 +21,7 @@ describe('TwitchController', () => {
     getServiceMetadata: jest.fn(),
     createWebhook: jest.fn(),
     verifyWebhookSignature: jest.fn(),
+    getBroadcasterName: jest.fn(),
   };
 
   const mockAuthService = {
@@ -146,22 +147,6 @@ describe('TwitchController', () => {
     });
   });
 
-  describe('getMetadata', () => {
-    it('should return service metadata', async () => {
-      const metadata = {
-        name: 'twitch',
-        actions: [],
-        reactions: [],
-      };
-      mockTwitchService.getServiceMetadata.mockReturnValue(metadata);
-
-      const result = await controller.getMetadata();
-
-      expect(mockTwitchService.getServiceMetadata).toHaveBeenCalled();
-      expect(result).toEqual(metadata);
-    });
-  });
-
   describe('createWebhook', () => {
     it('should create webhook successfully', async () => {
       const req = { user: { id: 1 } };
@@ -185,6 +170,10 @@ describe('TwitchController', () => {
         'https://example.com/webhook'
       );
       mockTwitchService.createWebhook.mockResolvedValue(webhookResult);
+      mockTwitchService.getBroadcasterName.mockResolvedValue({
+        display_name: 'TestBroadcaster',
+        login: 'testbroadcaster',
+      });
       mockHooksRepository.create.mockReturnValue(hook);
       mockHooksRepository.save.mockResolvedValue(hook);
 
@@ -198,10 +187,20 @@ describe('TwitchController', () => {
         createWebhookDto,
         'https://example.com/webhook'
       );
+      expect(mockTwitchService.getBroadcasterName).toHaveBeenCalledWith(
+        'test-token',
+        'broadcaster123'
+      );
       expect(mockHooksRepository.create).toHaveBeenCalledWith({
         userId: 1,
         webhookId: 'subscription123',
         service: 'twitch',
+        additionalInfos: {
+          broadcasterUserId: 'broadcaster123',
+          broadcasterName: 'TestBroadcaster',
+          broadcasterLogin: 'testbroadcaster',
+          events: ['stream.online'],
+        },
       });
       expect(result).toEqual({ result: webhookResult, hookId: 1 });
     });

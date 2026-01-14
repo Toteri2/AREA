@@ -18,6 +18,7 @@ describe('GmailController', () => {
     verifyEmailAddress: jest.fn(),
     handleGmailEvent: jest.fn(),
     executeReactions: jest.fn(),
+    getProfile: jest.fn(),
   };
 
   const mockAuthService = {
@@ -299,15 +300,21 @@ describe('GmailController', () => {
 
       mockAuthService.getGmailProvider.mockResolvedValue(mockProvider);
       mockAuthService.getValidGmailToken.mockResolvedValue('test_token');
+      mockGmailService.getProfile.mockResolvedValue({
+        emailAddress: 'test@example.com',
+      });
       mockGmailService.createWebhook.mockResolvedValue(mockWebhook);
 
       const result = await controller.createWebhook(mockReq, mockDto);
 
       expect(authService.getGmailProvider).toHaveBeenCalledWith(1);
+      expect(authService.getValidGmailToken).toHaveBeenCalledWith(1);
+      expect(gmailService.getProfile).toHaveBeenCalledWith('test_token');
       expect(gmailService.createWebhook).toHaveBeenCalledWith(
         mockDto,
         'test_token',
-        1
+        1,
+        'test@example.com'
       );
       expect(result).toEqual(mockWebhook);
     });

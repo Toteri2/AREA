@@ -244,6 +244,11 @@ describe('GithubController', () => {
         userId: 1,
         webhookId: 'webhook-123',
         service: 'github',
+        additionalInfos: {
+          owner: 'user',
+          repo: 'repo',
+          events: ['push'],
+        },
       });
       expect(result).toEqual({ result: mockWebhookResult, hookId: 1 });
     });

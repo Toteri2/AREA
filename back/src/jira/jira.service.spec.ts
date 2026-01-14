@@ -77,6 +77,12 @@ describe('JiraService', () => {
         projectKey: 'TEST',
         events: ['jira:issue_created'],
       };
+      const mockProjectResponse = {
+        status: 200,
+        data: {
+          name: 'Test Project',
+        },
+      };
       const mockResponse = {
         status: 200,
         data: {
@@ -89,6 +95,7 @@ describe('JiraService', () => {
       };
       const mockHook = { id: 1, webhookId: '12345' };
 
+      mockedAxios.get.mockResolvedValue(mockProjectResponse);
       mockedAxios.post.mockResolvedValue(mockResponse);
       mockHookRepository.create.mockReturnValue(mockHook);
       mockHookRepository.save.mockResolvedValue(mockHook);
@@ -101,6 +108,7 @@ describe('JiraService', () => {
         1
       );
 
+      expect(axios.get).toHaveBeenCalled();
       expect(axios.post).toHaveBeenCalled();
       expect(hookRepository.create).toHaveBeenCalled();
       expect(hookRepository.save).toHaveBeenCalledWith(mockHook);
@@ -148,6 +156,10 @@ describe('JiraService', () => {
         events: ['jira:issue_created'],
       };
 
+      mockedAxios.get.mockResolvedValue({
+        status: 200,
+        data: { name: 'Test Project' },
+      });
       mockedAxios.post.mockResolvedValue({
         status: 200,
         data: {},
@@ -170,6 +182,10 @@ describe('JiraService', () => {
         events: ['jira:issue_created'],
       };
 
+      mockedAxios.get.mockResolvedValue({
+        status: 200,
+        data: { name: 'Test Project' },
+      });
       mockedAxios.post.mockResolvedValue({
         status: 200,
         data: {

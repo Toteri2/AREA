@@ -134,6 +134,11 @@ describe('MicrosoftService', () => {
         userId: 1,
         webhookId: 'subscription-123',
         service: 'microsoft',
+        additionalInfos: {
+          resource: 'me/mailFolders',
+          events: ['created,updated'],
+          emailAddress: undefined,
+        },
       });
       expect(hookRepository.save).toHaveBeenCalled();
     });

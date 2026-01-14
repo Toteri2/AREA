@@ -26,6 +26,7 @@ describe('MicrosoftController', () => {
             listUserWebhooks: jest.fn(),
             createWebhook: jest.fn(),
             deleteSubscription: jest.fn(),
+            getProfile: jest.fn(),
           },
         },
         {
@@ -249,18 +250,12 @@ describe('MicrosoftController', () => {
       const webhooks = [{ id: '1' }, { id: '2' }];
 
       jest
-        .spyOn(authService, 'getMicrosoftToken')
-        .mockResolvedValue('test-token');
-      jest
         .spyOn(microsoftService, 'listUserWebhooks')
         .mockResolvedValue(webhooks as any);
 
       const result = await controller.listUserWebhooks(req);
 
-      expect(authService.getMicrosoftToken).toHaveBeenCalledWith(1);
-      expect(microsoftService.listUserWebhooks).toHaveBeenCalledWith(
-        'test-token'
-      );
+      expect(microsoftService.listUserWebhooks).toHaveBeenCalledWith(1);
       expect(result).toEqual(webhooks);
     });
   });
@@ -278,6 +273,9 @@ describe('MicrosoftController', () => {
         .spyOn(authService, 'getMicrosoftToken')
         .mockResolvedValue('test-token');
       jest
+        .spyOn(microsoftService, 'getProfile')
+        .mockResolvedValue({ mail: 'test@example.com' } as any);
+      jest
         .spyOn(authService, 'createOAuthStateToken')
         .mockResolvedValue('oauth-state-token');
       jest
@@ -290,6 +288,7 @@ describe('MicrosoftController', () => {
         'MICROSOFT_WEBHOOK_URL'
       );
       expect(authService.getMicrosoftToken).toHaveBeenCalledWith(1);
+      expect(microsoftService.getProfile).toHaveBeenCalledWith('test-token');
       expect(authService.createOAuthStateToken).toHaveBeenCalledWith(
         1,
         ProviderType.MICROSOFT
@@ -299,7 +298,8 @@ describe('MicrosoftController', () => {
         'test-token',
         'https://test.webhook.url',
         1,
-        'oauth-state-token'
+        'oauth-state-token',
+        'test@example.com'
       );
       expect(result).toEqual(webhook);
     });

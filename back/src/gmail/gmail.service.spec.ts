@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import axios from 'axios';
@@ -27,6 +28,11 @@ describe('GmailService', () => {
     executeReaction: jest.fn(),
   };
 
+  const mockConfigService = {
+    get: jest.fn(),
+    getOrThrow: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -38,6 +44,10 @@ describe('GmailService', () => {
         {
           provide: ReactionsService,
           useValue: mockReactionsService,
+        },
+        {
+          provide: ConfigService,
+          useValue: mockConfigService,
         },
       ],
     }).compile();

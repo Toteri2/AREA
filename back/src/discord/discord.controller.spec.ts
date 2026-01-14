@@ -216,23 +216,6 @@ describe('DiscordController', () => {
     });
   });
 
-  describe('getMetadata', () => {
-    it('should return service metadata', async () => {
-      const mockMetadata = {
-        name: 'discord',
-        actions: [],
-        reactions: [],
-      };
-
-      mockDiscordService.getServiceMetadata.mockReturnValue(mockMetadata);
-
-      const result = await controller.getMetadata();
-
-      expect(discordService.getServiceMetadata).toHaveBeenCalled();
-      expect(result).toEqual(mockMetadata);
-    });
-  });
-
   describe('listGuildChannels', () => {
     it('should return guild channels', async () => {
       const mockReq = { user: { id: 1 } };
