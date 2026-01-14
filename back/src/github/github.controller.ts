@@ -22,7 +22,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { Hook } from 'src/shared/entities/hook.entity';
 import { Repository } from 'typeorm';
-import { RequireProvider } from '../auth/guards/provider.guard';
+import { ProviderGuard, RequireProvider } from '../auth/guards/provider.guard';
 import { ProviderType } from '../shared/enums/provider.enum';
 import { CreateWebhookDto } from './dto/create_git_webhook.dto';
 import { GithubService } from './github.service';
@@ -91,7 +91,7 @@ export class GithubController {
     status: 400,
     description: 'Invalid webhook data.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.GITHUB)
   async createWebhook(@Req() req, @Body() createWebhookDto: CreateWebhookDto) {
     try {
@@ -170,9 +170,10 @@ export class GithubController {
     status: 200,
     description: 'List of repositories retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.GITHUB)
   async listRepositories(@Req() req) {
+    console.log("provider :", req.provider)
     return this.githubService.listUserRepositories(req.provider.accessToken);
   }
 
@@ -182,7 +183,7 @@ export class GithubController {
     status: 200,
     description: 'List of webhooks retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.GITHUB)
   async listWebhooks(
     @Req() req,
@@ -203,9 +204,11 @@ export class GithubController {
     status: 200,
     description: 'Webhook deleted successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.GITHUB)
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
+    console.log("provider :", req.provider)
+    console.log("token : ", req.provider.accessToken)
     const userId = req.user.id;
 
     const hook = await this.hooksRepository.findOne({

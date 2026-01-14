@@ -16,7 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
-import { RequireProvider } from 'src/auth/guards/provider.guard';
+import { ProviderGuard, RequireProvider } from 'src/auth/guards/provider.guard';
 import { CreateGmailDto } from 'src/gmail/dto/create_gmail_dto';
 import { Hook } from 'src/shared/entities/hook.entity';
 import { ProviderType } from 'src/shared/enums/provider.enum';
@@ -119,7 +119,7 @@ export class GmailController {
     status: 200,
     description: 'List of webhooks retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.GMAIL)
   async listUserWebhooks(@Req() req) {
     const userId = req.user.id;
@@ -132,7 +132,7 @@ export class GmailController {
     status: 200,
     description: 'Webhook retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.GMAIL)
   async getUserWebhook(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
@@ -146,7 +146,7 @@ export class GmailController {
     status: 201,
     description: 'The webhook has been successfully created.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.GMAIL)
   async createWebhook(@Req() req, @Body() body: CreateGmailDto) {
     const userId = req.user.id;
@@ -169,7 +169,7 @@ export class GmailController {
     status: 200,
     description: 'The subscription has been successfully deleted.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.GMAIL)
   async deleteSubscription(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;

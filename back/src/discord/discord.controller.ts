@@ -19,7 +19,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { RequireProvider } from '../auth/guards/provider.guard';
+import { ProviderGuard, RequireProvider } from '../auth/guards/provider.guard';
 import { ReactionsService } from '../reactions/reactions.service';
 import { Hook } from '../shared/entities/hook.entity';
 import { ProviderType } from '../shared/enums/provider.enum';
@@ -47,7 +47,7 @@ export class DiscordController {
     status: 200,
     description: 'List of guilds retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async listGuilds(@Req() req) {
     return this.discordService.listUserGuilds(req.provider.accessToken);
@@ -59,7 +59,7 @@ export class DiscordController {
     status: 200,
     description: 'List of channels retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async listGuildChannels(@Req() req, @Param('guildId') guildId: string) {
     return this.discordService.listGuildChannels(
@@ -74,7 +74,7 @@ export class DiscordController {
     status: 200,
     description: 'List of members retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async listGuildMembers(@Req() req, @Param('guildId') guildId: string) {
     return this.discordService.getGuildMembers(
@@ -89,7 +89,7 @@ export class DiscordController {
     status: 200,
     description: 'List of roles retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async listGuildRoles(@Req() req, @Param('guildId') guildId: string) {
     return this.discordService.listGuildRoles(
@@ -104,7 +104,7 @@ export class DiscordController {
     status: 200,
     description: 'User information retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async getCurrentUser(@Req() req) {
     return this.discordService.getCurrentUser(req.provider.accessToken);
@@ -121,7 +121,7 @@ export class DiscordController {
     status: 400,
     description: 'Invalid message data.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async sendMessage(@Req() req, @Body() sendMessageDto: SendMessageDto) {
     try {
@@ -146,7 +146,7 @@ export class DiscordController {
     status: 400,
     description: 'Invalid role data.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async addRoleToUser(@Req() req, @Body() addRoleDto: AddRoleDto) {
     try {
@@ -171,7 +171,7 @@ export class DiscordController {
     status: 400,
     description: 'Invalid channel data.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async createPrivateChannel(
     @Req() req,
@@ -252,7 +252,7 @@ export class DiscordController {
     status: 200,
     description: 'Webhooks retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async getAllWebhooks(@Req() req) {
     const userId = req.user.id;
@@ -268,7 +268,7 @@ export class DiscordController {
     status: 200,
     description: 'Webhook details retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
@@ -298,7 +298,7 @@ export class DiscordController {
     status: 404,
     description: 'Guild or channel not found.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async createWebhook(
     @Req() req,
@@ -375,7 +375,7 @@ export class DiscordController {
     status: 200,
     description: 'List of webhooks retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async listGuildWebhooks(@Req() req, @Param('guildId') guildId: string) {
     return this.discordService.getGuildWebhooks(guildId);
@@ -387,7 +387,7 @@ export class DiscordController {
     status: 200,
     description: 'List of webhooks retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async listChannelWebhooks(@Req() req, @Param('channelId') channelId: string) {
     return this.discordService.getChannelWebhooks(channelId);
@@ -404,7 +404,7 @@ export class DiscordController {
     status: 404,
     description: 'Webhook not found.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     try {

@@ -17,7 +17,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
-import { RequireProvider } from 'src/auth/guards/provider.guard';
+import { ProviderGuard, RequireProvider } from 'src/auth/guards/provider.guard';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { Hook } from 'src/shared/entities/hook.entity';
 import { ProviderType } from 'src/shared/enums/provider.enum';
@@ -91,7 +91,7 @@ export class JiraController {
     status: 200,
     description: 'Jira webhooks retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.JIRA)
   async listWebhooks(@Req() req) {
     const userId = req.user.id;
@@ -104,7 +104,7 @@ export class JiraController {
     status: 200,
     description: 'Webhooks retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.JIRA)
   async getAllWebhooks(@Req() req) {
     const userId = req.user.id;
@@ -117,7 +117,7 @@ export class JiraController {
     status: 200,
     description: 'Webhook details retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.JIRA)
   async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
@@ -138,7 +138,7 @@ export class JiraController {
     status: 201,
     description: 'The webhook has been successfully created.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.JIRA)
   async createWebhook(@Req() req, @Body() body: CreateJiraWebhookDto) {
     const userId = req.user.id;
@@ -162,7 +162,7 @@ export class JiraController {
     status: 200,
     description: 'The webhook has been successfully deleted.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.JIRA)
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     try {
@@ -195,7 +195,7 @@ export class JiraController {
     status: 200,
     description: 'Projects retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.JIRA)
   async listProjects(@Req() req) {
     const userId = req.user.id;
@@ -214,7 +214,7 @@ export class JiraController {
     status: 200,
     description: 'Issue details retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.JIRA)
   async getIssue(@Req() req, @Param('issueKey') issueKey: string) {
     const userId = req.user.id;
@@ -234,7 +234,7 @@ export class JiraController {
     status: 200,
     description: 'Issues retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.JIRA)
   async listProjectIssues(@Req() req, @Param('projectKey') projectKey: string) {
     const userId = req.user.id;

@@ -21,7 +21,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { RequireProvider } from '../auth/guards/provider.guard';
+import { ProviderGuard, RequireProvider } from '../auth/guards/provider.guard';
 import { ReactionsService } from '../reactions/reactions.service';
 import { Hook } from '../shared/entities/hook.entity';
 import { ProviderType } from '../shared/enums/provider.enum';
@@ -49,7 +49,7 @@ export class TwitchController {
     status: 401,
     description: 'Twitch account not linked.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.TWITCH)
   async getCurrentUser(@Req() req) {
     try {
@@ -75,7 +75,7 @@ export class TwitchController {
     status: 401,
     description: 'Twitch account not linked.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.TWITCH)
   async getFollowedChannels(@Req() req) {
     try {
@@ -104,7 +104,7 @@ export class TwitchController {
     status: 200,
     description: 'Webhooks retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.TWITCH)
   async getAllWebhooks(@Req() req) {
     const userId = req.user.id;
@@ -122,7 +122,7 @@ export class TwitchController {
     status: 200,
     description: 'Webhook details retrieved successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.TWITCH)
   async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
@@ -145,7 +145,7 @@ export class TwitchController {
     status: 201,
     description: 'Webhook subscription created successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.TWITCH)
   async createWebhook(
     @Req() req,
@@ -259,7 +259,7 @@ export class TwitchController {
     status: 200,
     description: 'Webhook deleted successfully.',
   })
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.TWITCH)
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
