@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from 'react';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { GoogleAuthButton } from '../components/GoogleAuthButton';
 import { useRegisterMutation } from '../shared/src/web';
@@ -11,13 +12,62 @@ export function Register() {
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
   const [register, { isLoading }] = useRegisterMutation();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const requirements = [
+    { label: 'At least 8 characters', test: (pwd: string) => pwd.length >= 8 },
+    {
+      label: 'At least one uppercase letter',
+      test: (pwd: string) => /[A-Z]/.test(pwd),
+    },
+    {
+      label: 'At least one lowercase letter',
+      test: (pwd: string) => /[a-z]/.test(pwd),
+    },
+    { label: 'At least one number', test: (pwd: string) => /[0-9]/.test(pwd) },
+    {
+      label: 'At least one special character',
+      test: (pwd: string) => /[\W_]/.test(pwd),
+    },
+    {
+      label: 'Must not include name',
+      test: (pwd: string) => {
+        if (!name) return true;
+        const regex = new RegExp(name, 'i');
+        return !regex.test(pwd);
+      },
+    },
+  ];
+
+  const passwordStrength = requirements.reduce(
+    (score, req) => score + (req.test(password) ? 1 : 0),
+    0
+  );
+
+  const isEmailValid = (value: string) =>
+    value.length <= 254 &&
+    // /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]{1,63}(\.[a-zA-Z0-9-]{1,63})*\.[a-zA-Z]{2,63}$/.test(value); // strict
+    /^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,63}$/.test(
+      value
+    );
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
+    if (!isEmailValid(email)) {
+      setErrorMessage('Please enter a valid email address.');
+      return;
+    }
+
+    if (passwordStrength < 6) {
+      setErrorMessage('Password must satisfied the 6 criteria.');
+      return;
+    }
+
     if (password !== confirmPassword) {
-      setErrorMessage('Passwords do not match');
+      setErrorMessage('Passwords do not match.');
       return;
     }
 
@@ -53,6 +103,7 @@ export function Register() {
               required
             />
           </div>
+
           <div className='form-group'>
             <label htmlFor='email'>Email</label>
             <input
@@ -61,28 +112,90 @@ export function Register() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              style={{ paddingRight: '2rem' }}
             />
           </div>
+
           <div className='form-group'>
             <label htmlFor='password'>Password</label>
-            <input
-              type='password'
-              id='password'
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id='password'
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={{ paddingRight: '2rem' }}
+              />
+              <button
+                type='button'
+                aria-label='Show Password'
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '0.5rem',
+                  top: '52%',
+                  transform: 'translateY(-50%)',
+                  cursor: 'pointer',
+                  background: 'none',
+                }}
+              >
+                {showPassword ? (
+                  <FaEyeSlash color='white' />
+                ) : (
+                  <FaEye color='white' />
+                )}
+              </button>
+            </div>
+
+            <div className='password-requirements'>
+              <p>Password requirements for your security:</p>
+              <ul>
+                {requirements.map((req) => (
+                  <li
+                    key={req.label}
+                    style={{ color: req.test(password) ? 'green' : 'red' }}
+                  >
+                    {req.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
+
           <div className='form-group'>
             <label htmlFor='confirmPassword'>Confirm Password</label>
-            <input
-              type='password'
-              id='confirmPassword'
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                id='confirmPassword'
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                style={{ paddingRight: '2rem' }}
+              />
+              <button
+                type='button'
+                aria-label='Show Password'
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '0.5rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  cursor: 'pointer',
+                  background: 'none',
+                }}
+              >
+                {showConfirmPassword ? (
+                  <FaEyeSlash color='white' />
+                ) : (
+                  <FaEye color='white' />
+                )}
+              </button>
+            </div>
           </div>
+
           <button type='submit' className='btn-primary' disabled={isLoading}>
             {isLoading ? 'Registering...' : 'Register'}
           </button>
