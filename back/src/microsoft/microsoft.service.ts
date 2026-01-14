@@ -34,7 +34,6 @@ export class MicrosoftService {
   ) {
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 2);
-    console.log('Creating Microsoft webhook with body:', webhookUrl, body);
     const response = await axios.post(
       `${this.baseUrl}/subscriptions`,
       {
