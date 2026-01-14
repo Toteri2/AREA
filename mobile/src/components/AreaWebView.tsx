@@ -1,7 +1,7 @@
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useAppSelector } from '../shared/src/native';
-// import styles from "../style/index"
+import styles from '../style/index';
 
 export function AreaWebView({ url }) {
   const { token } = useAppSelector((state) => state.auth);
@@ -55,21 +55,21 @@ export function AreaWebView({ url }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  webview: {
-    flex: 1,
-  },
-  loadingContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-  },
-});
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//   },
+//   webview: {
+//     flex: 1,
+//   },
+//   loadingContainer: {
+//     position: 'absolute',
+//     top: 0,
+//     left: 0,
+//     right: 0,
+//     bottom: 0,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     backgroundColor: '#ffffff',
+//   },
+// });

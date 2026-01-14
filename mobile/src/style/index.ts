@@ -1,7 +1,7 @@
-// import { common } from "./common";
-// import { areaWebView } from "./areaWebView"
+import { areaWebView } from './areaWebView';
+import { common } from './common';
 
-// export default {
-//   ...common,
-//   ...areaWebView,
-// };
+export default {
+  ...common,
+  ...areaWebView,
+};
