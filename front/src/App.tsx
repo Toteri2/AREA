@@ -61,6 +61,7 @@ function App() {
               <Route path='/profile' element={<Profile />} />
               <Route path='/area' element={<Area />} />
               <Route path='/notfound' element={<NotFound />} />
+              <Route path='/' element={<Dashboard />} />
               <Route path='*' element={<Navigate to='/notfound' replace />} />
             </>
           ) : (
@@ -68,6 +69,7 @@ function App() {
               <Route path='/login' element={<Login />} />
               <Route path='/register' element={<Register />} />
               <Route path='/notfound' element={<NotFound />} />
+              <Route path='/' element={<Login />} />
               <Route path='*' element={<Navigate to='/notfound' replace />} />
             </>
           )}
