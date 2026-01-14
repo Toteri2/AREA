@@ -53,9 +53,6 @@ export class TwitchController {
   async getCurrentUser(@Req() req) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       const provider = await this.authService.getTwitchProvider(userId);
       if (!provider) {
         throw new UnauthorizedException('Twitch account not linked');
@@ -86,9 +83,6 @@ export class TwitchController {
   async getFollowedChannels(@Req() req) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       const provider = await this.authService.getTwitchProvider(userId);
       if (!provider) {
         throw new UnauthorizedException('Twitch account not linked');
@@ -122,9 +116,6 @@ export class TwitchController {
   @UseGuards(AuthGuard('jwt'))
   async getAllWebhooks(@Req() req) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getTwitchProvider(userId);
     if (!provider) throw new UnauthorizedException('Twitch account not linked');
 
@@ -144,9 +135,6 @@ export class TwitchController {
   @UseGuards(AuthGuard('jwt'))
   async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getTwitchProvider(userId);
     if (!provider) throw new UnauthorizedException('Twitch account not linked');
 
@@ -174,9 +162,6 @@ export class TwitchController {
     @Body() createWebhookDto: CreateTwitchWebhookDto
   ) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getTwitchProvider(userId);
     if (!provider) throw new UnauthorizedException('Twitch account not linked');
 
@@ -290,9 +275,6 @@ export class TwitchController {
   @UseGuards(AuthGuard('jwt'))
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getTwitchProvider(userId);
     if (!provider) throw new UnauthorizedException('Twitch account not linked');
 

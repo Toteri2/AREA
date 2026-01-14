@@ -11,7 +11,6 @@ import {
   Query,
   Req,
   Res,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -99,9 +98,6 @@ export class MicrosoftController {
   @UseGuards(AuthGuard('jwt'))
   async listUserWebhooks(@Req() req) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     return this.microsoftService.listUserWebhooks(userId);
   }
 
@@ -114,9 +110,6 @@ export class MicrosoftController {
   @UseGuards(AuthGuard('jwt'))
   async getUserWebhook(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     return this.microsoftService.getUserWebhook(userId, hookId);
   }
 
@@ -130,9 +123,6 @@ export class MicrosoftController {
   @UseGuards(AuthGuard('jwt'))
   async createWebhook(@Req() req, @Body() body: CreateMicrosoftDto) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const accessToken = await this.authService.getMicrosoftToken(userId);
     const profile = await this.microsoftService.getProfile(accessToken);
     const email = profile?.mail;
@@ -162,9 +152,6 @@ export class MicrosoftController {
   @UseGuards(AuthGuard('jwt'))
   async deleteSubscription(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const hook = await this.hooksRepository.findOne({
       where: {
         id: hookId,

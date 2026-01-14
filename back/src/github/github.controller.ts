@@ -95,9 +95,6 @@ export class GithubController {
   async createWebhook(@Req() req, @Body() createWebhookDto: CreateWebhookDto) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       const provider = await this.authService.getGithubProvider(userId);
       if (!provider) {
         throw new UnauthorizedException('GitHub account not linked');
@@ -144,9 +141,6 @@ export class GithubController {
   @UseGuards(AuthGuard('jwt'))
   async getAllWebhooks(@Req() req) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const hooks = await this.hooksRepository.find({
       where: { userId: userId, service: 'github' },
     });
@@ -162,9 +156,6 @@ export class GithubController {
   @UseGuards(AuthGuard('jwt'))
   async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const hook = await this.hooksRepository.findOne({
       where: { id: hookId, userId: userId, service: 'github' },
     });
@@ -185,9 +176,6 @@ export class GithubController {
   @UseGuards(AuthGuard('jwt'))
   async listRepositories(@Req() req) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getGithubProvider(userId);
     if (!provider) throw new UnauthorizedException('GitHub account not linked');
     return this.githubService.listUserRepositories(provider.accessToken);
@@ -206,9 +194,6 @@ export class GithubController {
     @Param('repo') repo: string
   ) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getGithubProvider(userId);
     if (!provider) throw new UnauthorizedException('GitHub account not linked');
     return this.githubService.listWebhooks(provider.accessToken, owner, repo);
@@ -224,9 +209,6 @@ export class GithubController {
   @UseGuards(AuthGuard('jwt'))
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getGithubProvider(userId);
     if (!provider) throw new UnauthorizedException('GitHub account not linked');
 

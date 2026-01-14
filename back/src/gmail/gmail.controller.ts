@@ -121,9 +121,6 @@ export class GmailController {
   @UseGuards(AuthGuard('jwt'))
   async listUserWebhooks(@Req() req) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     return this.gmailService.listUserWebhooks(userId);
   }
 
@@ -136,9 +133,6 @@ export class GmailController {
   @UseGuards(AuthGuard('jwt'))
   async getUserWebhook(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     return this.gmailService.getUserWebhook(userId, hookId);
   }
 
@@ -152,9 +146,6 @@ export class GmailController {
   @UseGuards(AuthGuard('jwt'))
   async createWebhook(@Req() req, @Body() body: CreateGmailDto) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getGmailProvider(userId);
     if (!provider) throw new UnauthorizedException('Gmail account not linked');
 
@@ -179,9 +170,6 @@ export class GmailController {
   @UseGuards(AuthGuard('jwt'))
   async deleteSubscription(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const hook = await this.hooksRepository.findOne({
       where: { id: hookId, userId: userId, service: 'gmail' },
     });

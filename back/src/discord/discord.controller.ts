@@ -50,9 +50,6 @@ export class DiscordController {
   @UseGuards(AuthGuard('jwt'))
   async listGuilds(@Req() req) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getDiscordProvider(userId);
     if (!provider)
       throw new UnauthorizedException('Discord account not linked');
@@ -68,9 +65,6 @@ export class DiscordController {
   @UseGuards(AuthGuard('jwt'))
   async listGuildChannels(@Req() req, @Param('guildId') guildId: string) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getDiscordProvider(userId);
     if (!provider)
       throw new UnauthorizedException('Discord account not linked');
@@ -86,9 +80,6 @@ export class DiscordController {
   @UseGuards(AuthGuard('jwt'))
   async listGuildMembers(@Req() req, @Param('guildId') guildId: string) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getDiscordProvider(userId);
     if (!provider)
       throw new UnauthorizedException('Discord account not linked');
@@ -104,9 +95,6 @@ export class DiscordController {
   @UseGuards(AuthGuard('jwt'))
   async listGuildRoles(@Req() req, @Param('guildId') guildId: string) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getDiscordProvider(userId);
     if (!provider)
       throw new UnauthorizedException('Discord account not linked');
@@ -122,9 +110,6 @@ export class DiscordController {
   @UseGuards(AuthGuard('jwt'))
   async getCurrentUser(@Req() req) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getDiscordProvider(userId);
     if (!provider)
       throw new UnauthorizedException('Discord account not linked');
@@ -146,9 +131,6 @@ export class DiscordController {
   async sendMessage(@Req() req, @Body() sendMessageDto: SendMessageDto) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       const provider = await this.authService.getDiscordProvider(userId);
       if (!provider) {
         throw new UnauthorizedException('Discord account not linked');
@@ -181,9 +163,6 @@ export class DiscordController {
   async addRoleToUser(@Req() req, @Body() addRoleDto: AddRoleDto) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       const provider = await this.authService.getDiscordProvider(userId);
       if (!provider) {
         throw new UnauthorizedException('Discord account not linked');
@@ -219,9 +198,6 @@ export class DiscordController {
   ) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       const provider = await this.authService.getDiscordProvider(userId);
       if (!provider) {
         throw new UnauthorizedException('Discord account not linked');
@@ -306,9 +282,6 @@ export class DiscordController {
   @UseGuards(AuthGuard('jwt'))
   async getAllWebhooks(@Req() req) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getDiscordProvider(userId);
     if (!provider)
       throw new UnauthorizedException('Discord account not linked');
@@ -329,9 +302,6 @@ export class DiscordController {
   @UseGuards(AuthGuard('jwt'))
   async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getDiscordProvider(userId);
     if (!provider)
       throw new UnauthorizedException('Discord account not linked');
@@ -369,9 +339,6 @@ export class DiscordController {
   ) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       const provider = await this.authService.getDiscordProvider(userId);
       if (!provider) {
         throw new UnauthorizedException('Discord account not linked');
@@ -448,9 +415,6 @@ export class DiscordController {
   @UseGuards(AuthGuard('jwt'))
   async listGuildWebhooks(@Req() req, @Param('guildId') guildId: string) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getDiscordProvider(userId);
     if (!provider)
       throw new UnauthorizedException('Discord account not linked');
@@ -466,9 +430,6 @@ export class DiscordController {
   @UseGuards(AuthGuard('jwt'))
   async listChannelWebhooks(@Req() req, @Param('channelId') channelId: string) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('No user session found');
-    }
     const provider = await this.authService.getDiscordProvider(userId);
     if (!provider)
       throw new UnauthorizedException('Discord account not linked');
@@ -490,9 +451,6 @@ export class DiscordController {
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       const provider = await this.authService.getDiscordProvider(userId);
       if (!provider) {
         throw new UnauthorizedException('Discord account not linked');

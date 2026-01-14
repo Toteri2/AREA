@@ -132,9 +132,6 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   async getProfile(@Req() req) {
     const userId = req.user.id;
-    if (!userId) {
-      throw new UnauthorizedException('Authentication required');
-    }
     return { id: userId, email: req.user.email, name: req.user.name };
   }
 
@@ -180,9 +177,6 @@ export class AuthController {
   async githubAuthCallback(@Body() body: { code: string }, @Req() req) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       if (!body.code) {
         throw new BadRequestException('Authorization code is required');
       }
@@ -242,9 +236,6 @@ export class AuthController {
   async microsoftAuthValidate(@Body() body: { code: string }, @Req() req) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       if (!body.code) {
         throw new BadRequestException('Authorization code is required');
       }
@@ -460,9 +451,6 @@ export class AuthController {
   async gmailAuthCallback(@Body() body: { code: string }, @Req() req) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       if (!body.code) {
         throw new BadRequestException('Authorization code is required');
       }
@@ -596,9 +584,6 @@ export class AuthController {
   async jiraAuthCallback(@Body() body: { code: string }, @Req() req) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       if (!body.code) {
         throw new BadRequestException('Authorization code is required');
       }
