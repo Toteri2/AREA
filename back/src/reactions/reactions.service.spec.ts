@@ -98,7 +98,7 @@ describe('ReactionsService', () => {
 
       const result = await service.create(1, 1, ReactionType.SEND_EMAIL_GMAIL, {
         to: 'test@example.com',
-      });
+      }, 'test');
 
       expect(hooksRepository.findOne).toHaveBeenCalledWith({
         where: { id: 1, userId: 1 },
@@ -112,7 +112,7 @@ describe('ReactionsService', () => {
       mockHooksRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.create(1, 1, ReactionType.SEND_EMAIL_GMAIL, {})
+        service.create(1, 1, ReactionType.SEND_EMAIL_GMAIL, {}, 'test')
       ).rejects.toThrow(NotFoundException);
     });
   });

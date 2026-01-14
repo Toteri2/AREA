@@ -356,7 +356,7 @@ describe('GmailController', () => {
       });
       expect(authService.getValidGmailToken).toHaveBeenCalledWith(1);
       expect(gmailService.deleteSubscription).toHaveBeenCalledWith(
-        'webhook-uuid-123',
+        1,
         'test_token'
       );
       expect(result).toEqual({ message: 'Subscription deleted' });

@@ -120,7 +120,7 @@ describe('GmailService', () => {
       mockedAxios.post.mockResolvedValue(mockResponse);
       mockHookRepository.delete = jest.fn().mockResolvedValue({ affected: 1 });
 
-      const result = await service.deleteSubscription('1', 'test_token');
+      const result = await service.deleteSubscription(1, 'test_token');
 
       expect(axios.post).toHaveBeenCalled();
       expect(hookRepository.delete).toHaveBeenCalledWith({ id: 1 });
