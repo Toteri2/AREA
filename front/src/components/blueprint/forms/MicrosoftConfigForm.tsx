@@ -21,7 +21,7 @@ export function MicrosoftConfigForm({ config, onChange }: ConfigFormProps) {
       resource: selectedResource,
       changeType: selectedChangeType,
     });
-  }, [selectedResource, selectedChangeType, onChange]);
+  }, [selectedResource, selectedChangeType]);
 
   return (
     <>
