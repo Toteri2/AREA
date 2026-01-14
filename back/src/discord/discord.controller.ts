@@ -287,6 +287,7 @@ export class DiscordController {
         guildId: createWebhookDto.guildId,
         channelName: channel?.name || 'Unknown',
         channelId: createWebhookDto.channelId,
+        events: createWebhookDto.events,
       },
     });
     const savedHook = await this.hooksRepository.save(hook);

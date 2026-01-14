@@ -143,6 +143,7 @@ export class TwitchController {
         broadcasterUserId: createWebhookDto.broadcasterUserId,
         broadcasterName: broadcasterData.display_name,
         broadcasterLogin: broadcasterData.login,
+        events: [createWebhookDto.eventType],
       },
     });
 

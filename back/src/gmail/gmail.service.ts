@@ -54,12 +54,18 @@ export class GmailService {
       return null;
     }
 
+    const eventTypeValue = body.eventType || 1;
+    const eventTypeName = GmailEventType[eventTypeValue];
+
     const hook = this.hookRepository.create({
       userId: userId,
       webhookId: valid.historyId,
       service: 'gmail',
-      eventType: body.eventType || 1,
-      additionalInfos: { emailAddress: emailAddress },
+      eventType: eventTypeValue,
+      additionalInfos: {
+        emailAddress: emailAddress,
+        events: [eventTypeName.toLowerCase()],
+      },
     });
     await this.hookRepository.save(hook);
 
@@ -67,7 +73,7 @@ export class GmailService {
   }
 
   async getProfile(accessToken: string) {
-    const response = await fetch(
+    const response = await axios.get(
       'https://gmail.googleapis.com/gmail/v1/users/me/profile',
       {
         headers: this.getHeaders(accessToken),

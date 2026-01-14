@@ -85,6 +85,7 @@ export class JiraService {
         additionalInfos: {
           projectName: projectName,
           projectKey: body.projectKey,
+          events: body.events,
         },
       });
 

@@ -55,7 +55,13 @@ export class MicrosoftService {
       userId: userId,
       webhookId: valid.id,
       service: 'microsoft',
-      additionalInfos: { emailAddress: emailAddress },
+      additionalInfos: {
+        emailAddress: emailAddress,
+        events: Array.isArray(body.changeType)
+          ? body.changeType
+          : [body.changeType],
+        resource: body.resource,
+      },
     });
     await this.hookRepository.save(hook);
 

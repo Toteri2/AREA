@@ -41,7 +41,8 @@ export class ReactionsController {
         req.user.id,
         dto.hookId,
         dto.reactionType,
-        dto.config
+        dto.config,
+        dto.name
       );
     } catch (error) {
       if (error instanceof HttpException) {
