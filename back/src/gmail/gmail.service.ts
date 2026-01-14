@@ -107,11 +107,11 @@ export class GmailService {
     return this.handleResponse(response);
   }
 
-  async deleteSubscription(id: string, accessToken: string) {
+  async deleteSubscription(id: number, accessToken: string) {
     try {
       await this.stopWatch(accessToken);
     } finally {
-      await this.hookRepository.delete({ id: parseInt(id, 10) });
+      await this.hookRepository.delete({ id: id });
     }
     return { message: 'Webhook deleted successfully' };
   }

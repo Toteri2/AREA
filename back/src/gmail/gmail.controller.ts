@@ -157,7 +157,7 @@ export class GmailController {
     }
 
     await this.gmailService.deleteSubscription(
-      hook.webhookId,
+      hookId,
       await this.authService.getValidGmailToken(req.user.id)
     );
 
