@@ -1,6 +1,7 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useAppSelector } from '../shared/src/native';
+// import styles from "../style/index"
 
 export function AreaWebView({ url }) {
   const { token } = useAppSelector((state) => state.auth);
