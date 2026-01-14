@@ -96,9 +96,15 @@ describe('ReactionsService', () => {
       mockReactionsRepository.create.mockReturnValue(mockReaction);
       mockReactionsRepository.save.mockResolvedValue(mockReaction);
 
-      const result = await service.create(1, 1, ReactionType.SEND_EMAIL_GMAIL, {
-        to: 'test@example.com',
-      }, 'test');
+      const result = await service.create(
+        1,
+        1,
+        ReactionType.SEND_EMAIL_GMAIL,
+        {
+          to: 'test@example.com',
+        },
+        'test'
+      );
 
       expect(hooksRepository.findOne).toHaveBeenCalledWith({
         where: { id: 1, userId: 1 },

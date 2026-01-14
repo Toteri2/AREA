@@ -173,7 +173,7 @@ export class GithubController {
   @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.GITHUB)
   async listRepositories(@Req() req) {
-    console.log("provider :", req.provider)
+    console.log('provider :', req.provider);
     return this.githubService.listUserRepositories(req.provider.accessToken);
   }
 
@@ -207,8 +207,8 @@ export class GithubController {
   @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.GITHUB)
   async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
-    console.log("provider :", req.provider)
-    console.log("token : ", req.provider.accessToken)
+    console.log('provider :', req.provider);
+    console.log('token : ', req.provider.accessToken);
     const userId = req.user.id;
 
     const hook = await this.hooksRepository.findOne({

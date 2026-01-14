@@ -3,7 +3,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReactionType } from '../shared/entities/reaction.entity';
 import { ReactionsController } from './reactions.controller';
 import { ReactionsService } from './reactions.service';
-import { name } from 'node_modules/@azure/msal-node/dist/packageMetadata';
 
 describe('ReactionsController', () => {
   let controller: ReactionsController;
@@ -46,7 +45,7 @@ describe('ReactionsController', () => {
         hookId: 1,
         reactionType: ReactionType.SEND_EMAIL_GMAIL,
         config: { to: 'test@example.com', subject: 'Test' },
-        name: 'test'
+        name: 'test',
       };
       const mockReaction = {
         id: 1,
@@ -54,7 +53,7 @@ describe('ReactionsController', () => {
         hookId: 1,
         reactionType: ReactionType.SEND_EMAIL_GMAIL,
         config: mockDto.config,
-        name: 'test'
+        name: 'test',
       };
 
       mockReactionsService.create.mockResolvedValue(mockReaction);
@@ -77,7 +76,7 @@ describe('ReactionsController', () => {
         hookId: 1,
         reactionType: ReactionType.SEND_EMAIL_GMAIL,
         config: { to: 'test@example.com' },
-        name: 'test'
+        name: 'test',
       };
 
       mockReactionsService.create.mockRejectedValue(
