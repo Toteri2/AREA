@@ -8,7 +8,6 @@ import {
   Param,
   Post,
   Req,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -39,9 +38,6 @@ export class ReactionsController {
   async create(@Req() req, @Body() dto: CreateReactionDto) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       return await this.reactionsService.create(
         userId,
         dto.hookId,
@@ -69,9 +65,6 @@ export class ReactionsController {
   async findAll(@Req() req) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       return await this.reactionsService.findByUserId(userId);
     } catch (_error) {
       throw new HttpException(
@@ -94,9 +87,6 @@ export class ReactionsController {
   async delete(@Req() req, @Param('id') id: number) {
     try {
       const userId = req.user.id;
-      if (!userId) {
-        throw new UnauthorizedException('No user session found');
-      }
       await this.reactionsService.delete(id, userId);
       return { message: 'Reaction deleted successfully' };
     } catch (error) {
