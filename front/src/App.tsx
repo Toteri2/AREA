@@ -10,7 +10,7 @@ import { GoogleCallback } from './components/GoogleCallback';
 import AppLayout from './layout/AppLayout';
 import NoNavbarLayout from './layout/NoNavbarLayout';
 import {
-  Area,
+  BlueprintEditor,
   Dashboard,
   DiscordCallback,
   GitHubCallback,
@@ -59,7 +59,7 @@ function App() {
             <>
               <Route path='/dashboard' element={<Dashboard />} />
               <Route path='/profile' element={<Profile />} />
-              <Route path='/area' element={<Area />} />
+              <Route path='/area' element={<BlueprintEditor />} />
               <Route path='/notfound' element={<NotFound />} />
               <Route path='/' element={<Dashboard />} />
               <Route path='*' element={<Navigate to='/notfound' replace />} />
@@ -70,7 +70,7 @@ function App() {
               <Route path='/register' element={<Register />} />
               <Route path='/notfound' element={<NotFound />} />
               <Route path='/' element={<Login />} />
-              <Route path='*' element={<Navigate to='/notfound' replace />} />
+              <Route path='*' element={<Navigate to='/login' replace />} />
             </>
           )}
         </Route>

@@ -7,6 +7,7 @@ import {
   useGetDiscordAuthUrlQuery,
   useGetGithubAuthUrlQuery,
   useGetGmailAuthUrlQuery,
+  useGetJiraAuthUrlQuery,
   useGetMicrosoftAuthUrlQuery,
   useGetServicesQuery,
 } from '../shared/src/web';
@@ -84,6 +85,10 @@ export function Profile() {
     serviceNames.has('discord') ? undefined : skipToken
   );
 
+  const { refetch: getJiraAuthUrl } = useGetJiraAuthUrlQuery(
+    serviceNames.has('jira') ? undefined : skipToken
+  );
+
   const githubConnection = useConnectionQuery(
     serviceNames.has('github') ? { provider: 'github' } : skipToken
   );
@@ -100,7 +105,14 @@ export function Profile() {
     serviceNames.has('discord') ? { provider: 'discord' } : skipToken
   );
 
-  const handleOAuthRedirect = async (getUrl: () => any, label: string) => {
+  const jiraConnection = useConnectionQuery(
+    serviceNames.has('jira') ? { provider: 'jira' } : skipToken
+  );
+
+  const handleOAuthRedirect = async (
+    getUrl: () => Promise<{ data?: { url: string }; error?: unknown }>,
+    label: string
+  ) => {
     try {
       const result = await getUrl();
       if (result.data?.url) {
@@ -187,6 +199,17 @@ export function Profile() {
                     onLink={() =>
                       handleOAuthRedirect(getDiscordAuthUrl, 'Discord')
                     }
+                  />
+                );
+
+              case 'jira':
+                return (
+                  <ServiceLinker
+                    key='jira'
+                    label='Jira'
+                    isLoading={jiraConnection.isLoading}
+                    isLinked={jiraConnection.data?.connected === true}
+                    onLink={() => handleOAuthRedirect(getJiraAuthUrl, 'Jira')}
                   />
                 );
 

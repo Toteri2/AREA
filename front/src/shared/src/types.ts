@@ -47,6 +47,22 @@ export interface Webhook {
   };
 }
 
+// Hook entity from backend (used by /users/webhooks)
+export interface Hook {
+  id: number;
+  userId: number;
+  webhookId: string;
+  service: string;
+  lastHistoryId?: string;
+  eventType?: number;
+  config?: {
+    repo?: string;
+    events?: string[];
+    [key: string]: unknown;
+  };
+  additionalInfos?: Record<string, unknown>;
+}
+
 export interface CreateWebhookDto {
   owner: string;
   repo: string;
@@ -75,6 +91,41 @@ export interface GmailSubscription {
   expirationDateTime: string;
 }
 
+// Discord types
+
+export interface DiscordGuild {
+  id: string;
+  name: string;
+  icon: string | null;
+}
+
+export interface DiscordChannel {
+  id: string;
+  name: string;
+  type: number;
+}
+
+export interface DiscordWebhook {
+  id: string;
+  guildId: string;
+  channelId: string;
+  events: string[];
+}
+
+// Jira types
+
+export interface JiraProject {
+  id: string;
+  key: string;
+  name: string;
+}
+
+export interface JiraWebhook {
+  id: string;
+  projectKey: string;
+  events: string[];
+}
+
 export type AboutService = {
   name: string;
   actions: {
@@ -98,14 +149,15 @@ export interface Reaction {
     webhookUrl?: string;
     message?: string;
     url?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface CreateReactionDto {
-  hookId: number;
+  name: string;
+  hookId: number | string;
   reactionType: number;
   config: {
     to?: string;
@@ -114,7 +166,7 @@ export interface CreateReactionDto {
     webhookUrl?: string;
     message?: string;
     url?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -138,4 +190,40 @@ export interface AboutResponse {
       }>;
     }>;
   };
+}
+
+// Blueprint Types for Visual Editor
+
+export type ServiceType =
+  | 'github'
+  | 'gmail'
+  | 'microsoft'
+  | 'jira'
+  | 'discord'
+  | 'twitch';
+
+export interface ActionNodeData {
+  label: string;
+  service: ServiceType;
+  eventType: string;
+  webhookId?: string | number; // Can be number (Hook.id) or string (MS Graph UUID)
+  config: Record<string, unknown>;
+  isConfigured: boolean;
+}
+
+export interface ReactionNodeData {
+  label: string;
+  reactionType: number;
+  reactionName?: string; // Name from API (e.g., 'send_message')
+  serviceName?: string; // Service from API (e.g., 'discord')
+  config: {
+    to?: string;
+    subject?: string;
+    body?: string;
+    webhookUrl?: string;
+    message?: string;
+    url?: string;
+    [key: string]: unknown;
+  };
+  isConfigured: boolean;
 }

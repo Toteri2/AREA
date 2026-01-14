@@ -1,4 +1,4 @@
-export { Area } from './Area';
+export { BlueprintEditor } from './BlueprintEditor';
 export { Dashboard } from './Dashboard';
 export { DiscordCallback } from './DiscordCallback';
 export { GitHubCallback } from './GitHubCallback';

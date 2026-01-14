@@ -19,11 +19,17 @@ body {
 
 /* Navbar */
 .navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
   background: #1a1a2e;
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  z-index: 1000;
 }
 
 .navbar-brand a {
@@ -68,6 +74,8 @@ body {
 .main-content {
   flex: 1;
   padding: 2rem;
+  padding-top: 88px;
+  /* Account for fixed navbar height */
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
