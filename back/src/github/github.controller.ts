@@ -189,7 +189,11 @@ export class GithubController {
     @Param('owner') owner: string,
     @Param('repo') repo: string
   ) {
-    return this.githubService.listWebhooks(req.provider.accessToken, owner, repo);
+    return this.githubService.listWebhooks(
+      req.provider.accessToken,
+      owner,
+      repo
+    );
   }
 
   @Delete('webhook/:hookId')

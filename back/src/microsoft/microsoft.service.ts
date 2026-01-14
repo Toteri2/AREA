@@ -34,13 +34,18 @@ export class MicrosoftService {
   ) {
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 2);
+    const resource =
+      body.resource === 'me/messages'
+        ? "me/mailFolders('Inbox')/messages"
+        : body.resource;
+
     const response = await axios.post(
       `${this.baseUrl}/subscriptions`,
       {
         changeType: body.changeType,
         notificationUrl: webhookUrl,
         lifecycleNotificationUrl: webhookUrl,
-        resource: body.resource,
+        resource: resource,
         expirationDateTime: expirationDate.toISOString(),
         clientState: state,
       },
@@ -59,7 +64,7 @@ export class MicrosoftService {
         events: Array.isArray(body.changeType)
           ? body.changeType
           : [body.changeType],
-        resource: body.resource,
+        resource: resource,
       },
     });
     await this.hookRepository.save(hook);

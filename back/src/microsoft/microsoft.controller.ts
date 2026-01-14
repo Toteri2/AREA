@@ -50,7 +50,6 @@ export class MicrosoftController {
     @Res() res,
     @Query('validationToken') token: string
   ) {
-    console.log('Microsoft webhook received:', body);
     if (token) {
       return res.status(HttpStatus.OK).send(token);
     }

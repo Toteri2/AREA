@@ -62,7 +62,10 @@ export class DiscordController {
   @UseGuards(AuthGuard('jwt'))
   @RequireProvider(ProviderType.DISCORD)
   async listGuildChannels(@Req() req, @Param('guildId') guildId: string) {
-    return this.discordService.listGuildChannels(req.provider.accessToken, guildId);
+    return this.discordService.listGuildChannels(
+      req.provider.accessToken,
+      guildId
+    );
   }
 
   @Get('guilds/:guildId/members')
@@ -74,7 +77,10 @@ export class DiscordController {
   @UseGuards(AuthGuard('jwt'))
   @RequireProvider(ProviderType.DISCORD)
   async listGuildMembers(@Req() req, @Param('guildId') guildId: string) {
-    return this.discordService.getGuildMembers(req.provider.accessToken, guildId);
+    return this.discordService.getGuildMembers(
+      req.provider.accessToken,
+      guildId
+    );
   }
 
   @Get('guilds/:guildId/roles')
@@ -86,7 +92,10 @@ export class DiscordController {
   @UseGuards(AuthGuard('jwt'))
   @RequireProvider(ProviderType.DISCORD)
   async listGuildRoles(@Req() req, @Param('guildId') guildId: string) {
-    return this.discordService.listGuildRoles(req.provider.accessToken, guildId);
+    return this.discordService.listGuildRoles(
+      req.provider.accessToken,
+      guildId
+    );
   }
 
   @Get('me')

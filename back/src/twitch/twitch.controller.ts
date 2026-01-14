@@ -21,7 +21,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AuthService } from '../auth/auth.service';
 import { RequireProvider } from '../auth/guards/provider.guard';
 import { ReactionsService } from '../reactions/reactions.service';
 import { Hook } from '../shared/entities/hook.entity';
