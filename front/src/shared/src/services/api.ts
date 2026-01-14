@@ -282,7 +282,6 @@ export const apiSlice = createApi({
       invalidatesTags: ['GmailSubscriptions', 'Webhooks'],
     }),
 
-
     // --- Discord ---
     getDiscordAuthUrl: builder.query<
       { url: string },
@@ -437,7 +436,6 @@ export const {
   useListMicrosoftWebhooksQuery,
   useCreateMicrosoftSubscriptionMutation,
   useDeleteMicrosoftSubscriptionMutation,
-
 
   // Gmail
   useGetGmailAuthUrlQuery,

@@ -28,7 +28,7 @@ export function GithubConfigForm({ config, onChange }: ConfigFormProps) {
       repo: selectedRepo,
       events: selectedEvents,
     });
-  }, [selectedRepo, selectedEvents]);
+  }, [selectedRepo, selectedEvents, onChange]);
 
   const toggleEvent = (eventId: string) => {
     setSelectedEvents((prev) =>

@@ -14,7 +14,7 @@ export function GmailConfigForm({
     onChange({
       eventType: selectedGmailEventType,
     });
-  }, [selectedGmailEventType]);
+  }, [selectedGmailEventType, onChange]);
 
   // Generate options dynamically from actions list (index + 1 corresponds to enum ID)
   const options = actions.map(
