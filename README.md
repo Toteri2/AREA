@@ -96,6 +96,12 @@ See [HOWTOCONTRIBUTE.md](docs/HOWTOCONTRIBUTE.md) for adding services, actions, 
 - [React documentation](https://react.dev/reference/react)
 - [React Native](https://reactnative.dev/docs/getting-started)
 
+## Security
+
+Security documentation and audit reports:
+- [Security Audit](docs/SECURITY_AUDIT.md) - OWASP Top 10 2025 analysis
+- [Security Watch](docs/SECURITY_WATCH.md) - CVE monitoring and updates
+
 ## Authors
 
 - **Mattéo Milin** - matteo.milin@epitech.eu

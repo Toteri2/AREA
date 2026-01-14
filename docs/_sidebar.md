@@ -16,6 +16,10 @@
   * [Jira](oauth/jira.md)
   * [Twitch](oauth/twitch.md)
 
+* Security
+  * [Security Audit](SECURITY_AUDIT.md)
+  * [Security Watch](SECURITY_WATCH.md)
+
 ---
 
 * **Links**
