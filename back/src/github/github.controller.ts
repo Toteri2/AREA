@@ -103,6 +103,39 @@ export class GithubController {
     return { result, hookId: savedHook.id };
   }
 
+  @Get('webhook')
+  @ApiOperation({ summary: 'List all GitHub webhooks for the user' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of webhooks retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async getAllWebhooks(@Req() req) {
+    const hooks = await this.hooksRepository.find({
+      where: { userId: req.user.id, service: 'github' },
+    });
+    return hooks;
+  }
+
+  @Get('webhook/:hookId')
+  @ApiOperation({ summary: 'Get details of a specific GitHub webhook' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook details retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
+    const hook = await this.hooksRepository.findOne({
+      where: { id: hookId, userId: req.user.id, service: 'github' },
+    });
+
+    if (!hook) {
+      throw new NotFoundException('Hook not found');
+    }
+
+    return hook;
+  }
+
   @Get('repositories')
   @ApiOperation({ summary: 'List user GitHub repositories' })
   @ApiResponse({
@@ -140,10 +173,7 @@ export class GithubController {
     description: 'Webhook deleted successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
-  async deleteWebhook(
-    @Req() req,
-    @Param('hookId') hookId: number
-  ) {
+  async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     const provider = await this.authService.getGithubProvider(req.user.id);
     if (!provider) throw new UnauthorizedException('GitHub account not linked');
 
@@ -155,7 +185,10 @@ export class GithubController {
       throw new NotFoundException('Hook not found');
     }
 
-    const { owner, repo } = hook.additionalInfos as { owner: string; repo: string };
+    const { owner, repo } = hook.additionalInfos as {
+      owner: string;
+      repo: string;
+    };
 
     await this.githubService.deleteWebhook(
       provider.accessToken,

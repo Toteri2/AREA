@@ -6,8 +6,8 @@ import {
   Get,
   Headers,
   NotFoundException,
+  Param,
   Post,
-  Query,
   Req,
   Res,
   UnauthorizedException,
@@ -68,6 +68,46 @@ export class TwitchController {
     return this.twitchService.getFollowedChannels(provider.accessToken, userId);
   }
 
+  @Get('webhook')
+  @ApiOperation({ summary: 'List all webhooks for the current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhooks retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async getAllWebhooks(@Req() req) {
+    const provider = await this.authService.getTwitchProvider(req.user.id);
+    if (!provider) throw new UnauthorizedException('Twitch account not linked');
+
+    const hooks = await this.hooksRepository.find({
+      where: { userId: req.user.id, service: 'twitch' },
+    });
+
+    return hooks;
+  }
+
+  @Get('webhook/:hookId')
+  @ApiOperation({ summary: 'Get details of a specific webhook' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook details retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
+    const provider = await this.authService.getTwitchProvider(req.user.id);
+    if (!provider) throw new UnauthorizedException('Twitch account not linked');
+
+    const hook = await this.hooksRepository.findOne({
+      where: { id: hookId, userId: req.user.id, service: 'twitch' },
+    });
+
+    if (!hook) {
+      throw new NotFoundException('Hook not found');
+    }
+
+    return hook;
+  }
+
   @Post('create-webhook')
   @ApiOperation({ summary: 'Create a Twitch EventSub webhook' })
   @ApiResponse({
@@ -90,10 +130,21 @@ export class TwitchController {
       webhookUrl
     );
 
+    const broadcasterData = await this.twitchService.getBroadcasterName(
+      provider.accessToken,
+      createWebhookDto.broadcasterUserId
+    );
+
     const hook = this.hooksRepository.create({
       userId: req.user.id,
       webhookId: result.data[0].id,
       service: 'twitch',
+      additionalInfos: {
+        broadcasterUserId: createWebhookDto.broadcasterUserId,
+        broadcasterName: broadcasterData.display_name,
+        broadcasterLogin: broadcasterData.login,
+        events: [createWebhookDto.eventType],
+      },
     });
 
     const savedHook = await this.hooksRepository.save(hook);
@@ -170,19 +221,19 @@ export class TwitchController {
     return res.status(200).send({ status: 'ok' });
   }
 
-  @Delete('webhook')
+  @Delete('webhook/:hookId')
   @ApiOperation({ summary: 'Delete a Twitch webhook' })
   @ApiResponse({
     status: 200,
     description: 'Webhook deleted successfully.',
   })
   @UseGuards(AuthGuard('jwt'))
-  async deleteWebhook(@Req() req, @Query('id') id: number) {
+  async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     const provider = await this.authService.getTwitchProvider(req.user.id);
     if (!provider) throw new UnauthorizedException('Twitch account not linked');
 
     const hook = await this.hooksRepository.findOne({
-      where: { id: id, userId: req.user.id, service: 'twitch' },
+      where: { id: hookId, userId: req.user.id, service: 'twitch' },
     });
 
     if (!hook) {
@@ -190,7 +241,7 @@ export class TwitchController {
     }
 
     await this.twitchService.deleteWebhook(hook.webhookId);
-    await this.hooksRepository.delete({ id: id, service: 'twitch' });
+    await this.hooksRepository.delete({ id: hookId, service: 'twitch' });
 
     return { message: 'Webhook deleted successfully' };
   }

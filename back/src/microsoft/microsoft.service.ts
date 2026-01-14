@@ -12,21 +12,16 @@ export class MicrosoftService {
     private hookRepository: Repository<Hook>
   ) {}
   private readonly baseUrl = 'https://graph.microsoft.com/v1.0/';
-  async listUserWebhooks(accessToken: string): Promise<any> {
-    try {
-      const response = await axios.get(
-        'https://graph.microsoft.com/v1.0/subscriptions',
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-      return response.data.value;
-    } catch (error) {
-      console.log('Failed to fetch webhooks:', error.message);
-      throw new Error('Failed to fetch webhooks from Microsoft Graph API');
-    }
+  async listUserWebhooks(userId: number): Promise<any> {
+    return this.hookRepository.find({
+      where: { service: 'microsoft', userId: userId },
+    });
+  }
+
+  async getUserWebhook(userId: number, hookId: number): Promise<any> {
+    return this.hookRepository.findOne({
+      where: { service: 'microsoft', id: hookId, userId: userId },
+    });
   }
 
   async createWebhook(
@@ -59,7 +54,13 @@ export class MicrosoftService {
       userId: userId,
       webhookId: valid.id,
       service: 'microsoft',
-      additionalInfos: { emailAddress: emailAddress },
+      additionalInfos: {
+        emailAddress: emailAddress,
+        events: Array.isArray(body.changeType)
+          ? body.changeType
+          : [body.changeType],
+        resource: body.resource,
+      },
     });
     await this.hookRepository.save(hook);
 
@@ -96,10 +97,16 @@ export class MicrosoftService {
   }
 
   async deleteSubscription(id: string, accessToken: string) {
-    const response = await axios.delete(`${this.baseUrl}subscriptions/${id}`, {
-      headers: this.getHeaders(accessToken),
-    });
-    await this.hookRepository.delete({ webhookId: id });
-    return this.handleResponse(response);
+    try {
+      const response = await axios.delete(
+        `${this.baseUrl}subscriptions/${id}`,
+        {
+          headers: this.getHeaders(accessToken),
+        }
+      );
+      return this.handleResponse(response);
+    } finally {
+      await this.hookRepository.delete({ webhookId: id });
+    }
   }
 }

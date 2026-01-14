@@ -6,7 +6,6 @@ import {
   NotFoundException,
   Param,
   Post,
-  Query,
   Req,
   Res,
   UnauthorizedException,
@@ -95,6 +94,45 @@ export class JiraController {
     return this.jiraService.listUserWebhooks(req.user.id);
   }
 
+  @Get('webhook')
+  @ApiOperation({ summary: 'List all webhooks for the current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhooks retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async getAllWebhooks(@Req() req) {
+    const provider = await this.authService.getJiraProvider(req.user.id);
+    if (!provider) {
+      throw new UnauthorizedException('Jira account not linked');
+    }
+    return this.jiraService.listUserWebhooks(req.user.id);
+  }
+
+  @Get('webhook/:hookId')
+  @ApiOperation({ summary: 'Get details of a specific webhook' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook details retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
+    const provider = await this.authService.getJiraProvider(req.user.id);
+    if (!provider) {
+      throw new UnauthorizedException('Jira account not linked');
+    }
+
+    const hook = await this.hooksRepository.findOne({
+      where: { id: hookId, userId: req.user.id, service: 'jira' },
+    });
+
+    if (!hook) {
+      throw new NotFoundException('Hook not found');
+    }
+
+    return hook;
+  }
+
   @Post('create-webhook')
   @ApiOperation({ summary: 'Create a Jira webhook' })
   @ApiResponse({
@@ -121,14 +159,14 @@ export class JiraController {
     );
   }
 
-  @Delete('webhook')
+  @Delete('webhook/:hookId')
   @ApiOperation({ summary: 'Delete a Jira webhook' })
   @ApiResponse({
     status: 200,
     description: 'The webhook has been successfully deleted.',
   })
   @UseGuards(AuthGuard('jwt'))
-  async deleteWebhook(@Req() req, @Query('id') id: number) {
+  async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
     try {
       const accessToken = await this.authService.getValidJiraToken(req.user.id);
       const provider = await this.authService.getJiraProvider(req.user.id);
@@ -138,7 +176,7 @@ export class JiraController {
       }
 
       const hook = await this.hooksRepository.findOne({
-        where: { id: id, userId: req.user.id, service: 'jira' },
+        where: { id: hookId, userId: req.user.id, service: 'jira' },
       });
 
       if (!hook) {

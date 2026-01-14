@@ -22,7 +22,8 @@ export class ReactionsService {
     userId: number,
     hookId: number,
     reactionType: ReactionType,
-    config: Record<string, any>
+    config: Record<string, any>,
+    name: string
   ): Promise<Reaction> {
     const hook = await this.hooksRepository.findOne({
       where: { id: hookId, userId },
@@ -37,6 +38,7 @@ export class ReactionsService {
       hookId,
       reactionType,
       config,
+      name,
     });
 
     return this.reactionsRepository.save(reaction);

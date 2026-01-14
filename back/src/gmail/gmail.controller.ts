@@ -4,8 +4,8 @@ import {
   Delete,
   Get,
   NotFoundException,
+  Param,
   Post,
-  Query,
   Req,
   Res,
   UnauthorizedException,
@@ -96,7 +96,7 @@ export class GmailController {
     return res.status(200).send();
   }
 
-  @Get('webhooks')
+  @Get('webhook')
   @ApiOperation({ summary: 'List user Gmail webhooks' })
   @ApiResponse({
     status: 200,
@@ -105,6 +105,17 @@ export class GmailController {
   @UseGuards(AuthGuard('jwt'))
   async listUserWebhooks(@Req() req) {
     return this.gmailService.listUserWebhooks(req.user.id);
+  }
+
+  @Get('webhook/:hookId')
+  @ApiOperation({ summary: 'Get a specific user Gmail webhook' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  async getUserWebhook(@Req() req, @Param('hookId') hookId: number) {
+    return this.gmailService.getUserWebhook(req.user.id, hookId);
   }
 
   @Post('create-webhook')
@@ -129,16 +140,16 @@ export class GmailController {
     );
   }
 
-  @Delete('webhook')
+  @Delete('webhook/:hookId')
   @ApiOperation({ summary: 'Delete a Gmail subscription' })
   @ApiResponse({
     status: 200,
     description: 'The subscription has been successfully deleted.',
   })
   @UseGuards(AuthGuard('jwt'))
-  async deleteSubscription(@Req() req, @Query('id') id: number) {
+  async deleteSubscription(@Req() req, @Param('hookId') hookId: number) {
     const hook = await this.hooksRepository.findOne({
-      where: { id: id, userId: req.user.id, service: 'gmail' },
+      where: { id: hookId, userId: req.user.id, service: 'gmail' },
     });
 
     if (!hook) {
