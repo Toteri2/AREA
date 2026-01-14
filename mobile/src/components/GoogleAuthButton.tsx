@@ -1,7 +1,6 @@
 import {
   ActivityIndicator,
   Linking,
-  StyleSheet,
   Text,
   TouchableOpacity,
 } from 'react-native';
@@ -35,8 +34,8 @@ export function GoogleAuthButton({
   return (
     <TouchableOpacity
       style={[
-        styles.button,
-        (isLoading || !googleAuthData) && styles.disabledButton,
+        styles.buttonGoogle,
+        (isLoading || !googleAuthData) && styles.buttonDisabled,
       ]}
       onPress={handleGoogleLogin}
       disabled={isLoading || !googleAuthData}
@@ -45,7 +44,7 @@ export function GoogleAuthButton({
       {isLoading ? (
         <ActivityIndicator color='#fff' />
       ) : (
-        <Text style={styles.text}>{buttonText}</Text>
+        <Text style={styles.buttonText}>{buttonText}</Text>
       )}
     </TouchableOpacity>
   );

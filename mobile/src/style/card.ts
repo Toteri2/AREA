@@ -21,5 +21,4 @@ export const card = StyleSheet.create({
   cardsContainer: {
     gap: 16,
   },
-
 });

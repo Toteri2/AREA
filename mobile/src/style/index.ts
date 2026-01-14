@@ -1,6 +1,6 @@
 import { areaWebView } from './areaWebView';
-import { common } from './common';
 import { buttons } from './buttons';
+import { common } from './common';
 
 export default {
   ...common,

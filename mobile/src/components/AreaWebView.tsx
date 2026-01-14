@@ -3,7 +3,11 @@ import { WebView } from 'react-native-webview';
 import { useAppSelector } from '../shared/src/native';
 import styles from '../style/index';
 
-export function AreaWebView({ url }) {
+interface AreaWebViewProps {
+  url: string;
+}
+
+export function AreaWebView({ url }: AreaWebViewProps) {
   const { token } = useAppSelector((state) => state.auth);
 
   const injectedJS = `

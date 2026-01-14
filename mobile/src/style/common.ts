@@ -11,7 +11,6 @@ export const common = StyleSheet.create({
     fontWeight: '600',
   },
 
-
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -42,7 +41,6 @@ export const common = StyleSheet.create({
   label: { fontSize: 14, color: '#888', fontWeight: '500' },
   value: { fontSize: 14, color: '#fff' },
 });
-
 
 // const styles = StyleSheet.create({
 //   container: {
@@ -302,7 +300,6 @@ export const common = StyleSheet.create({
 //   },
 //   changeButtonText: { color: '#fff', fontSize: 14 },
 // });
-
 
 // const styles = StyleSheet.create({
 //   container: {

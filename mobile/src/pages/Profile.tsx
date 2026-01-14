@@ -5,7 +5,6 @@ import {
   Alert,
   Linking,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -145,7 +144,7 @@ export function Profile() {
             style={styles.input}
             value={customBaseUrl}
             onChangeText={setCustomBaseUrl}
-            placeholder='http://api.mambokara.dev'
+            placeholder='https://api.mambokara.dev'
             placeholderTextColor='#888'
           />
           <TouchableOpacity style={styles.button} onPress={updateBaseUrl}>

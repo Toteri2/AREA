@@ -1,13 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Linking,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Linking, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 import type { RootStackParamList } from './navigation';
