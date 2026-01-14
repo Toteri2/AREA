@@ -36,7 +36,7 @@ export function DiscordCallback() {
     const linkAccount = async () => {
       setStatus('Linking your Discord account...');
       try {
-        await validateDiscord({ code, state: state || '' }).unwrap();
+        await validateDiscord({ code }).unwrap();
         setStatus('Success! Redirecting...');
         setTimeout(() => {
           navigate('/profile');

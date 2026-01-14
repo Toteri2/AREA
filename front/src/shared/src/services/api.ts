@@ -65,7 +65,7 @@ export const apiSlice = createApi({
         method: 'POST',
         body: credentials,
       }),
-      async onQueryStarted(args, { dispatch, queryFulfilled }) {
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
           dispatch(persistToken(data.access_token));
@@ -84,7 +84,7 @@ export const apiSlice = createApi({
         method: 'POST',
         body: userInfo,
       }),
-      async onQueryStarted(args, { dispatch, queryFulfilled }) {
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
         dispatch(persistToken(data.token));
       },
@@ -125,7 +125,7 @@ export const apiSlice = createApi({
         method: 'POST',
         body: authData,
       }),
-      async onQueryStarted(args, { dispatch, queryFulfilled }) {
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
         dispatch(persistToken(data.access_token));
       },
@@ -164,10 +164,9 @@ export const apiSlice = createApi({
       providesTags: ['Webhooks'],
     }),
     listWebhooks: builder.query<Webhook[], { owner: string; repo: string }>({
-      // Legacy or Repo-specific?
       query: ({ owner, repo }) =>
         `/github/repositories/${owner}/${repo}/webhooks`,
-      providesTags: (result, error, { repo }) => [
+      providesTags: (_result, _error, { repo }) => [
         { type: 'Webhooks', id: repo },
       ],
     }),
@@ -181,7 +180,7 @@ export const apiSlice = createApi({
         method: 'POST',
         body: dto,
       }),
-      invalidatesTags: (result, error, dto) => [
+      invalidatesTags: (_result, _error, dto) => [
         'Webhooks',
         { type: 'Webhooks', id: dto.repo },
       ],

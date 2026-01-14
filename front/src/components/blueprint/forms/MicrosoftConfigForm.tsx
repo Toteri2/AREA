@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ConfigFormProps } from './types';
 
 // Microsoft event types
@@ -15,12 +15,20 @@ export function MicrosoftConfigForm({ config, onChange }: ConfigFormProps) {
   const [selectedChangeType, setSelectedChangeType] = useState<string>(
     (config.changeType as string) || 'created'
   );
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
+    if (isInitialMount.current && config.resource && config.changeType) {
+      isInitialMount.current = false;
+      return;
+    }
+    isInitialMount.current = false;
+
     onChange({
       resource: selectedResource,
       changeType: selectedChangeType,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedResource, selectedChangeType]);
 
   return (

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import type { RootState } from 'shared-redux/store';
 import {
   logout,
   useAppDispatch,
@@ -24,7 +25,9 @@ import {
 import './App.css';
 
 function App() {
-  const { isAuthenticated, token } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, token } = useAppSelector(
+    (state: RootState) => state.auth
+  );
   const dispatch = useAppDispatch();
 
   const { isLoading, error } = useGetProfileQuery(undefined, {

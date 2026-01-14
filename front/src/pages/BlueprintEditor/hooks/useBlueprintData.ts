@@ -7,6 +7,7 @@ import type {
   ServiceType,
 } from '../../../shared/src/types';
 import {
+  useConnectionQuery,
   useListGithubWebhooksQuery,
   useListGmailWebhooksQuery,
   useListMicrosoftWebhooksQuery,
@@ -39,13 +40,22 @@ export function useBlueprintData() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const hasLoadedRef = useRef(false);
 
-  const { data: githubWebhooks = [], isLoading: isLoadingGithub } =
-    useListGithubWebhooksQuery();
-  const { data: gmailWebhooks = [], isLoading: isLoadingGmail } =
-    useListGmailWebhooksQuery();
-  const { data: microsoftWebhooks = [], isLoading: isLoadingMicrosoft } =
-    useListMicrosoftWebhooksQuery();
-  const { data: reactions = [], isLoading: isLoadingReactions } =
+  // Check connections first
+  const { data: githubConn } = useConnectionQuery({ provider: 'github' });
+  const { data: gmailConn } = useConnectionQuery({ provider: 'gmail' });
+  const { data: microsoftConn } = useConnectionQuery({ provider: 'microsoft' });
+
+  const isGithubConnected = githubConn?.connected ?? false;
+  const isGmailConnected = gmailConn?.connected ?? false;
+  const isMicrosoftConnected = microsoftConn?.connected ?? false;
+
+  const { data: githubWebhooks, isLoading: isLoadingGithub } =
+    useListGithubWebhooksQuery(undefined, { skip: !isGithubConnected });
+  const { data: gmailWebhooks, isLoading: isLoadingGmail } =
+    useListGmailWebhooksQuery(undefined, { skip: !isGmailConnected });
+  const { data: microsoftWebhooks, isLoading: isLoadingMicrosoft } =
+    useListMicrosoftWebhooksQuery(undefined, { skip: !isMicrosoftConnected });
+  const { data: reactions, isLoading: isLoadingReactions } =
     useListReactionsQuery();
 
   const isLoading =
@@ -56,7 +66,11 @@ export function useBlueprintData() {
 
   // Aggregate all webhooks for unified processing
   const webhooks = useMemo(
-    () => [...githubWebhooks, ...gmailWebhooks, ...microsoftWebhooks],
+    () => [
+      ...(githubWebhooks || []),
+      ...(gmailWebhooks || []),
+      ...(microsoftWebhooks || []),
+    ],
     [githubWebhooks, gmailWebhooks, microsoftWebhooks]
   );
 
@@ -141,7 +155,7 @@ export function useBlueprintData() {
     });
 
     // Reactions
-    reactions.forEach((reaction, index) => {
+    (reactions || []).forEach((reaction, index) => {
       const nodeId = generateReactionNodeId(reaction.id);
       reactionNodes.push({
         id: nodeId,

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useListRepositoriesQuery } from '../../../shared/src/web';
 import type { ConfigFormProps } from './types';
 
@@ -19,15 +19,23 @@ export function GithubConfigForm({ config, onChange }: ConfigFormProps) {
   const [selectedEvents, setSelectedEvents] = useState<string[]>(
     (config.events as string[]) || ['push']
   );
+  const isInitialMount = useRef(true);
 
   const { data: repositories = [], isLoading: isLoadingRepos } =
     useListRepositoriesQuery();
 
   useEffect(() => {
+    if (isInitialMount.current && config.repo && config.events) {
+      isInitialMount.current = false;
+      return;
+    }
+    isInitialMount.current = false;
+
     onChange({
       repo: selectedRepo,
       events: selectedEvents,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRepo, selectedEvents]);
 
   const toggleEvent = (eventId: string) => {

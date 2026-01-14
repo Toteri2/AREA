@@ -20,7 +20,6 @@ import { useBlueprintData } from './hooks/useBlueprintData';
 import { useBlueprintGraph } from './hooks/useBlueprintGraph';
 import './BlueprintEditor.css';
 
-// Custom node types
 const nodeTypes: NodeTypes = {
   action: ActionNode,
   reaction: ReactionNode,

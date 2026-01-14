@@ -4,6 +4,7 @@ interface GoogleAuthButtonProps {
   onError?: (message: string) => void;
   buttonText?: string;
   mobile?: string;
+  redirectTo?: string;
 }
 
 export function GoogleAuthButton({

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ConfigFormProps } from './types';
 
 export function GmailConfigForm({
@@ -9,11 +9,19 @@ export function GmailConfigForm({
   const [selectedGmailEventType, setSelectedGmailEventType] = useState<number>(
     (config.eventType as number) || 1
   );
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
+    if (isInitialMount.current && config.eventType) {
+      isInitialMount.current = false;
+      return;
+    }
+    isInitialMount.current = false;
+
     onChange({
       eventType: selectedGmailEventType,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedGmailEventType]);
 
   // Generate options dynamically from actions list (index + 1 corresponds to enum ID)
