@@ -33,12 +33,3 @@ export function handleAxiosError(error: any, defaultMessage = 'Request failed'):
     );
   }
 }
-
-export async function axiosRequest<T>(axiosCall: Promise<any>, errorMessage?: string): Promise<T> {
-  try {
-    const response = await axiosCall;
-    return response.data;
-  } catch (error) {
-    handleAxiosError(error, errorMessage);
-  }
-}
