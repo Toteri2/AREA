@@ -1,8 +1,9 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { CreateMicrosoftDto } from 'src/microsoft/dto/create_microsoft_dto';
 import { Hook } from 'src/shared/entities/hook.entity';
+import { handleAxiosError } from 'src/shared/utils/axios.handler';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -39,37 +40,41 @@ export class MicrosoftService {
         ? "me/mailFolders('Inbox')/messages"
         : body.resource;
 
-    const response = await axios.post(
-      `${this.baseUrl}/subscriptions`,
-      {
-        changeType: body.changeType,
-        notificationUrl: webhookUrl,
-        lifecycleNotificationUrl: webhookUrl,
-        resource: resource,
-        expirationDateTime: expirationDate.toISOString(),
-        clientState: state,
-      },
-      {
-        headers: this.getHeaders(accessToken),
-      }
-    );
-    const valid = await this.handleResponse(response);
-    if (!valid) return null;
-    const hook = this.hookRepository.create({
-      userId: userId,
-      webhookId: valid.id,
-      service: 'microsoft',
-      additionalInfos: {
-        emailAddress: emailAddress,
-        events: Array.isArray(body.changeType)
-          ? body.changeType
-          : [body.changeType],
-        resource: resource,
-      },
-    });
-    await this.hookRepository.save(hook);
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/subscriptions`,
+        {
+          changeType: body.changeType,
+          notificationUrl: webhookUrl,
+          lifecycleNotificationUrl: webhookUrl,
+          resource: resource,
+          expirationDateTime: expirationDate.toISOString(),
+          clientState: state,
+        },
+        {
+          headers: this.getHeaders(accessToken),
+        }
+      );
+      const valid = await this.handleResponse(response);
+      if (!valid) return null;
+      const hook = this.hookRepository.create({
+        userId: userId,
+        webhookId: valid.id,
+        service: 'microsoft',
+        additionalInfos: {
+          emailAddress: emailAddress,
+          events: Array.isArray(body.changeType)
+            ? body.changeType
+            : [body.changeType],
+          resource: resource,
+        },
+      });
+      await this.hookRepository.save(hook);
 
-    return { valid, hookId: hook.id };
+      return { valid, hookId: hook.id };
+    } catch (error) {
+      handleAxiosError(error, 'Failed to create Microsoft webhook');
+    }
   }
 
   getHeaders(accessToken: string) {
@@ -80,21 +85,17 @@ export class MicrosoftService {
   }
 
   async getProfile(accessToken: string) {
-    const response = await axios.get(`${this.baseUrl}me`, {
-      headers: this.getHeaders(accessToken),
-    });
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(`${this.baseUrl}me`, {
+        headers: this.getHeaders(accessToken),
+      });
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to get Microsoft profile');
+    }
   }
 
   async handleResponse(response: any) {
-    if (response.status >= 400) {
-      const error = response.data || {};
-      console.log(error);
-      throw new HttpException(
-        error.message || 'Microsoft request failed',
-        response.status
-      );
-    }
     if (response.status === 204) {
       return null;
     }
@@ -110,6 +111,8 @@ export class MicrosoftService {
         }
       );
       return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to delete Microsoft subscription');
     } finally {
       await this.hookRepository.delete({ id: id });
     }

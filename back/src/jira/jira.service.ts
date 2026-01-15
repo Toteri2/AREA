@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { AuthService } from 'src/auth/auth.service';
 import { Hook } from 'src/shared/entities/hook.entity';
+import { handleAxiosError } from 'src/shared/utils/axios.handler';
 import { Repository } from 'typeorm';
 import { CreateJiraWebhookDto } from './dto/create_jira_webhook.dto';
 
@@ -102,7 +103,7 @@ export class JiraService {
         'Error creating Jira webhook:',
         error.response?.data || error.message
       );
-      throw error;
+      handleAxiosError(error, 'Failed to create Jira webhook');
     }
   }
 
@@ -132,7 +133,7 @@ export class JiraService {
         'Error deleting Jira webhook:',
         error.response?.data || error.message
       );
-      throw error;
+      handleAxiosError(error, 'Failed to delete Jira webhook');
     }
   }
 
@@ -145,17 +146,21 @@ export class JiraService {
     const accessToken = await this.authService.getValidJiraToken(userId);
     const cloudId = provider.providerId;
 
-    const response = await axios.get(
-      `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/issue/${issueKey}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          Accept: 'application/json',
-        },
-      }
-    );
+    try {
+      const response = await axios.get(
+        `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/issue/${issueKey}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: 'application/json',
+          },
+        }
+      );
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error, 'Failed to get Jira issue');
+    }
   }
 
   async listProjects(userId: number): Promise<any> {
@@ -167,17 +172,21 @@ export class JiraService {
     const accessToken = await this.authService.getValidJiraToken(userId);
     const cloudId = provider.providerId;
 
-    const response = await axios.get(
-      `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/project`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          Accept: 'application/json',
-        },
-      }
-    );
+    try {
+      const response = await axios.get(
+        `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/project`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: 'application/json',
+          },
+        }
+      );
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error, 'Failed to list Jira projects');
+    }
   }
 
   async listProjectIssues(userId: number, projectKey: string): Promise<any> {
@@ -189,31 +198,35 @@ export class JiraService {
     const accessToken = await this.authService.getValidJiraToken(userId);
     const cloudId = provider.providerId;
 
-    const response = await axios.post(
-      `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/search/jql`,
-      {
-        jql: `project = ${projectKey}`,
-        maxResults: 100,
-        fields: [
-          'key',
-          'summary',
-          'status',
-          'assignee',
-          'priority',
-          'issuetype',
-          'created',
-          'updated',
-        ],
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
+    try {
+      const response = await axios.post(
+        `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/search/jql`,
+        {
+          jql: `project = ${projectKey}`,
+          maxResults: 100,
+          fields: [
+            'key',
+            'summary',
+            'status',
+            'assignee',
+            'priority',
+            'issuetype',
+            'created',
+            'updated',
+          ],
         },
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        }
+      );
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error, 'Failed to list project issues');
+    }
   }
 }

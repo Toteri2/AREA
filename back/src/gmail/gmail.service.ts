@@ -6,6 +6,7 @@ import { CreateGmailDto } from 'src/gmail/dto/create_gmail_dto';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { Hook } from 'src/shared/entities/hook.entity';
 import { GmailEventType } from 'src/shared/enums/gmail.enum';
+import { handleAxiosError } from 'src/shared/utils/axios.handler';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -39,47 +40,55 @@ export class GmailService {
     emailAddress?: string
   ) {
     const topicName = this.configService.getOrThrow<string>('GMAIL_TOPIC_NAME');
-    const response = await axios.post(
-      `${this.baseUrl}users/me/watch`,
-      {
-        topicName: topicName,
-      },
-      {
-        headers: this.getHeaders(accessToken),
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}users/me/watch`,
+        {
+          topicName: topicName,
+        },
+        {
+          headers: this.getHeaders(accessToken),
+        }
+      );
+
+      const valid = await this.handleResponse(response);
+      if (!valid) {
+        return null;
       }
-    );
 
-    const valid = await this.handleResponse(response);
-    if (!valid) {
-      return null;
+      const eventTypeValue = body.eventType || 1;
+      const eventTypeName = GmailEventType[eventTypeValue];
+
+      const hook = this.hookRepository.create({
+        userId: userId,
+        webhookId: valid.historyId,
+        service: 'gmail',
+        eventType: eventTypeValue,
+        additionalInfos: {
+          emailAddress: emailAddress,
+          events: [eventTypeName.toLowerCase()],
+        },
+      });
+      await this.hookRepository.save(hook);
+
+      return { valid, hookId: hook.id };
+    } catch (error) {
+      handleAxiosError(error, 'Failed to create Gmail webhook');
     }
-
-    const eventTypeValue = body.eventType || 1;
-    const eventTypeName = GmailEventType[eventTypeValue];
-
-    const hook = this.hookRepository.create({
-      userId: userId,
-      webhookId: valid.historyId,
-      service: 'gmail',
-      eventType: eventTypeValue,
-      additionalInfos: {
-        emailAddress: emailAddress,
-        events: [eventTypeName.toLowerCase()],
-      },
-    });
-    await this.hookRepository.save(hook);
-
-    return { valid, hookId: hook.id };
   }
 
   async getProfile(accessToken: string) {
-    const response = await axios.get(
-      'https://gmail.googleapis.com/gmail/v1/users/me/profile',
-      {
-        headers: this.getHeaders(accessToken),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(
+        'https://gmail.googleapis.com/gmail/v1/users/me/profile',
+        {
+          headers: this.getHeaders(accessToken),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to get Gmail profile');
+    }
   }
 
   getHeaders(accessToken: string) {
@@ -97,14 +106,18 @@ export class GmailService {
   }
 
   async stopWatch(accessToken: string) {
-    const response = await axios.post(
-      `${this.baseUrl}users/me/stop`,
-      {},
-      {
-        headers: this.getHeaders(accessToken),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}users/me/stop`,
+        {},
+        {
+          headers: this.getHeaders(accessToken),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to stop Gmail watch');
+    }
   }
 
   async deleteSubscription(id: number, accessToken: string) {
@@ -134,7 +147,7 @@ export class GmailService {
       return profile.emailAddress === emailAddress;
     } catch (error) {
       console.error('Error verifying email address:', error);
-      return false;
+      handleAxiosError(error, 'Failed to verify email address');
     }
   }
 
@@ -183,7 +196,7 @@ export class GmailService {
       );
     } catch (error) {
       console.error('Error checking message added in inbox:', error);
-      return false;
+      handleAxiosError(error, 'Failed to check message added in inbox');
     }
   }
 
@@ -205,7 +218,7 @@ export class GmailService {
       return historyData.history?.some((hist: any) => hist.messagesAdded);
     } catch (error) {
       console.error('Error checking message added:', error);
-      return false;
+      handleAxiosError(error, 'Failed to check message added');
     }
   }
 
@@ -240,7 +253,7 @@ export class GmailService {
       return result;
     } catch (error) {
       console.error('Error checking message deleted:', error);
-      return false;
+      handleAxiosError(error, 'Failed to check message deleted');
     }
   }
 
