@@ -22,6 +22,7 @@ const logoutMiddleware: Middleware = (store) => (next) => (action) => {
   const result = next(action);
   if (logout.match(action)) {
     (store.dispatch as unknown as AppDispatch)(clearToken());
+    store.dispatch(apiSlice.util.resetApiState());
   }
   return result;
 };
