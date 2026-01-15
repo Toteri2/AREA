@@ -63,8 +63,17 @@ function App() {
               <Route path='/dashboard' element={<Dashboard />} />
               <Route path='/profile' element={<Profile />} />
               <Route path='/area' element={<BlueprintEditor />} />
+              <Route path='/config' element={<Navigate to='/area' replace />} />
               <Route path='/notfound' element={<NotFound />} />
               <Route path='/' element={<Dashboard />} />
+              <Route
+                path='/login'
+                element={<Navigate to='/dashboard' replace />}
+              />
+              <Route
+                path='/register'
+                element={<Navigate to='/dashboard' replace />}
+              />
               <Route path='*' element={<Navigate to='/notfound' replace />} />
             </>
           ) : (
