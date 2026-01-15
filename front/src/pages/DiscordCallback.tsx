@@ -21,22 +21,32 @@ export function DiscordCallback() {
       return;
     }
 
-    try {
-      const decodedState = state ? JSON.parse(atob(state)) : {};
-      if (decodedState.platform === 'mobile') {
-        setStatus('Redirecting to mobile app...');
-        window.location.href = `area://auth/discord?code=${code}`;
-        return;
+    const parseState = (stateParam: string | null) => {
+      if (!stateParam) return {};
+      try {
+        return JSON.parse(atob(stateParam));
+      } catch {
+        try {
+          return JSON.parse(stateParam);
+        } catch {
+          console.warn('Could not parse state parameter');
+          return {};
+        }
       }
-    } catch (e) {
-      console.error('State decode failed', e);
+    };
+
+    const decodedState = parseState(state);
+    if (decodedState.platform === 'mobile') {
+      setStatus('Redirecting to mobile app...');
+      window.location.href = `area://auth/discord?code=${code}`;
+      return;
     }
 
     // Web flow: Link Discord account
     const linkAccount = async () => {
       setStatus('Linking your Discord account...');
       try {
-        await validateDiscord({ code }).unwrap();
+        await validateDiscord({ code, state: state || '' }).unwrap();
         setStatus('Success! Redirecting...');
         setTimeout(() => {
           navigate('/profile');
