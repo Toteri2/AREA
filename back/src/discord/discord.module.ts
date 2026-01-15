@@ -6,6 +6,7 @@ import { ReactionsModule } from '../reactions/reactions.module';
 import { Hook } from '../shared/entities/hook.entity';
 import { DiscordController } from './discord.controller';
 import { DiscordService } from './discord.service';
+import { DiscordBotService } from './discord.bot.service';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { DiscordService } from './discord.service';
     TypeOrmModule.forFeature([Hook]),
   ],
   controllers: [DiscordController],
-  providers: [DiscordService, ProviderGuard],
-  exports: [DiscordService],
+  providers: [DiscordService, DiscordBotService, ProviderGuard],
+  exports: [DiscordService, DiscordBotService],
 })
 export class DiscordModule {}

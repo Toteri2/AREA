@@ -217,6 +217,12 @@ export class DiscordController {
 
         for (const hook of hooks) {
           try {
+            if (!hook.additionalInfos || !hook.additionalInfos.events)
+              continue;
+            const hookInfo = hook.additionalInfos as any;
+            if (!hookInfo.events.includes(body.data.triggerType)) {
+              continue;
+            }
             const reactions = await this.reactionsService.findByHookId(hook.id);
 
             for (const reaction of reactions) {

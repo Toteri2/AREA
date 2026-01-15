@@ -274,9 +274,9 @@ export class AuthController {
     );
     const redirectUri = encodeURIComponent(discordAuthCallbackUrl);
     const scope = encodeURIComponent(
-      'identify email guilds guilds.members.read'
+      'identify guilds bot'
     );
-    const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`;
+    const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}&permissions=268503056`;
     return url;
   }
 
