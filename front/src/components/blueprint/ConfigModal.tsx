@@ -4,6 +4,7 @@ import type {
   ActionNodeData,
   ReactionNodeData,
 } from '../../shared/src/types';
+import { DiscordConfigForm } from './forms/DiscordConfigForm';
 import { GithubConfigForm } from './forms/GithubConfigForm';
 import { GmailConfigForm } from './forms/GmailConfigForm';
 import { MicrosoftConfigForm } from './forms/MicrosoftConfigForm';
@@ -133,6 +134,14 @@ export function ConfigModal({
               actions={
                 availableServices.find((s) => s.name === 'gmail')?.actions || []
               }
+            />
+          )}
+
+          {isAction && actionData?.service === 'discord' && (
+            <DiscordConfigForm
+              config={config}
+              onChange={handleConfigChange}
+              eventType={actionData.eventType}
             />
           )}
 

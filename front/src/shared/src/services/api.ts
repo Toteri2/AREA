@@ -293,11 +293,14 @@ export const apiSlice = createApi({
       }),
       transformResponse: (response: string) => ({ url: response }),
     }),
-    validateDiscord: builder.mutation<{ success: boolean }, { code: string }>({
-      query: ({ code }) => ({
+    validateDiscord: builder.mutation<
+      { success: boolean },
+      { code: string; state: string }
+    >({
+      query: ({ code, state }) => ({
         url: '/auth/discord/validate',
         method: 'POST',
-        body: { code },
+        body: { code, state },
       }),
     }),
     listDiscordGuilds: builder.query<
@@ -312,20 +315,33 @@ export const apiSlice = createApi({
     >({
       query: ({ guildId }) => `/discord/guilds/${guildId}/channels`,
     }),
-    listDiscordWebhooks: builder.query<
-      Array<{ id: string; guildId: string; channelId: string }>,
-      { guildId: string }
-    >({
-      query: ({ guildId }) => `/discord/guilds/${guildId}/webhooks`,
+    listDiscordWebhooks: builder.query<Hook[], void>({
+      query: () => '/discord/webhook',
+      transformResponse: (hooks: Hook[]) =>
+        hooks.map((hook) => ({
+          ...hook,
+          config: hook.additionalInfos,
+        })),
     }),
     createDiscordWebhook: builder.mutation<
       { id: string },
-      { guildId: string; channelId: string; events: string[] }
+      {
+        guildId: string;
+        channelId: string;
+        events: string[];
+        name: string;
+      }
     >({
       query: (dto) => ({
         url: '/discord/create-webhook',
         method: 'POST',
         body: dto,
+      }),
+    }),
+    deleteDiscordWebhook: builder.mutation<void, { id: string }>({
+      query: ({ id }) => ({
+        url: `/discord/webhooks/${id}`,
+        method: 'DELETE',
       }),
     }),
 
@@ -451,6 +467,7 @@ export const {
   useListDiscordChannelsQuery,
   useListDiscordWebhooksQuery,
   useCreateDiscordWebhookMutation,
+  useDeleteDiscordWebhookMutation,
 
   // Jira
   useGetJiraAuthUrlQuery,

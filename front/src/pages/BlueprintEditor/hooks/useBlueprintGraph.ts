@@ -6,10 +6,12 @@ import type {
   ReactionNodeData,
 } from '../../../shared/src/types';
 import {
+  useCreateDiscordWebhookMutation,
   useCreateGmailSubscriptionMutation,
   useCreateMicrosoftSubscriptionMutation,
   useCreateReactionMutation,
   useCreateWebhookMutation,
+  useDeleteDiscordWebhookMutation,
   useDeleteGithubWebhookMutation,
   useDeleteGmailSubscriptionMutation,
   useDeleteJiraWebhookMutation,
@@ -54,6 +56,8 @@ export function useBlueprintGraph(
   const [deleteGmailSubscription] = useDeleteGmailSubscriptionMutation();
   const [deleteJiraWebhook] = useDeleteJiraWebhookMutation();
   const [deleteGithubWebhook] = useDeleteGithubWebhookMutation();
+  const [createDiscordWebhook] = useCreateDiscordWebhookMutation();
+  const [deleteDiscordWebhook] = useDeleteDiscordWebhookMutation();
 
   // --- Graph Actions ---
 
@@ -177,6 +181,10 @@ export function useBlueprintGraph(
             if (hookIdToDelete) {
               await deleteGithubWebhook({ id: hookIdToDelete }).unwrap();
             }
+          } else if (actionData.service === 'discord') {
+            await deleteDiscordWebhook({
+              id: String(actionData.webhookId),
+            }).unwrap();
           }
         }
       }
@@ -296,6 +304,24 @@ export function useBlueprintGraph(
               isConfigured: true,
             };
             showStatus('success', 'Gmail subscription created!');
+          } else if (
+            actionData.service === 'discord' &&
+            !actionData.webhookId
+          ) {
+            const webhook = await createDiscordWebhook({
+              guildId: actionData.config.guildId as string,
+              channelId: actionData.config.channelId as string,
+              name: 'AREA Integration',
+              events: (actionData.config.events as string[]) || [
+                actionData.eventType,
+              ],
+            }).unwrap();
+            finalData = {
+              ...actionData,
+              webhookId: webhook.id,
+              isConfigured: true,
+            };
+            showStatus('success', 'Discord webhook created!');
           }
         } catch (error) {
           console.error(error);

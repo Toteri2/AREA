@@ -8,6 +8,7 @@ import type {
 } from '../../../shared/src/types';
 import {
   useConnectionQuery,
+  useListDiscordWebhooksQuery,
   useListGithubWebhooksQuery,
   useListGmailWebhooksQuery,
   useListMicrosoftWebhooksQuery,
@@ -30,6 +31,8 @@ type Webhook = {
     events?: string[];
     resource?: string;
     changeType?: string;
+    channelName?: string;
+    guildName?: string;
   };
 };
 
@@ -41,13 +44,20 @@ export function useBlueprintData() {
   const hasLoadedRef = useRef(false);
 
   // Check connections first
-  const { data: githubConn } = useConnectionQuery({ provider: 'github' });
-  const { data: gmailConn } = useConnectionQuery({ provider: 'gmail' });
-  const { data: microsoftConn } = useConnectionQuery({ provider: 'microsoft' });
+  const { data: githubConn, isLoading: isLoadingGithubConn } =
+    useConnectionQuery({ provider: 'github' });
+  const { data: gmailConn, isLoading: isLoadingGmailConn } = useConnectionQuery(
+    { provider: 'gmail' }
+  );
+  const { data: microsoftConn, isLoading: isLoadingMicrosoftConn } =
+    useConnectionQuery({ provider: 'microsoft' });
+  const { data: discordConn, isLoading: isLoadingDiscordConn } =
+    useConnectionQuery({ provider: 'discord' });
 
   const isGithubConnected = githubConn?.connected ?? false;
   const isGmailConnected = gmailConn?.connected ?? false;
   const isMicrosoftConnected = microsoftConn?.connected ?? false;
+  const isDiscordConnected = discordConn?.connected ?? false;
 
   const { data: githubWebhooks, isLoading: isLoadingGithub } =
     useListGithubWebhooksQuery(undefined, { skip: !isGithubConnected });
@@ -55,13 +65,20 @@ export function useBlueprintData() {
     useListGmailWebhooksQuery(undefined, { skip: !isGmailConnected });
   const { data: microsoftWebhooks, isLoading: isLoadingMicrosoft } =
     useListMicrosoftWebhooksQuery(undefined, { skip: !isMicrosoftConnected });
+  const { data: discordWebhooks, isLoading: isLoadingDiscord } =
+    useListDiscordWebhooksQuery(undefined, { skip: !isDiscordConnected });
   const { data: reactions, isLoading: isLoadingReactions } =
     useListReactionsQuery();
 
   const isLoading =
+    isLoadingGithubConn ||
+    isLoadingGmailConn ||
+    isLoadingMicrosoftConn ||
+    isLoadingDiscordConn ||
     isLoadingGithub ||
     isLoadingGmail ||
     isLoadingMicrosoft ||
+    isLoadingDiscord ||
     isLoadingReactions;
 
   // Aggregate all webhooks for unified processing
@@ -70,8 +87,9 @@ export function useBlueprintData() {
       ...(githubWebhooks || []),
       ...(gmailWebhooks || []),
       ...(microsoftWebhooks || []),
+      ...(discordWebhooks || []),
     ],
-    [githubWebhooks, gmailWebhooks, microsoftWebhooks]
+    [githubWebhooks, gmailWebhooks, microsoftWebhooks, discordWebhooks]
   );
 
   useEffect(() => {
@@ -129,6 +147,25 @@ export function useBlueprintData() {
           eventType: 'email_received',
           webhookId: hook.id,
           config: hook.config || { eventType: hook.eventType },
+          isConfigured: true,
+        };
+      } else if (hook.service === 'discord') {
+        nodeId = generateActionNodeId(hook.service, hook.id);
+        const event = hook.config?.events?.[0] || 'new_message_in_channel';
+        let label = `Discord: ${hook.config?.channelName || hook.config?.guildName || 'Unknown'}`;
+
+        if (event === 'reaction_added') {
+          label = `Discord: Reaction in ${hook.config?.channelName || 'Channel'}`;
+        } else if (event === 'new_message_in_channel') {
+          label = `Discord: Message in ${hook.config?.channelName || 'Channel'}`;
+        }
+
+        nodeData = {
+          label: label,
+          service: 'discord',
+          eventType: event,
+          webhookId: hook.id,
+          config: hook.config || {},
           isConfigured: true,
         };
       } else if (hook.service === 'jira') {
