@@ -2,6 +2,8 @@ import { useState } from 'react';
 import {
   useListDiscordChannelsQuery,
   useListDiscordGuildsQuery,
+  useListDiscordMembersQuery,
+  useListDiscordRolesQuery,
 } from '../../../shared/src/web';
 import type { ConfigFormProps } from './types';
 
@@ -27,7 +29,19 @@ export function ReactionConfigForm({
   const { data: discordChannels = [], isLoading: isLoadingChannels } =
     useListDiscordChannelsQuery(
       { guildId: selectedGuild },
-      { skip: !selectedGuild }
+      { skip: !selectedGuild || !configDef.fields.includes('channelId') }
+    );
+
+  const { data: discordRoles = [], isLoading: isLoadingRoles } =
+    useListDiscordRolesQuery(
+      { guildId: selectedGuild },
+      { skip: !selectedGuild || !configDef.fields.includes('roleId') }
+    );
+
+  const { data: discordMembers = [], isLoading: isLoadingMembers } =
+    useListDiscordMembersQuery(
+      { guildId: selectedGuild },
+      { skip: !selectedGuild || !configDef.fields.includes('targetUserId') }
     );
 
   const updateConfigField = (field: string, value: string) => {
@@ -118,6 +132,87 @@ export function ReactionConfigForm({
               ))}
             </select>
           )}
+        </div>
+      )}
+
+      {configDef.fields.includes('roleId') && selectedGuild && (
+        <div className='config-form-group'>
+          <label htmlFor='config-role-id'>Role</label>
+          {isLoadingRoles ? (
+            <div className='loading-spinner'>Loading roles...</div>
+          ) : (
+            <select
+              id='config-role-id'
+              value={(config.roleId as string) || ''}
+              onChange={(e) => updateConfigField('roleId', e.target.value)}
+            >
+              <option value=''>-- Select a Role --</option>
+              {discordRoles.map((role) => (
+                <option
+                  key={role.id}
+                  value={role.id}
+                  style={{
+                    color: role.color
+                      ? `#${role.color.toString(16)}`
+                      : 'inherit',
+                  }}
+                >
+                  {role.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
+
+      {configDef.fields.includes('targetUserId') && selectedGuild && (
+        <div className='config-form-group'>
+          <label htmlFor='config-target-user-id'>Target User</label>
+          {isLoadingMembers ? (
+            <div className='loading-spinner'>Loading members...</div>
+          ) : (
+            <select
+              id='config-target-user-id'
+              value={(config.targetUserId as string) || ''}
+              onChange={(e) =>
+                updateConfigField('targetUserId', e.target.value)
+              }
+            >
+              <option value=''>-- Select a User --</option>
+              {discordMembers.map((member) => (
+                <option key={member.user.id} value={member.user.id}>
+                  {member.user.username}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
+
+      {configDef.fields.includes('name') && (
+        <div className='config-form-group'>
+          <label htmlFor='config-name'>Channel Name</label>
+          <input
+            id='config-name'
+            type='text'
+            value={(config.name as string) || ''}
+            onChange={(e) => updateConfigField('name', e.target.value)}
+            placeholder='new-channel-name'
+          />
+        </div>
+      )}
+
+      {configDef.fields.includes('type') && (
+        <div className='config-form-group'>
+          <label htmlFor='config-type'>Channel Type</label>
+          <select
+            id='config-type'
+            value={(config.type as string) || '0'}
+            onChange={(e) => updateConfigField('type', e.target.value)}
+          >
+            <option value='0'>Text Channel</option>
+            <option value='2'>Voice Channel</option>
+          </select>
         </div>
       )}
 

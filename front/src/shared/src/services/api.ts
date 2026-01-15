@@ -323,6 +323,18 @@ export const apiSlice = createApi({
           config: hook.additionalInfos,
         })),
     }),
+    listDiscordRoles: builder.query<
+      Array<{ id: string; name: string; color: number }>,
+      { guildId: string }
+    >({
+      query: ({ guildId }) => `/discord/guilds/${guildId}/roles`,
+    }),
+    listDiscordMembers: builder.query<
+      Array<{ user: { id: string; username: string } }>,
+      { guildId: string }
+    >({
+      query: ({ guildId }) => `/discord/guilds/${guildId}/members`,
+    }),
     createDiscordWebhook: builder.mutation<
       { id: string },
       {
@@ -466,6 +478,8 @@ export const {
   useListDiscordGuildsQuery,
   useListDiscordChannelsQuery,
   useListDiscordWebhooksQuery,
+  useListDiscordRolesQuery,
+  useListDiscordMembersQuery,
   useCreateDiscordWebhookMutation,
   useDeleteDiscordWebhookMutation,
 
