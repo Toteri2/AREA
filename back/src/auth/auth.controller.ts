@@ -274,9 +274,9 @@ export class AuthController {
     );
     const redirectUri = encodeURIComponent(discordAuthCallbackUrl);
     const scope = encodeURIComponent(
-      'identify email guilds guilds.members.read'
+      'identify guilds bot'
     );
-    const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`;
+    const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}&permissions=268503056`;
     return url;
   }
 
@@ -560,7 +560,7 @@ export class AuthController {
 
     const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
     const scope = encodeURIComponent(
-      'read:jira-work write:jira-work read:jira-user manage:jira-webhook delete:jira-webhook offline_access'
+      'read:jira-work write:jira-work read:jira-user manage:jira-webhook offline_access'
     );
     const url = `https://auth.atlassian.com/authorize?audience=api.atlassian.com&client_id=${clientId}&scope=${scope}&redirect_uri=${redirectUri}&state=${state}&response_type=code&prompt=consent`;
     return url;

@@ -28,6 +28,8 @@ async function bootstrap() {
         'https://matfront.mambokara.dev/',
         'http://localhost:5173',
         'http://localhost:5173/',
+        'http://localhost:4173',
+        'http://localhost:4173/',
       ];
 
       if (!origin || allowed.includes(origin)) {
