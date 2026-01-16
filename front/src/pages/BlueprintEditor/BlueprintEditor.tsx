@@ -1,10 +1,12 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import ReactFlow, {
   Background,
   Controls,
   MiniMap,
   type Node,
   type NodeTypes,
+  ReactFlowProvider,
+  useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { ActionNode, ReactionNode } from '../../components/blueprint';
@@ -25,7 +27,7 @@ const nodeTypes: NodeTypes = {
   reaction: ReactionNode,
 };
 
-function BlueprintEditor() {
+function BlueprintEditorContent() {
   // UI State
   const [selectedNode, setSelectedNode] = useState<Node<
     ActionNodeData | ReactionNodeData
@@ -63,6 +65,7 @@ function BlueprintEditor() {
     onDragStart,
     onDragOver,
     onDrop,
+    addNode,
   } = useBlueprintGraph(
     nodes,
     setNodes,
@@ -78,6 +81,22 @@ function BlueprintEditor() {
   const availableServices = useMemo(
     () => servicesData?.server?.services ?? [],
     [servicesData?.server?.services]
+  );
+
+  // Canvas Ref
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const { project } = useReactFlow();
+
+  const handleSidebarDoubleClick = useCallback(
+    (type: 'action' | 'reaction', data: ActionNodeData | ReactionNodeData) => {
+      if (!canvasRef.current) return;
+
+      const { width, height } = canvasRef.current.getBoundingClientRect();
+      const position = project({ x: width / 2, y: height / 2 });
+
+      addNode(type, data, position);
+    },
+    [addNode, project]
   );
 
   // Connection Guards
@@ -229,6 +248,16 @@ function BlueprintEditor() {
                         isConfigured: false,
                       })
                     }
+                    onDoubleClick={() =>
+                      isConnected &&
+                      handleSidebarDoubleClick('action', {
+                        label: action.description,
+                        service: service.name as ServiceType,
+                        eventType: action.name,
+                        config: {},
+                        isConfigured: false,
+                      })
+                    }
                     title={
                       isConnected
                         ? action.description
@@ -308,6 +337,22 @@ function BlueprintEditor() {
                           isConfigured: false,
                         })
                       }
+                      onDoubleClick={() =>
+                        isConnected &&
+                        handleSidebarDoubleClick('reaction', {
+                          label:
+                            reaction.description ||
+                            reaction.name.replace(/_/g, ' '),
+                          reactionType: getReactionId(
+                            service.name,
+                            reaction.name
+                          ),
+                          reactionName: reaction.name,
+                          serviceName: service.name,
+                          config: {},
+                          isConfigured: false,
+                        })
+                      }
                       title={
                         isConnected
                           ? reaction.description
@@ -349,6 +394,7 @@ function BlueprintEditor() {
       {/* Canvas */}
       <section
         className='blueprint-canvas'
+        ref={canvasRef}
         onDrop={onDrop}
         onDragOver={onDragOver}
         aria-label='Blueprint Canvas'
@@ -392,6 +438,14 @@ function BlueprintEditor() {
         />
       )}
     </div>
+  );
+}
+
+function BlueprintEditor() {
+  return (
+    <ReactFlowProvider>
+      <BlueprintEditorContent />
+    </ReactFlowProvider>
   );
 }
 

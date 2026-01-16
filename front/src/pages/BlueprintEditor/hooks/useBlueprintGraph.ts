@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import type { Connection, Edge, Node } from 'reactflow';
-import { addEdge } from 'reactflow';
+import { addEdge, useReactFlow } from 'reactflow';
 import type {
   ActionNodeData,
   ReactionNodeData,
@@ -46,7 +46,7 @@ export function useBlueprintGraph(
   ) => void,
   setShowConfigModal: (show: boolean) => void
 ) {
-  // Mutations
+  const { project } = useReactFlow();
   const [createWebhook] = useCreateWebhookMutation();
   const [createMicrosoftSubscription] =
     useCreateMicrosoftSubscriptionMutation();
@@ -382,6 +382,20 @@ export function useBlueprintGraph(
     event.dataTransfer.effectAllowed = 'move';
   };
 
+  // Node Creation Helper
+  const addNode = useCallback(
+    (
+      type: string,
+      data: ActionNodeData | ReactionNodeData,
+      position: { x: number; y: number }
+    ) => {
+      setNodes((nds) =>
+        nds.concat({ id: generateUniqueNodeId(), type, position, data })
+      );
+    },
+    [setNodes]
+  );
+
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
@@ -390,17 +404,16 @@ export function useBlueprintGraph(
 
       if (!type || !dataStr) return;
       const data: ActionNodeData | ReactionNodeData = JSON.parse(dataStr);
-      const reactFlowBounds = event.currentTarget.getBoundingClientRect();
-      const position = {
-        x: event.clientX - reactFlowBounds.left - 100,
-        y: event.clientY - reactFlowBounds.top - 40,
-      };
 
-      setNodes((nds) =>
-        nds.concat({ id: generateUniqueNodeId(), type, position, data })
-      );
+      const reactFlowBounds = event.currentTarget.getBoundingClientRect();
+      const position = project({
+        x: event.clientX - reactFlowBounds.left,
+        y: event.clientY - reactFlowBounds.top,
+      });
+
+      addNode(type, data, position);
     },
-    [setNodes]
+    [addNode, project]
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -436,5 +449,6 @@ export function useBlueprintGraph(
     onDragStart,
     onDragOver,
     onDrop,
+    addNode,
   };
 }
