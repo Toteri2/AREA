@@ -15,7 +15,7 @@ export function AreaWebView({ url }: AreaWebViewProps) {
       try {
         const token = ${JSON.stringify(token || '')};
         if (token) {
-          localStorage.setItem('token', token);
+          localStorage.setItem('area_token', token);
           console.log('Token set successfully');
         }
       } catch (e) {

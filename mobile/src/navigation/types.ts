@@ -5,10 +5,11 @@ export type RootStackParamList = {
   Dashboard: undefined;
   Profile: undefined;
   GitHub: undefined;
+  Area: undefined;
 };
 
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
+    interface RootParamList extends RootStackParamList { }
   }
 }

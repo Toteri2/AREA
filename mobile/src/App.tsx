@@ -13,6 +13,7 @@ import {
   useValidateGithubMutation,
   useValidateGoogleMutation,
   useValidateMicrosoftMutation,
+  useValidateDiscordMutation,
 } from './shared/src/native';
 import styles from './style/index';
 
@@ -24,6 +25,7 @@ function AppNavigator() {
   const [validateGithub] = useValidateGithubMutation();
   const [validateGoogle] = useValidateGoogleMutation();
   const [validateMicrosoft] = useValidateMicrosoftMutation();
+  const [validateDiscord] = useValidateDiscordMutation();
 
   useEffect(() => {
     const handleDeepLink = async ({ url }: { url: string }) => {
