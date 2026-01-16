@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { ProviderGuard } from '../auth/guards/provider.guard';
@@ -7,6 +7,7 @@ import { Hook } from '../shared/entities/hook.entity';
 import { OAuthState } from '../shared/entities/oauthstates.entity';
 import { Provider } from '../shared/entities/provider.entity';
 import { User } from '../shared/entities/user.entity';
+import { webhookRateLimiter } from '../shared/middleware/rate-limiters';
 import { JiraController } from './jira.controller';
 import { JiraService } from './jira.service';
 
@@ -20,4 +21,10 @@ import { JiraService } from './jira.service';
   providers: [JiraService, ProviderGuard],
   exports: [JiraService],
 })
-export class JiraModule {}
+export class JiraModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(webhookRateLimiter)
+      .forRoutes({ path: 'jira/create-webhook', method: RequestMethod.POST });
+  }
+}

@@ -9,7 +9,7 @@ export class TwitchService {
   private readonly baseUrl = 'https://api.twitch.tv/helix';
   private readonly webhookSecret: string;
   private lastRequestTime = 0;
-  private readonly minRequestInterval = 100; // 100ms between API calls to Twitch
+  private readonly minRequestInterval = 100;
 
   constructor(private configService: ConfigService) {
     this.webhookSecret = this.configService.getOrThrow<string>(
