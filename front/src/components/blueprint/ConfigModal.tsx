@@ -9,6 +9,7 @@ import { GithubConfigForm } from './forms/GithubConfigForm';
 import { GmailConfigForm } from './forms/GmailConfigForm';
 import { MicrosoftConfigForm } from './forms/MicrosoftConfigForm';
 import { ReactionConfigForm } from './forms/ReactionConfigForm';
+import { TwitchConfigForm } from './forms/TwitchConfigForm';
 
 interface ConfigModalProps {
   nodeType: 'action' | 'reaction';
@@ -20,18 +21,57 @@ interface ConfigModalProps {
 }
 
 // Reaction types with their required fields
-const REACTION_CONFIGS: Record<number, { label: string; fields: string[] }> = {
-  1: { label: 'Email (Outlook)', fields: ['to', 'subject', 'body'] },
-  2: { label: 'Discord Message', fields: ['guildId', 'channelId', 'content'] },
-  3: { label: 'Discord Channel', fields: ['guildId', 'name', 'type'] },
-  4: { label: 'Discord Role', fields: ['guildId', 'targetUserId', 'roleId'] },
-  5: { label: 'Email (Gmail)', fields: ['to', 'subject', 'body'] },
-  6: {
-    label: 'Jira Issue',
-    fields: ['projectKey', 'summary', 'issueType', 'description', 'priority'],
+const REACTION_CONFIGS: Record<
+  string,
+  { label: string; fields: string[]; service: string }
+> = {
+  'microsoft.send_email': {
+    label: 'Email (Outlook)',
+    fields: ['to', 'subject', 'body'],
+    service: 'microsoft',
   },
-  7: { label: 'Jira Comment', fields: ['issueKey', 'comment'] },
-  8: { label: 'Jira Status', fields: ['issueKey', 'transitionName'] },
+  'discord.send_message': {
+    label: 'Discord Message',
+    fields: ['guildId', 'channelId', 'content'],
+    service: 'discord',
+  },
+  'discord.create_private_channel': {
+    label: 'Discord Channel',
+    fields: ['guildId', 'name', 'type'],
+    service: 'discord',
+  },
+  'discord.add_role_to_user': {
+    label: 'Discord Role',
+    fields: ['guildId', 'targetUserId', 'roleId'],
+    service: 'discord',
+  },
+  'gmail.send_email': {
+    label: 'Email (Gmail)',
+    fields: ['to', 'subject', 'body'],
+    service: 'gmail',
+  },
+  'jira.create_issue': {
+    label: 'Jira Issue',
+    fields: [
+      'projectKey',
+      'summary',
+      'issueType',
+      'description',
+      'priority',
+      'labels',
+    ],
+    service: 'jira',
+  },
+  'jira.add_comment': {
+    label: 'Jira Comment',
+    fields: ['issueKey', 'comment'],
+    service: 'jira',
+  },
+  'jira.update_status': {
+    label: 'Jira Status',
+    fields: ['issueKey', 'transitionName'],
+    service: 'jira',
+  },
 };
 
 export function ConfigModal({
@@ -47,7 +87,6 @@ export function ConfigModal({
   const reactionData = !isAction ? (nodeData as ReactionNodeData) : null;
 
   // Local state for form
-  const [label, setLabel] = useState(nodeData.label || '');
   const [config, setConfig] = useState<Record<string, unknown>>(
     nodeData.config || {}
   );
@@ -59,16 +98,17 @@ export function ConfigModal({
   const handleSave = () => {
     const updatedData = {
       ...nodeData,
-      label: label || nodeData.label,
       config,
       isConfigured: true,
     };
     onSave(updatedData);
   };
 
-  const reactionConfig = reactionData
-    ? REACTION_CONFIGS[reactionData.reactionType]
-    : null;
+  let reactionConfig = null;
+  if (reactionData?.serviceName && reactionData.reactionName) {
+    const key = `${reactionData.serviceName}.${reactionData.reactionName}`;
+    reactionConfig = REACTION_CONFIGS[key];
+  }
 
   // determine sub-label
   let subTitle = '';
@@ -103,18 +143,6 @@ export function ConfigModal({
         </div>
 
         <div className='config-modal-body'>
-          {/* Common Label Field */}
-          <div className='config-form-group'>
-            <label htmlFor='node-label'>Label</label>
-            <input
-              id='node-label'
-              type='text'
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              placeholder='Give this block a name...'
-            />
-          </div>
-
           {/* Service Specific Forms */}
           {isAction && actionData?.service === 'github' && (
             <GithubConfigForm config={config} onChange={handleConfigChange} />
@@ -139,6 +167,14 @@ export function ConfigModal({
 
           {isAction && actionData?.service === 'discord' && (
             <DiscordConfigForm
+              config={config}
+              onChange={handleConfigChange}
+              eventType={actionData.eventType}
+            />
+          )}
+
+          {isAction && actionData?.service === 'twitch' && (
+            <TwitchConfigForm
               config={config}
               onChange={handleConfigChange}
               eventType={actionData.eventType}

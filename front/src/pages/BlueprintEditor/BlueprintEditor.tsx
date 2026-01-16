@@ -83,6 +83,7 @@ export function BlueprintEditor() {
   const gmailConnection = useConnectionQuery({ provider: 'gmail' });
   const discordConnection = useConnectionQuery({ provider: 'discord' });
   const jiraConnection = useConnectionQuery({ provider: 'jira' });
+  const twitchConnection = useConnectionQuery({ provider: 'twitch' });
 
   const connectedServices = {
     github: githubConnection.data?.connected ?? false,
@@ -90,7 +91,7 @@ export function BlueprintEditor() {
     gmail: gmailConnection.data?.connected ?? false,
     discord: discordConnection.data?.connected ?? false,
     jira: jiraConnection.data?.connected ?? false,
-    twitch: false,
+    twitch: twitchConnection.data?.connected ?? false,
   };
 
   const nodeColor = (node: Node<ActionNodeData | ReactionNodeData>) => {

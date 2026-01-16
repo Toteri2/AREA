@@ -10,6 +10,7 @@ import {
   useCreateGmailSubscriptionMutation,
   useCreateMicrosoftSubscriptionMutation,
   useCreateReactionMutation,
+  useCreateTwitchWebhookMutation,
   useCreateWebhookMutation,
   useDeleteDiscordWebhookMutation,
   useDeleteGithubWebhookMutation,
@@ -17,6 +18,7 @@ import {
   useDeleteJiraWebhookMutation,
   useDeleteMicrosoftSubscriptionMutation,
   useDeleteReactionMutation,
+  useDeleteTwitchWebhookMutation,
 } from '../../../shared/src/web';
 import {
   generateEdgeId,
@@ -58,6 +60,8 @@ export function useBlueprintGraph(
   const [deleteGithubWebhook] = useDeleteGithubWebhookMutation();
   const [createDiscordWebhook] = useCreateDiscordWebhookMutation();
   const [deleteDiscordWebhook] = useDeleteDiscordWebhookMutation();
+  const [createTwitchWebhook] = useCreateTwitchWebhookMutation();
+  const [deleteTwitchWebhook] = useDeleteTwitchWebhookMutation();
 
   // --- Graph Actions ---
 
@@ -184,6 +188,10 @@ export function useBlueprintGraph(
           } else if (actionData.service === 'discord') {
             await deleteDiscordWebhook({
               id: String(actionData.webhookId),
+            }).unwrap();
+          } else if (actionData.service === 'twitch') {
+            await deleteTwitchWebhook({
+              id: Number(actionData.webhookId),
             }).unwrap();
           }
         }
@@ -318,10 +326,21 @@ export function useBlueprintGraph(
             }).unwrap();
             finalData = {
               ...actionData,
-              webhookId: webhook.id,
+              webhookId: webhook.hookId,
               isConfigured: true,
             };
             showStatus('success', 'Discord webhook created!');
+          } else if (actionData.service === 'twitch' && !actionData.webhookId) {
+            const webhook = await createTwitchWebhook({
+              broadcasterUserId: actionData.config.broadcasterUserId as string,
+              eventType: actionData.eventType,
+            }).unwrap();
+            finalData = {
+              ...actionData,
+              webhookId: webhook.hookId,
+              isConfigured: true,
+            };
+            showStatus('success', 'Twitch webhook created!');
           }
         } catch (error) {
           console.error(error);
