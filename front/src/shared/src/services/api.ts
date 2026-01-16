@@ -336,7 +336,7 @@ export const apiSlice = createApi({
       query: ({ guildId }) => `/discord/guilds/${guildId}/members`,
     }),
     createDiscordWebhook: builder.mutation<
-      { id: string },
+      { result: unknown; hookId: number },
       {
         guildId: string;
         channelId: string;
@@ -349,6 +349,7 @@ export const apiSlice = createApi({
         method: 'POST',
         body: dto,
       }),
+      invalidatesTags: ['Webhooks'],
     }),
     deleteDiscordWebhook: builder.mutation<void, { id: string }>({
       query: ({ id }) => ({
@@ -376,6 +377,62 @@ export const apiSlice = createApi({
         body: { code },
       }),
     }),
+
+    // --- Twitch ---
+    getTwitchAuthUrl: builder.query<
+      { url: string },
+      { mobile?: boolean } | undefined
+    >({
+      query: (args) => ({
+        url: '/auth/twitch/url',
+        params: args?.mobile ? { mobile: 'true' } : undefined,
+        responseHandler: (response: Response) => response.text(),
+      }),
+      transformResponse: (response: string) => ({ url: response }),
+    }),
+    validateTwitch: builder.mutation<
+      { success: boolean },
+      { code: string; state: string }
+    >({
+      query: ({ code, state }) => ({
+        url: '/auth/twitch/validate',
+        method: 'POST',
+        body: { code, state },
+      }),
+    }),
+    getTwitchProfile: builder.query<
+      { data: { id: string; login: string }[] },
+      void
+    >({
+      query: () => '/twitch/me',
+    }),
+    createTwitchWebhook: builder.mutation<
+      { result: unknown; hookId: number },
+      { broadcasterUserId: string; eventType: string; secret?: string }
+    >({
+      query: (dto) => ({
+        url: '/twitch/create-webhook',
+        method: 'POST',
+        body: dto,
+      }),
+      invalidatesTags: ['Webhooks'],
+    }),
+    listTwitchWebhooks: builder.query<Hook[], void>({
+      query: () => '/twitch/webhook',
+      transformResponse: (hooks: Hook[]) =>
+        hooks.map((hook) => ({
+          ...hook,
+          config: hook.additionalInfos,
+        })),
+      providesTags: ['Webhooks'],
+    }),
+    deleteTwitchWebhook: builder.mutation<void, { id: number }>({
+      query: ({ id }) => ({
+        url: `/twitch/webhook/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Webhooks'],
+    }),
     listJiraProjects: builder.query<
       Array<{ id: string; key: string; name: string }>,
       void
@@ -387,6 +444,18 @@ export const apiSlice = createApi({
       void
     >({
       query: () => '/jira/webhooks',
+    }),
+    listJiraProjectIssues: builder.query<
+      Array<{ id: string; key: string; fields: { summary: string } }>,
+      { projectKey: string }
+    >({
+      query: ({ projectKey }) => `/jira/${projectKey}/issues`,
+      transformResponse: (response: { issues: Record<string, unknown>[] }) =>
+        response.issues as unknown as Array<{
+          id: string;
+          key: string;
+          fields: { summary: string };
+        }>,
     }),
     createJiraWebhook: builder.mutation<
       { id: string },
@@ -424,12 +493,6 @@ export const apiSlice = createApi({
         method: 'DELETE',
       }),
       invalidatesTags: ['Reactions'],
-    }),
-
-    // --- Legacy / Generic ---
-    listUserWebhooks: builder.query<Hook[], void>({
-      query: () => '/users/webhooks',
-      providesTags: ['Webhooks'],
     }),
   }),
 });
@@ -488,14 +551,20 @@ export const {
   useValidateJiraMutation,
   useListJiraProjectsQuery,
   useListJiraWebhooksQuery,
+  useLazyListJiraProjectIssuesQuery,
   useCreateJiraWebhookMutation,
   useDeleteJiraWebhookMutation,
+
+  // Twitch
+  useGetTwitchAuthUrlQuery,
+  useValidateTwitchMutation,
+  useGetTwitchProfileQuery,
+  useCreateTwitchWebhookMutation,
+  useListTwitchWebhooksQuery,
+  useDeleteTwitchWebhookMutation,
 
   // Reactions
   useListReactionsQuery,
   useCreateReactionMutation,
   useDeleteReactionMutation,
-
-  // Legacy
-  useListUserWebhooksQuery,
 } = apiSlice;
