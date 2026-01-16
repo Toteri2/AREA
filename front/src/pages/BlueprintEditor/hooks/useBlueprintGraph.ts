@@ -116,19 +116,24 @@ export function useBlueprintGraph(
                 return {
                   ...n,
                   id: generateReactionNodeId(newReaction.id),
+                  position: targetNode.position,
+                  positionAbsolute: targetNode.positionAbsolute,
                   data: { ...n.data, reactionId: newReaction.id },
+                  selected: true,
                 };
               }
               return n;
             })
           );
+          const newEdgeId = generateEdgeId(finalHookId, newReaction.id);
+          const newTargetId = generateReactionNodeId(newReaction.id);
 
           setEdges((eds) =>
             addEdge(
               {
                 ...params,
-                target: generateReactionNodeId(newReaction.id),
-                id: generateEdgeId(finalHookId, newReaction.id),
+                target: newTargetId,
+                id: newEdgeId,
                 animated: true,
                 style: { stroke: '#9e9e9e', strokeWidth: 2 },
               },

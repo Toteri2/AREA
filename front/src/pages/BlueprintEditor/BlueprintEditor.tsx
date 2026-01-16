@@ -33,6 +33,7 @@ function BlueprintEditorContent() {
     ActionNodeData | ReactionNodeData
   > | null>(null);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -211,8 +212,20 @@ function BlueprintEditorContent() {
         </div>
       )}
 
+      {/* Mobile Toggle Button */}
+      <button
+        type='button'
+        className='mobile-sidebar-toggle'
+        onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        aria-label='Toggle Sidebar'
+      >
+        {isMobileSidebarOpen ? '✕' : '☰'}
+      </button>
+
       {/* Sidebar */}
-      <aside className='blueprint-sidebar'>
+      <aside
+        className={`blueprint-sidebar ${isMobileSidebarOpen ? 'open' : ''}`}
+      >
         <h2>Blocks</h2>
         <section className='sidebar-section'>
           <h3>⚡ Actions</h3>

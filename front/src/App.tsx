@@ -9,6 +9,7 @@ import {
 } from 'shared-redux/web';
 import { GoogleCallback } from './components/GoogleCallback';
 import AppLayout from './layout/AppLayout';
+import MobileLayout from './layout/MobileLayout';
 import NoNavbarLayout from './layout/NoNavbarLayout';
 import './App.css';
 
@@ -111,6 +112,11 @@ function App() {
                 <Route path='*' element={<Navigate to='/login' replace />} />
               </>
             )}
+          </Route>
+
+          {/* Mobile Routes */}
+          <Route element={<MobileLayout />}>
+            <Route path='/mobile/area' element={<BlueprintEditor />} />
           </Route>
         </Routes>
       </Suspense>

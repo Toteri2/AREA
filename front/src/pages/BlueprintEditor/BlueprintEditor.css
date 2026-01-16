@@ -546,3 +546,83 @@
     margin-bottom: 16px;
     font-size: 0.9rem;
 }
+
+/* Mobile Responsiveness */
+.mobile-sidebar-toggle {
+    display: none;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1100;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-size: 1.2rem;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+}
+
+@media (max-width: 768px) {
+    .blueprint-editor {
+        top: 0;
+        /* Full screen on mobile */
+        flex-direction: column;
+    }
+
+    .mobile-sidebar-toggle {
+        display: flex;
+    }
+
+    .blueprint-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 80%;
+        max-width: 300px;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1000;
+        box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .blueprint-sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* Overlay when sidebar is open */
+    .blueprint-sidebar.open::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 100%;
+        width: 100vw;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        display: block;
+    }
+
+    .blueprint-info-panel {
+        width: 90%;
+        right: 5%;
+        top: 60px;
+        /* Below toggle button */
+        max-height: 30vh;
+        overflow-y: auto;
+    }
+
+    .config-modal {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    /* Hide all React Flow controls on mobile to prevent overlap and clutter */
+    .react-flow__controls {
+        display: none !important;
+    }
+}
