@@ -10,6 +10,7 @@ import {
   useGetJiraAuthUrlQuery,
   useGetMicrosoftAuthUrlQuery,
   useGetServicesQuery,
+  useGetTwitchAuthUrlQuery,
 } from '../shared/src/web';
 
 type Service = {
@@ -89,6 +90,10 @@ export function Profile() {
     serviceNames.has('jira') ? undefined : skipToken
   );
 
+  const { refetch: getTwitchAuthUrl } = useGetTwitchAuthUrlQuery(
+    serviceNames.has('twitch') ? undefined : skipToken
+  );
+
   const githubConnection = useConnectionQuery(
     serviceNames.has('github') ? { provider: 'github' } : skipToken
   );
@@ -107,6 +112,10 @@ export function Profile() {
 
   const jiraConnection = useConnectionQuery(
     serviceNames.has('jira') ? { provider: 'jira' } : skipToken
+  );
+
+  const twitchConnection = useConnectionQuery(
+    serviceNames.has('twitch') ? { provider: 'twitch' } : skipToken
   );
 
   const handleOAuthRedirect = async (
@@ -210,6 +219,19 @@ export function Profile() {
                     isLoading={jiraConnection.isLoading}
                     isLinked={jiraConnection.data?.connected === true}
                     onLink={() => handleOAuthRedirect(getJiraAuthUrl, 'Jira')}
+                  />
+                );
+
+              case 'twitch':
+                return (
+                  <ServiceLinker
+                    key='twitch'
+                    label='Twitch'
+                    isLoading={twitchConnection.isLoading}
+                    isLinked={twitchConnection.data?.connected === true}
+                    onLink={() =>
+                      handleOAuthRedirect(getTwitchAuthUrl, 'Twitch')
+                    }
                   />
                 );
 

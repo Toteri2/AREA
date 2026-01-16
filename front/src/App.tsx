@@ -16,11 +16,13 @@ import {
   DiscordCallback,
   GitHubCallback,
   GmailCallback,
+  JiraCallback,
   Login,
   MicrosoftCallback,
   NotFound,
   Profile,
   Register,
+  TwitchCallback,
 } from './pages';
 import './App.css';
 
@@ -55,6 +57,8 @@ function App() {
           <Route path='/microsoft/callback' element={<MicrosoftCallback />} />
           <Route path='/google/callback' element={<GoogleCallback />} />
           <Route path='/discord/callback' element={<DiscordCallback />} />
+          <Route path='/jira/callback' element={<JiraCallback />} />
+          <Route path='/twitch/callback' element={<TwitchCallback />} />
         </Route>
 
         <Route element={<AppLayout />}>
