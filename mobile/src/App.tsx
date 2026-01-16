@@ -10,10 +10,10 @@ import {
   store,
   useAppSelector,
   useGetProfileQuery,
+  useValidateDiscordMutation,
   useValidateGithubMutation,
   useValidateGoogleMutation,
   useValidateMicrosoftMutation,
-  useValidateDiscordMutation,
 } from './shared/src/native';
 import styles from './style/index';
 

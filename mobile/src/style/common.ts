@@ -5,18 +5,18 @@ export const common = StyleSheet.create({
     backgroundColor: '#1a1a2e',
   },
   contentApp: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#ffffffff',
   },
   headerTitleApp: {
     fontWeight: '600',
   },
 
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ffffffff',
-  },
+  // loadingContainer: {
+  //   flex: 1,
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  //   backgroundColor: '#ffffffff',
+  // },
 
   container: {
     flex: 1,

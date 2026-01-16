@@ -39,7 +39,7 @@ export function Dashboard() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.welcomeCard}>
         <Text style={styles.welcomeTitle}>Welcome, {user?.name}!</Text>
-        <Text style={styles.welcomeEmail}>{user?.email}</Text>
+        {/* <Text style={styles.welcomeEmail}>{user?.email}</Text> */}
       </View>
 
       <View style={styles.cardsContainer}>

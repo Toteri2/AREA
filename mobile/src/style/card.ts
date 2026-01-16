@@ -1,24 +1,38 @@
 import { StyleSheet } from 'react-native';
 
 export const card = StyleSheet.create({
-  // card: {
-  //   backgroundColor: '#16213e',
-  //   borderRadius: 12,
-  //   padding: 24,
-  //   shadowColor: '#000',
-  //   shadowOffset: { width: 0, height: 2 },
-  //   shadowOpacity: 0.25,
-  //   shadowRadius: 3.84,
-  //   elevation: 5,
-  // },
+  cardsContainer: {
+    gap: 16,
+  },
+
+  welcomeCard: {
+    backgroundColor: '#ffffffff',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 24,
+  },
+  welcomeTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#000000ff',
+    marginBottom: 8,
+  },
+
   card: {
-    backgroundColor: '#16213e',
+    backgroundColor: '#ffffffff',
     borderRadius: 12,
     padding: 20,
     borderLeftWidth: 4,
-    borderLeftColor: '#e94560',
+    borderLeftColor: '#98b9ffff',
   },
-  cardsContainer: {
-    gap: 16,
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000ff',
+    marginBottom: 8,
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: '#5c5c5cff',
   },
 });
