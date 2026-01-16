@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAppSelector } from '../shared/src/web';
 
-export function Dashboard() {
+function Dashboard() {
   const { user } = useAppSelector((state) => state.auth);
 
   return (
@@ -24,3 +24,6 @@ export function Dashboard() {
     </div>
   );
 }
+
+export { Dashboard };
+export default Dashboard;

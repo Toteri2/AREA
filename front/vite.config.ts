@@ -23,5 +23,17 @@ export default defineConfig(({ mode }) => {
                 },
             },
         },
+        build: {
+            rollupOptions: {
+                output: {
+                    manualChunks: {
+                        'react-vendor': ['react', 'react-dom'],
+                        'redux-vendor': ['@reduxjs/toolkit', 'react-redux'],
+                        'reactflow-vendor': ['reactflow'],
+                    },
+                },
+            },
+            chunkSizeWarningLimit: 500,
+        },
     }
 })

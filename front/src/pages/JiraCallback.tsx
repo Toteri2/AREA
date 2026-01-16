@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useValidateJiraMutation } from '../shared/src/web';
 
-export function JiraCallback() {
+function JiraCallback() {
   const navigate = useNavigate();
   const [status, setStatus] = useState('Validating session...');
   const [validateJira, { isLoading }] = useValidateJiraMutation();
@@ -55,3 +55,6 @@ export function JiraCallback() {
     </div>
   );
 }
+
+export { JiraCallback };
+export default JiraCallback;

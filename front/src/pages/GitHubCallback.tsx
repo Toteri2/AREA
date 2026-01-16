@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useValidateGithubMutation } from '../shared/src/web';
 
-export function GitHubCallback() {
+function GitHubCallback() {
   const navigate = useNavigate();
   const [status, setStatus] = useState('Validating session...');
   const [validateGithub, { isLoading }] = useValidateGithubMutation();
@@ -57,3 +57,6 @@ export function GitHubCallback() {
     </div>
   );
 }
+
+export { GitHubCallback };
+export default GitHubCallback;

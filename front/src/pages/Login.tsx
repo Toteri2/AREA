@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { GoogleAuthButton } from '../components/GoogleAuthButton';
 import { useLoginMutation } from '../shared/src/web';
 
-export function Login() {
+function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -68,3 +68,6 @@ export function Login() {
     </div>
   );
 }
+
+export { Login };
+export default Login;

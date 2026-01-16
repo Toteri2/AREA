@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useValidateTwitchMutation } from '../shared/src/web';
 
-export function TwitchCallback() {
+function TwitchCallback() {
   const navigate = useNavigate();
   const [status, setStatus] = useState('Validating session...');
   const [validateTwitch, { isLoading }] = useValidateTwitchMutation();
@@ -60,3 +60,6 @@ export function TwitchCallback() {
     </div>
   );
 }
+
+export { TwitchCallback };
+export default TwitchCallback;

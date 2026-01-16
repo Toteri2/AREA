@@ -46,6 +46,9 @@ export const apiSlice = createApi({
     const cachedBaseQuery = getCachedBaseQuery(baseUrl);
     return cachedBaseQuery(args, api, extraOptions);
   },
+  keepUnusedDataFor: 300,
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
   tagTypes: [
     'User',
     'Repos',
@@ -105,6 +108,7 @@ export const apiSlice = createApi({
         url: '/about.json',
         method: 'GET',
       }),
+      keepUnusedDataFor: 3600,
     }),
 
     // --- Google Auth ---
@@ -153,6 +157,7 @@ export const apiSlice = createApi({
     listRepositories: builder.query<Repository[], void>({
       query: () => '/github/repositories',
       providesTags: ['Repos'],
+      keepUnusedDataFor: 120,
     }),
     listGithubWebhooks: builder.query<Hook[], void>({
       query: () => '/github/webhook',
@@ -308,6 +313,7 @@ export const apiSlice = createApi({
       void
     >({
       query: () => '/discord/guilds',
+      keepUnusedDataFor: 600,
     }),
     listDiscordChannels: builder.query<
       Array<{ id: string; name: string; type: number }>,

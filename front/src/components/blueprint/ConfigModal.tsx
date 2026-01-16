@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import type {
   AboutResponse,
   ActionNodeData,
@@ -74,7 +74,7 @@ const REACTION_CONFIGS: Record<
   },
 };
 
-export function ConfigModal({
+function ConfigModalComponent({
   nodeType,
   nodeData,
   onSave,
@@ -91,18 +91,38 @@ export function ConfigModal({
     nodeData.config || {}
   );
 
-  const handleConfigChange = (newConfig: Record<string, unknown>) => {
-    setConfig((prev) => ({ ...prev, ...newConfig }));
-  };
+  const handleConfigChange = useCallback(
+    (newConfig: Record<string, unknown>) => {
+      setConfig((prev) => ({ ...prev, ...newConfig }));
+    },
+    []
+  );
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     const updatedData = {
       ...nodeData,
       config,
       isConfigured: true,
     };
     onSave(updatedData);
-  };
+  }, [nodeData, config, onSave]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
+  const handleOverlayClick = useCallback(() => {
+    onClose();
+  }, [onClose]);
+
+  const handleModalClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+  }, []);
 
   let reactionConfig = null;
   if (reactionData?.serviceName && reactionData.reactionName) {
@@ -121,12 +141,12 @@ export function ConfigModal({
     // biome-ignore lint/a11y/noStaticElementInteractions: Overlay click-to-close is intentional UX pattern
     <div
       className='config-modal-overlay'
-      onClick={onClose}
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      onClick={handleOverlayClick}
+      onKeyDown={handleKeyDown}
     >
       <div
         className='config-modal'
-        onClick={(e) => e.stopPropagation()}
+        onClick={handleModalClick}
         onKeyDown={(e) => e.stopPropagation()}
         role='dialog'
         aria-modal='true'
@@ -205,3 +225,5 @@ export function ConfigModal({
     </div>
   );
 }
+
+export const ConfigModal = memo(ConfigModalComponent);

@@ -62,7 +62,7 @@ function ServiceLinker({
   );
 }
 
-export function Profile() {
+function Profile() {
   const { user } = useAppSelector((state) => state.auth);
 
   const { data: servicesData } = useGetServicesQuery();
@@ -244,3 +244,6 @@ export function Profile() {
     </div>
   );
 }
+
+export { Profile };
+export default Profile;

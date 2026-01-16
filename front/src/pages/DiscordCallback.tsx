@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useValidateDiscordMutation } from '../shared/src/web';
 
-export function DiscordCallback() {
+function DiscordCallback() {
   const navigate = useNavigate();
   const [status, setStatus] = useState('Validating session...');
   const [validateDiscord, { isLoading }] = useValidateDiscordMutation();
@@ -69,3 +69,6 @@ export function DiscordCallback() {
     </div>
   );
 }
+
+export { DiscordCallback };
+export default DiscordCallback;

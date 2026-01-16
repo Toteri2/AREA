@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useValidateGmailMutation } from '../shared/src/web';
 
-export function GmailCallback() {
+function GmailCallback() {
   const navigate = useNavigate();
   const [status, setStatus] = useState('Validating session...');
   const [validateGmail, { isLoading }] = useValidateGmailMutation();
@@ -63,3 +63,6 @@ export function GmailCallback() {
     </div>
   );
 }
+
+export { GmailCallback };
+export default GmailCallback;

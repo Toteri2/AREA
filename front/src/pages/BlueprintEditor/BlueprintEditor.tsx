@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -25,7 +25,7 @@ const nodeTypes: NodeTypes = {
   reaction: ReactionNode,
 };
 
-export function BlueprintEditor() {
+function BlueprintEditor() {
   // UI State
   const [selectedNode, setSelectedNode] = useState<Node<
     ActionNodeData | ReactionNodeData
@@ -75,7 +75,10 @@ export function BlueprintEditor() {
 
   // Sidebar Data
   const { data: servicesData } = useGetServicesQuery();
-  const availableServices = servicesData?.server?.services ?? [];
+  const availableServices = useMemo(
+    () => servicesData?.server?.services ?? [],
+    [servicesData?.server?.services]
+  );
 
   // Connection Guards
   const githubConnection = useConnectionQuery({ provider: 'github' });
@@ -85,18 +88,75 @@ export function BlueprintEditor() {
   const jiraConnection = useConnectionQuery({ provider: 'jira' });
   const twitchConnection = useConnectionQuery({ provider: 'twitch' });
 
-  const connectedServices = {
-    github: githubConnection.data?.connected ?? false,
-    microsoft: microsoftConnection.data?.connected ?? false,
-    gmail: gmailConnection.data?.connected ?? false,
-    discord: discordConnection.data?.connected ?? false,
-    jira: jiraConnection.data?.connected ?? false,
-    twitch: twitchConnection.data?.connected ?? false,
-  };
+  // Memoize connected services to prevent re-renders
+  const connectedServices = useMemo(
+    () => ({
+      github: githubConnection.data?.connected ?? false,
+      microsoft: microsoftConnection.data?.connected ?? false,
+      gmail: gmailConnection.data?.connected ?? false,
+      discord: discordConnection.data?.connected ?? false,
+      jira: jiraConnection.data?.connected ?? false,
+      twitch: twitchConnection.data?.connected ?? false,
+    }),
+    [
+      githubConnection.data?.connected,
+      microsoftConnection.data?.connected,
+      gmailConnection.data?.connected,
+      discordConnection.data?.connected,
+      jiraConnection.data?.connected,
+      twitchConnection.data?.connected,
+    ]
+  );
 
-  const nodeColor = (node: Node<ActionNodeData | ReactionNodeData>) => {
-    return node.type === 'action' ? '#4caf50' : '#2196f3';
-  };
+  const nodeColor = useCallback(
+    (node: Node<ActionNodeData | ReactionNodeData>) => {
+      return node.type === 'action' ? '#4caf50' : '#2196f3';
+    },
+    []
+  );
+
+  const handleNodeClick = useCallback(
+    (_: React.MouseEvent, n: Node<ActionNodeData | ReactionNodeData>) => {
+      setSelectedNode(n);
+    },
+    []
+  );
+
+  const handleNodeDoubleClick = useCallback(
+    (_: React.MouseEvent, n: Node<ActionNodeData | ReactionNodeData>) => {
+      setSelectedNode(n);
+      setShowConfigModal(true);
+    },
+    []
+  );
+
+  const handleModalClose = useCallback(() => {
+    setShowConfigModal(false);
+    setSelectedNode(null);
+  }, []);
+
+  const handleModalSave = useCallback(
+    (data: ActionNodeData | ReactionNodeData) => {
+      if (selectedNode) {
+        handleConfigSave(data, selectedNode);
+      }
+    },
+    [selectedNode, handleConfigSave]
+  );
+
+  const handleModalDelete = useCallback(() => {
+    if (selectedNode) {
+      handleNodeDelete(selectedNode);
+    }
+  }, [selectedNode, handleNodeDelete]);
+
+  const defaultEdgeOptions = useMemo(
+    () => ({
+      animated: true,
+      style: { stroke: '#9e9e9e', strokeWidth: 2 },
+    }),
+    []
+  );
 
   if (isLoading) {
     return (
@@ -300,19 +360,13 @@ export function BlueprintEditor() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onEdgesDelete={onEdgesDelete}
-          onNodeClick={(_, n) => setSelectedNode(n)}
-          onNodeDoubleClick={(_, n) => {
-            setSelectedNode(n);
-            setShowConfigModal(true);
-          }}
+          onNodeClick={handleNodeClick}
+          onNodeDoubleClick={handleNodeDoubleClick}
           nodeTypes={nodeTypes}
           fitView
           snapToGrid
           snapGrid={[15, 15]}
-          defaultEdgeOptions={{
-            animated: true,
-            style: { stroke: '#9e9e9e', strokeWidth: 2 },
-          }}
+          defaultEdgeOptions={defaultEdgeOptions}
           minZoom={0.1}
           maxZoom={1.5}
         >
@@ -331,15 +385,15 @@ export function BlueprintEditor() {
         <ConfigModal
           nodeType={selectedNode.type as 'action' | 'reaction'}
           nodeData={selectedNode.data}
-          onSave={(data) => handleConfigSave(data, selectedNode)}
-          onClose={() => {
-            setShowConfigModal(false);
-            setSelectedNode(null);
-          }}
-          onDelete={() => handleNodeDelete(selectedNode)}
+          onSave={handleModalSave}
+          onClose={handleModalClose}
+          onDelete={handleModalDelete}
           availableServices={availableServices}
         />
       )}
     </div>
   );
 }
+
+export { BlueprintEditor };
+export default BlueprintEditor;

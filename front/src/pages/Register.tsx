@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { GoogleAuthButton } from '../components/GoogleAuthButton';
 import { useRegisterMutation } from '../shared/src/web';
 
-export function Register() {
+function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -214,3 +214,6 @@ export function Register() {
     </div>
   );
 }
+
+export { Register };
+export default Register;
