@@ -26,19 +26,14 @@ export function ReactionJiraConfigForm({
     { data: projectIssues = [], isFetching: isLoadingIssues },
   ] = useLazyListJiraProjectIssuesQuery();
 
-  const [isCustomIssueType, setIsCustomIssueType] = useState(false);
-  const [isCustomPriority, setIsCustomPriority] = useState(false);
   const [selectedProjectForIssue, setSelectedProjectForIssue] = useState('');
 
   useEffect(() => {
-    const issueType = config.issueType as string;
-    if (issueType && !STANDARD_ISSUE_TYPES.includes(issueType)) {
-      setIsCustomIssueType(true);
+    if (!config.issueType) {
+      updateConfigField('issueType', 'Task');
     }
-
-    const priority = config.priority as string;
-    if (priority && !STANDARD_PRIORITIES.includes(priority)) {
-      setIsCustomPriority(true);
+    if (!config.priority) {
+      updateConfigField('priority', 'Medium');
     }
   }, [config.issueType, config.priority]);
 
@@ -94,45 +89,15 @@ export function ReactionJiraConfigForm({
           <label htmlFor='config-issue-type'>Issue Type</label>
           <select
             id='config-issue-type-select'
-            value={
-              isCustomIssueType
-                ? 'Custom'
-                : (config.issueType as string) || 'Task'
-            }
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val === 'Custom') {
-                setIsCustomIssueType(true);
-                if (
-                  STANDARD_ISSUE_TYPES.includes(
-                    (config.issueType as string) || ''
-                  )
-                ) {
-                  updateConfigField('issueType', '');
-                }
-              } else {
-                setIsCustomIssueType(false);
-                updateConfigField('issueType', val);
-              }
-            }}
+            value={(config.issueType as string) || 'Task'}
+            onChange={(e) => updateConfigField('issueType', e.target.value)}
           >
             {STANDARD_ISSUE_TYPES.map((type) => (
               <option key={type} value={type}>
                 {type}
               </option>
             ))}
-            <option value='Custom'>Custom...</option>
           </select>
-          {isCustomIssueType && (
-            <input
-              id='config-issue-type'
-              type='text'
-              value={(config.issueType as string) || ''}
-              onChange={(e) => updateConfigField('issueType', e.target.value)}
-              placeholder='Custom Issue Type...'
-              style={{ marginTop: '0.5rem' }}
-            />
-          )}
         </div>
       )}
 
@@ -141,45 +106,15 @@ export function ReactionJiraConfigForm({
           <label htmlFor='config-priority'>Priority</label>
           <select
             id='config-priority-select'
-            value={
-              isCustomPriority
-                ? 'Custom'
-                : (config.priority as string) || 'Medium'
-            }
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val === 'Custom') {
-                setIsCustomPriority(true);
-                if (
-                  STANDARD_PRIORITIES.includes(
-                    (config.priority as string) || ''
-                  )
-                ) {
-                  updateConfigField('priority', '');
-                }
-              } else {
-                setIsCustomPriority(false);
-                updateConfigField('priority', val);
-              }
-            }}
+            value={(config.priority as string) || 'Medium'}
+            onChange={(e) => updateConfigField('priority', e.target.value)}
           >
             {STANDARD_PRIORITIES.map((p) => (
               <option key={p} value={p}>
                 {p}
               </option>
             ))}
-            <option value='Custom'>Custom...</option>
           </select>
-          {isCustomPriority && (
-            <input
-              id='config-priority'
-              type='text'
-              value={(config.priority as string) || ''}
-              onChange={(e) => updateConfigField('priority', e.target.value)}
-              placeholder='Custom Priority...'
-              style={{ marginBottom: '0.5rem' }}
-            />
-          )}
         </div>
       )}
 
