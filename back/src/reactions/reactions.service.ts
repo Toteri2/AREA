@@ -57,6 +57,38 @@ export class ReactionsService {
     });
   }
 
+  async update(
+    id: number,
+    userId: number,
+    updateData: Partial<{
+      name: string;
+      reactionType: ReactionType;
+      config: Record<string, any>;
+    }>
+  ): Promise<Reaction> {
+    const reaction = await this.reactionsRepository.findOne({
+      where: { id, userId },
+    });
+
+    if (!reaction) {
+      throw new NotFoundException(
+        'Reaction not found or does not belong to user'
+      );
+    }
+
+    if (updateData.name !== undefined) {
+      reaction.name = updateData.name;
+    }
+    if (updateData.reactionType !== undefined) {
+      reaction.reactionType = updateData.reactionType;
+    }
+    if (updateData.config !== undefined) {
+      reaction.config = updateData.config;
+    }
+
+    return this.reactionsRepository.save(reaction);
+  }
+
   async delete(id: number, userId: number): Promise<void> {
     const reaction = await this.reactionsRepository.findOne({
       where: { id, userId },

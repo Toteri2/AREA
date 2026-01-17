@@ -6,6 +6,7 @@ import {
   HttpException,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -13,6 +14,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateReactionDto } from './dto/create-reaction.dto';
+import { UpdateReactionDto } from './dto/update-reaction.dto';
 import { ReactionsService } from './reactions.service';
 
 @ApiTags('reactions')
@@ -69,6 +71,39 @@ export class ReactionsController {
     } catch (_error) {
       throw new HttpException(
         'Failed to retrieve reactions',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update a reaction' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reaction updated successfully.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Reaction not found or does not belong to user.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid reaction data.',
+  })
+  async update(
+    @Req() req,
+    @Param('id') id: number,
+    @Body() dto: UpdateReactionDto
+  ) {
+    try {
+      const userId = req.user.id;
+      return await this.reactionsService.update(id, userId, dto);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Failed to update reaction',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
