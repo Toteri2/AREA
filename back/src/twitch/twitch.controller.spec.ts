@@ -89,7 +89,6 @@ describe('TwitchController', () => {
   describe('getCurrentUser', () => {
     it('should return current user information', async () => {
       const req = { user: { id: 1 }, provider: { accessToken: 'test-token' } };
-      const _provider = { accessToken: 'test-token' };
       const userData = { data: [{ id: 'user123', login: 'testuser' }] };
 
       mockTwitchService.getCurrentUser.mockResolvedValue(userData);
@@ -117,7 +116,6 @@ describe('TwitchController', () => {
   describe('getFollowedChannels', () => {
     it('should return followed channels', async () => {
       const req = { user: { id: 1 }, provider: { accessToken: 'test-token' } };
-      const _provider = { accessToken: 'test-token' };
       const userData = { data: [{ id: 'user123' }] };
       const followedChannels = {
         data: [{ broadcaster_id: 'channel1', broadcaster_name: 'Channel1' }],
@@ -153,7 +151,6 @@ describe('TwitchController', () => {
   describe('createWebhook', () => {
     it('should create webhook successfully', async () => {
       const req = { user: { id: 1 }, provider: { accessToken: 'test-token' } };
-      const _provider = { accessToken: 'test-token' };
       const createWebhookDto = {
         broadcasterUserId: 'broadcaster123',
         eventType: 'stream.online',

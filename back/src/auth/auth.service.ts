@@ -664,7 +664,7 @@ export class AuthService {
   async findOrCreateGoogleUser(
     email: string,
     name: string,
-    googleId: string
+    accessToken: string
   ): Promise<User> {
     let user = await this.userRepository.findOne({ where: { email } });
     if (user) {
@@ -673,7 +673,7 @@ export class AuthService {
       });
       if (!existingGoogleProvider) {
         throw new Error(
-          'An account with this email already exists. Please login with your password instead, or link your Google account from your profile settings.'
+          'An account with these credentials already exists. Please login to your existing account.'
         );
       }
       return user;
@@ -692,7 +692,7 @@ export class AuthService {
       userId: user.id,
       user: user,
       provider: ProviderType.GOOGLE,
-      accessToken: googleId,
+      accessToken: accessToken,
     });
 
     return user;

@@ -149,7 +149,6 @@ describe('GmailController', () => {
         topicName: 'test-topic',
         eventType: 1,
       };
-      const _mockProvider = { accessToken: 'test_token' };
       const mockWebhook = { id: 1, webhookId: '123' };
 
       mockAuthService.getValidGmailToken.mockResolvedValue('test_token');

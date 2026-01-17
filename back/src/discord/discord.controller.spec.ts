@@ -83,7 +83,6 @@ describe('DiscordController', () => {
         user: { id: 1 },
         provider: { accessToken: 'test_token' },
       };
-      const _mockProvider = { accessToken: 'test_token' };
       const mockGuilds = [
         { id: '1', name: 'Guild 1' },
         { id: '2', name: 'Guild 2' },
@@ -110,7 +109,6 @@ describe('DiscordController', () => {
         user: { id: 1 },
         provider: { accessToken: 'test_token' },
       };
-      const _mockProvider = { accessToken: 'test_token' };
       const mockChannels = [
         { id: '1', name: 'Channel 1' },
         { id: '2', name: 'Channel 2' },
@@ -134,7 +132,6 @@ describe('DiscordController', () => {
         user: { id: 1 },
         provider: { accessToken: 'test_token' },
       };
-      const _mockProvider = { accessToken: 'test_token' };
       const mockDto = {
         channelId: '123',
         content: 'Test message',
@@ -176,7 +173,6 @@ describe('DiscordController', () => {
         user: { id: 1 },
         provider: { accessToken: 'test_token' },
       };
-      const _mockProvider = { accessToken: 'test_token' };
       const mockDto = {
         guildId: '123',
         userId: '456',
@@ -202,7 +198,6 @@ describe('DiscordController', () => {
         user: { id: 1 },
         provider: { accessToken: 'test_token' },
       };
-      const _mockProvider = { accessToken: 'test_token' };
       const mockDto = {
         guildId: '123',
         name: 'private-channel',
@@ -229,7 +224,6 @@ describe('DiscordController', () => {
         user: { id: 1 },
         provider: { accessToken: 'test_token' },
       };
-      const _mockProvider = { accessToken: 'test_token' };
       const mockChannels = [{ id: '1', name: 'general' }];
 
       mockDiscordService.listGuildChannels.mockResolvedValue(mockChannels);
@@ -261,7 +255,6 @@ describe('DiscordController', () => {
         user: { id: 1 },
         provider: { accessToken: 'test_token' },
       };
-      const _mockProvider = { accessToken: 'test_token' };
       const mockMembers = [{ id: '1', username: 'user1' }];
 
       mockDiscordService.getGuildMembers.mockResolvedValue(mockMembers);
@@ -290,7 +283,6 @@ describe('DiscordController', () => {
         user: { id: 1 },
         provider: { accessToken: 'test_token' },
       };
-      const _mockProvider = { accessToken: 'test_token' };
       const mockRoles = [{ id: '1', name: 'Admin' }];
 
       mockDiscordService.listGuildRoles.mockResolvedValue(mockRoles);
@@ -319,7 +311,6 @@ describe('DiscordController', () => {
         user: { id: 1 },
         provider: { accessToken: 'test_token' },
       };
-      const _mockProvider = { accessToken: 'test_token' };
       const mockUser = { id: '999', username: 'testuser' };
 
       mockDiscordService.getCurrentUser.mockResolvedValue(mockUser);
