@@ -1,4 +1,4 @@
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useAppSelector } from '../shared/src/native';
 import styles from '../style/index';
@@ -68,6 +68,13 @@ export function AreaWebView({ url }: AreaWebViewProps) {
         allowsInlineMediaPlayback={false}
         mediaPlaybackRequiresUserAction={true}
         sharedCookiesEnabled={true}
+        bounces={false}
+        overScrollMode='never'
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        pullToRefreshEnabled={false}
+        applicationNameForUserAgent='AreaMobile'
+        webviewDebuggingEnabled={__DEV__}
       />
     </View>
   );
