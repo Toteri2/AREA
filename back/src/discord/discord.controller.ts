@@ -236,7 +236,7 @@ export class DiscordController {
             for (const reaction of reactions) {
               try {
                 if (
-                  body.data.channelId !== hookInfo.channelId &&
+                  body.data.channelId !== hookInfo.channelId ||
                   body.data.guildId !== hookInfo.guildId
                 ) {
                   continue;
