@@ -12,7 +12,7 @@ export const buttons = StyleSheet.create({
   buttonGoogle: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4285F4',
+    backgroundColor: '#1a1a2e',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 4,

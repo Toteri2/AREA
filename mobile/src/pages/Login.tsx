@@ -3,8 +3,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -48,13 +46,17 @@ export function Login() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+    // <KeyboardAvoidingView
+    //   style={styles.container}
+    //   behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    // >
+    // {/* <ScrollView contentContainerStyle={styles.scrollContent}> */}
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <View style={styles.cardsContainer}>
         <View style={styles.card}>
-          <Text style={styles.title}>Login</Text>
+          <View style={styles.infoSection}>
+            <Text style={styles.title}>Login</Text>
+          </View>
 
           {errorMessage ? (
             <Text style={styles.errorText}>{errorMessage}</Text>
@@ -99,7 +101,7 @@ export function Login() {
           </TouchableOpacity>
 
           <View style={styles.linkContainer}>
-            <Text style={styles.linkText}>Don't have an account? </Text>
+            <Text style={styles.label}>Don't have an account? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
               <Text style={styles.link}>Register</Text>
             </TouchableOpacity>
@@ -113,7 +115,8 @@ export function Login() {
 
           <GoogleAuthButton onError={setErrorMessage} mobile='true' />
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </View>
+    </ScrollView>
+    // </KeyboardAvoidingView>
   );
 }

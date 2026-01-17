@@ -2,13 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import type { RootStackParamList } from '../navigation';
-import {
-  apiSlice,
-  clearToken,
-  logout,
-  useAppDispatch,
-  useAppSelector,
-} from '../shared/src/native';
+import { useAppSelector } from '../shared/src/native';
 import styles from '../style/index';
 
 type DashboardNavigationProp = NativeStackNavigationProp<
@@ -18,22 +12,7 @@ type DashboardNavigationProp = NativeStackNavigationProp<
 
 export function Dashboard() {
   const { user } = useAppSelector((state) => state.auth);
-  const dispatch = useAppDispatch();
   const navigation = useNavigation<DashboardNavigationProp>();
-
-  const handleLogout = async () => {
-    // Clear token from storage
-    await dispatch(clearToken());
-    // Reset API cache to clear all cached data
-    dispatch(apiSlice.util.resetApiState());
-    // Clear auth state
-    dispatch(logout());
-    // Navigate to login
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
-  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -59,10 +38,6 @@ export function Dashboard() {
           <Text style={styles.cardDescription}>Area page (automation)</Text>
         </TouchableOpacity>
       </View>
-
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }

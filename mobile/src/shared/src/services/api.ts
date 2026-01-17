@@ -227,6 +227,28 @@ export const apiSlice = createApi({
       }),
     }),
 
+    ValidateTwitch: builder.mutation<
+      { success: boolean },
+      { code: string; state: string }
+    >({
+      query: ({ code, state }) => ({
+        url: '/auth/twitch/validate',
+        method: 'POST',
+        body: { code, state },
+      }),
+    }),
+
+    ValidateJira: builder.mutation<
+      { success: boolean },
+      { code: string; state: string }
+    >({
+      query: ({ code, state }) => ({
+        url: '/auth/jira/validate',
+        method: 'POST',
+        body: { code, state },
+      }),
+    }),
+
     listReactions: builder.query<Reaction[], void>({
       query: () => '/reactions',
       providesTags: ['Reactions'],
@@ -267,6 +289,42 @@ export const apiSlice = createApi({
     listDiscordWebhooks: builder.query<{ webhooks: any[] }, void>({
       query: () => ({
         url: '/discord/webhooks',
+      }),
+    }),
+
+    getTwitchAuthUrl: builder.query<
+      { url: string },
+      { mobile?: boolean } | undefined
+    >({
+      query: (args) => ({
+        url: '/auth/twitch/url',
+        params: args?.mobile ? { mobile: 'true' } : undefined,
+        responseHandler: (response) => response.text(),
+      }),
+      transformResponse: (response: string) => ({ url: response }),
+    }),
+
+    listTwitchWebhooks: builder.query<{ webhooks: any[] }, void>({
+      query: () => ({
+        url: '/twitch/webhooks',
+      }),
+    }),
+
+    getJiraAuthUrl: builder.query<
+      { url: string },
+      { mobile?: boolean } | undefined
+    >({
+      query: (args) => ({
+        url: '/auth/jira/url',
+        params: args?.mobile ? { mobile: 'true' } : undefined,
+        responseHandler: (response) => response.text(),
+      }),
+      transformResponse: (response: string) => ({ url: response }),
+    }),
+
+    listJiraWebhooks: builder.query<{ webhooks: any[] }, void>({
+      query: () => ({
+        url: '/jira/webhooks',
       }),
     }),
 
@@ -351,6 +409,14 @@ export const {
   useValidateDiscordMutation,
   useGetDiscordAuthUrlQuery,
   useListDiscordWebhooksQuery,
+
+  useValidateTwitchMutation,
+  useGetTwitchAuthUrlQuery,
+  useListTwitchWebhooksQuery,
+
+  useValidateJiraMutation,
+  useGetJiraAuthUrlQuery,
+  useListJiraWebhooksQuery,
 
   useListReactionsQuery,
   useCreateReactionMutation,

@@ -19,10 +19,13 @@ import {
   logout,
   useAppSelector,
   useConnectionQuery,
+  useGetDiscordAuthUrlQuery,
   useGetGithubAuthUrlQuery,
   useGetGmailAuthUrlQuery,
+  useGetJiraAuthUrlQuery,
   useGetMicrosoftAuthUrlQuery,
   useGetServicesQuery,
+  useGetTwitchAuthUrlQuery,
 } from '../shared/src/native';
 import styles from '../style/index';
 
@@ -103,6 +106,27 @@ export function Profile() {
     serviceNames.has('microsoft') ? undefined : { skip: true }
   );
 
+  const discordConnection = useConnectionQuery(
+    serviceNames.has('discord') ? { provider: 'discord' } : undefined
+  );
+  const discordAuthQuery = useGetDiscordAuthUrlQuery(
+    serviceNames.has('discord') ? undefined : { skip: true }
+  );
+
+  const twitchConnection = useConnectionQuery(
+    serviceNames.has('twitch') ? { provider: 'twitch' } : undefined
+  );
+  const twitchAuthQuery = useGetTwitchAuthUrlQuery(
+    serviceNames.has('twitch') ? undefined : { skip: true }
+  );
+
+  const jiraConnection = useConnectionQuery(
+    serviceNames.has('jira') ? { provider: 'jira' } : undefined
+  );
+  const jiraAuthQuery = useGetJiraAuthUrlQuery(
+    serviceNames.has('jira') ? undefined : { skip: true }
+  );
+
   const getAuthMapping: Record<string, any> = {
     github: {
       getAuthUrl: async () => (await githubAuthQuery.refetch()).data,
@@ -115,6 +139,18 @@ export function Profile() {
     microsoft: {
       getAuthUrl: async () => (await microsoftAuthQuery.refetch()).data,
       connection: microsoftConnection,
+    },
+    discord: {
+      getAuthUrl: async () => (await discordAuthQuery.refetch()).data,
+      connection: discordConnection,
+    },
+    twitch: {
+      getAuthUrl: async () => (await twitchAuthQuery.refetch()).data,
+      connection: twitchConnection,
+    },
+    jira: {
+      getAuthUrl: async () => (await jiraAuthQuery.refetch()).data,
+      connection: jiraConnection,
     },
   };
 
@@ -133,13 +169,13 @@ export function Profile() {
   };
   const updateBaseUrl = async () => {
     if (!customBaseUrl.startsWith('http')) {
-      Alert.alert('Erreur', "L'URL doit commencer par http ou https");
+      Alert.alert('Error', 'URL must begin with http or https');
       return;
     }
 
     dispatch(setBaseUrl(customBaseUrl));
     await AsyncStorage.setItem('baseUrl', customBaseUrl);
-    Alert.alert('Succès', 'Base URL mise à jour !');
+    Alert.alert('Success', 'Base URL updated !');
     handleLogout();
   };
 
@@ -160,20 +196,6 @@ export function Profile() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>API Base URL</Text>
-          <TextInput
-            style={styles.input}
-            value={customBaseUrl}
-            onChangeText={setCustomBaseUrl}
-            placeholder='https://api.mambokara.dev'
-            placeholderTextColor='#888'
-          />
-          <TouchableOpacity style={styles.button} onPress={updateBaseUrl}>
-            <Text style={styles.buttonText}>Update Base URL</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.card}>
           <Text style={styles.cardTitle}>Connected Services</Text>
           {services.map((service) => {
             const mapping = getAuthMapping[service.name];
@@ -189,6 +211,27 @@ export function Profile() {
               />
             );
           })}
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>API Base URL</Text>
+          <TextInput
+            style={styles.input}
+            value={customBaseUrl}
+            onChangeText={setCustomBaseUrl}
+            placeholder='https://api.mambokara.dev'
+            placeholderTextColor='#888'
+          />
+          <TouchableOpacity style={styles.button} onPress={updateBaseUrl}>
+            <Text style={styles.buttonText}>Update Base URL</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Logout</Text>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutText}>Disconnect now</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>

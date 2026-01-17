@@ -10,6 +10,11 @@ export const card = StyleSheet.create({
     borderRadius: 12,
     padding: 20,
     marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   welcomeTitle: {
     fontSize: 22,
@@ -24,6 +29,11 @@ export const card = StyleSheet.create({
     padding: 20,
     borderLeftWidth: 4,
     borderLeftColor: '#1a1a2e',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   cardTitle: {
     fontSize: 18,
@@ -32,6 +42,28 @@ export const card = StyleSheet.create({
     marginBottom: 8,
   },
   cardDescription: {
+    fontSize: 14,
+    color: '#666',
+  },
+
+  linkContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#ccc',
+  },
+  dividerText: {
+    marginHorizontal: 10,
     fontSize: 14,
     color: '#666',
   },
