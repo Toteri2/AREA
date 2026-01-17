@@ -127,6 +127,50 @@ Let's see what numbers we get from benchmarking the Kotlin app :
 
 Native Kotlin shows the best raw performance, as expected from a native solution.
 
+## Accessibility
+
+Mobile accessibility ensures people with disabilities can use the application via screen readers (TalkBack on Android, VoiceOver on iOS). Here's a comparison of accessibility support for each framework according to WCAG 2.1 mobile standards.
+
+### Accessibility Features Comparison
+
+|                       | Flutter            | React Native           | Kotlin (Android)            |
+| --------------------- | ------------------ | ---------------------- | --------------------------- |
+| **Screen Reader API** | Semantics Widget   | AccessibilityInfo API  | Android Framework           |
+| **TalkBack Support**  | ✅ Excellent       | ✅ Excellent           | ✅ Native                   |
+| **VoiceOver Support** | ✅ Excellent       | ✅ Excellent           | ❌ Android only             |
+| **Touch Targets**     | ✅ 48dp min        | ⚠️ Manual              | ✅ 48dp min                 |
+| **Text Scaling**      | ✅ Automatic       | ✅ Automatic           | ✅ Automatic                |
+| **Focus Management**  | ✅ Built-in        | ⚠️ Manual              | ✅ Native                   |
+| **Testing Tools**     | Flutter Inspector  | Accessibility Scanner  | Scanner + Layout Inspector  |
+| **Cross-platform**    | ✅ iOS + Android   | ✅ iOS + Android       | ❌ Android only             |
+
+### Key Accessibility Strengths
+
+**Flutter:**
+- Single codebase for both platforms' accessibility
+- Built-in debugging (Semantics tree visualization)
+- Automatic font scaling and good default semantics
+
+**React Native:**
+- Familiar accessibility patterns from React web
+- AccessibilityInfo API for screen reader state
+- Strong community resources and testing libraries (@testing-library/react-native)
+- Shares accessibility patterns between web and mobile
+
+**Kotlin:**
+- Best native TalkBack integration
+- Direct access to latest Android accessibility features
+- Material Design components are accessibility-first
+- Requires separate iOS implementation for full accessibility
+
+### Accessibility Verdict for AREA Mobile
+
+**React Native chosen for accessibility:**
+- **Cross-platform:** Single implementation for TalkBack (Android) and VoiceOver (iOS)
+- **Team expertise:** React web accessibility knowledge transfers directly to mobile
+- **WCAG 2.1 compliance:** All interactive elements with accessibilityLabel, 48x48dp touch targets, screen reader announcements
+- **Proven:** Used by major accessible apps (Facebook, Instagram, Microsoft)
+
 ## Security
 
 This is a comparison between the security CVEs of Mobile / Native‑App Frameworks during the last 2 years.
