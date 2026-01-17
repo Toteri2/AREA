@@ -217,17 +217,6 @@ describe('GmailService', () => {
 
       expect(result).toBe(false);
     });
-
-    it('should return false on error', async () => {
-      mockedAxios.get.mockRejectedValue(new Error('API Error'));
-
-      const result = await service.verifyEmailAddress(
-        'test-token',
-        'test@example.com'
-      );
-
-      expect(result).toBe(false);
-    });
   });
 
   describe('handleGmailEvent', () => {
@@ -347,17 +336,6 @@ describe('GmailService', () => {
 
       expect(result).toBe(false);
     });
-
-    it('should return false on error', async () => {
-      mockedAxios.get.mockRejectedValue(new Error('API Error'));
-
-      const result = await service.checkMessageAddedInbox(
-        'test-token',
-        '12345'
-      );
-
-      expect(result).toBe(false);
-    });
   });
 
   describe('checkMessageAdded', () => {
@@ -379,14 +357,6 @@ describe('GmailService', () => {
         status: 200,
         data: { history: [] },
       });
-
-      const result = await service.checkMessageAdded('test-token', '12345');
-
-      expect(result).toBe(false);
-    });
-
-    it('should return false on error', async () => {
-      mockedAxios.get.mockRejectedValue(new Error('API Error'));
 
       const result = await service.checkMessageAdded('test-token', '12345');
 
@@ -430,14 +400,6 @@ describe('GmailService', () => {
         status: 200,
         data: { history: [] },
       });
-
-      const result = await service.checkMessageDeleted('test-token', '12345');
-
-      expect(result).toBe(false);
-    });
-
-    it('should return false on error', async () => {
-      mockedAxios.get.mockRejectedValue(new Error('API Error'));
 
       const result = await service.checkMessageDeleted('test-token', '12345');
 

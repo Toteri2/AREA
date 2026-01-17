@@ -1,9 +1,16 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
-export function handleAxiosError(error: any, defaultMessage = 'Request failed'): never {
+export function handleAxiosError(
+  error: any,
+  defaultMessage = 'Request failed'
+): never {
   if (error.response) {
     const status = error.response.status || HttpStatus.INTERNAL_SERVER_ERROR;
-    const message = error.response.data?.message || error.response.data?.error || error.message || defaultMessage;
+    const message =
+      error.response.data?.message ||
+      error.response.data?.error ||
+      error.message ||
+      defaultMessage;
 
     throw new HttpException(
       {

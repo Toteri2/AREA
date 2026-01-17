@@ -30,7 +30,9 @@ export class DiscordBotService implements OnModuleInit {
       ],
     });
 
-    this.webhookUrl = this.configService.getOrThrow<string>('DISCORD_WEBHOOK_URL');
+    this.webhookUrl = this.configService.getOrThrow<string>(
+      'DISCORD_WEBHOOK_URL'
+    );
   }
 
   async onModuleInit() {
@@ -57,7 +59,9 @@ export class DiscordBotService implements OnModuleInit {
   private setupEventHandlers() {
     this.client.on(Events.ClientReady, async () => {
       this.isReady = true;
-      this.logger.log(`Discord bot is ready! Logged in as ${this.client.user?.tag}`);
+      this.logger.log(
+        `Discord bot is ready! Logged in as ${this.client.user?.tag}`
+      );
       this.logger.log(`Webhook URL configured: ${this.webhookUrl}`);
     });
     this.client.on(Events.MessageCreate, async (message: Message) => {
@@ -137,10 +141,7 @@ export class DiscordBotService implements OnModuleInit {
         timeout: 5000,
       });
     } catch (error) {
-      this.logger.error(
-        `Error sending event to webhook:`,
-        error.message
-      );
+      this.logger.error(`Error sending event to webhook:`, error.message);
     }
   }
   public isClientReady(): boolean {

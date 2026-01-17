@@ -1,3 +1,8 @@
+import {
+  ConflictException,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -161,23 +166,19 @@ describe('AuthController', () => {
 
       jest.spyOn(authService, 'register').mockRejectedValue(error);
 
-      await controller.register(
-        {
-          email: 'test@example.com',
-          password: 'password123',
-          name: 'Test User',
-        },
-        mockRes
-      );
-      expect(authService.register).toHaveBeenCalledWith(
-        'test@example.com',
-        'password123',
-        'Test User'
-      );
-      expect(mockRes.status).toHaveBeenCalledWith(409);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        message: 'Credentials already in use',
-      });
+      try {
+        await controller.register(
+          {
+            email: 'test@example.com',
+            password: 'password123',
+            name: 'Test User',
+          },
+          mockRes
+        );
+        fail('Should have thrown an exception');
+      } catch (e) {
+        expect(e).toBeInstanceOf(ConflictException);
+      }
     });
 
     it('should throw error for unexpected registration errors', async () => {
@@ -191,19 +192,19 @@ describe('AuthController', () => {
 
       jest.spyOn(authService, 'register').mockRejectedValue(error);
 
-      await expect(
-        controller.register(
+      try {
+        await controller.register(
           {
             email: 'test@example.com',
             password: 'password123',
             name: 'Test User',
           },
           mockRes
-        )
-      ).rejects.toThrow('Database connection failed');
-
-      expect(mockRes.status).not.toHaveBeenCalled();
-      expect(mockRes.send).not.toHaveBeenCalled();
+        );
+        fail('Should have thrown an exception');
+      } catch (e) {
+        expect(e).toBeInstanceOf(InternalServerErrorException);
+      }
     });
   });
 
@@ -256,18 +257,18 @@ describe('AuthController', () => {
 
       jest.spyOn(authService, 'validateUser').mockResolvedValue(null);
 
-      await controller.login(
-        {
-          email: 'wrong@example.com',
-          password: 'wrongpassword',
-        },
-        mockRes
-      );
-
-      expect(mockRes.status).toHaveBeenCalledWith(401);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        message: 'Invalid credentials',
-      });
+      try {
+        await controller.login(
+          {
+            email: 'wrong@example.com',
+            password: 'wrongpassword',
+          },
+          mockRes
+        );
+        fail('Should have thrown an exception');
+      } catch (e) {
+        expect(e).toBeInstanceOf(UnauthorizedException);
+      }
     });
   });
 
@@ -348,9 +349,12 @@ describe('AuthController', () => {
 
       const mockBody = { code: 'github-auth-code-123' };
 
-      await expect(
-        controller.githubAuthCallback(mockBody, mockRequest)
-      ).rejects.toThrow('No session found');
+      try {
+        await controller.githubAuthCallback(mockBody, mockRequest);
+        fail('Should have thrown an exception');
+      } catch (e) {
+        expect(e).toBeInstanceOf(InternalServerErrorException);
+      }
     });
 
     it('should propagate error from getGithubToken', async () => {
@@ -364,9 +368,12 @@ describe('AuthController', () => {
         .spyOn(authService, 'getGithubToken')
         .mockRejectedValue(new Error('Invalid GitHub code'));
 
-      await expect(
-        controller.githubAuthCallback(mockBody, mockRequest)
-      ).rejects.toThrow('Invalid GitHub code');
+      try {
+        await controller.githubAuthCallback(mockBody, mockRequest);
+        fail('Should have thrown an exception');
+      } catch (e) {
+        expect(e).toBeInstanceOf(InternalServerErrorException);
+      }
     });
   });
 
@@ -568,9 +575,12 @@ describe('AuthController', () => {
         user: { id: null, name: 'Test User' },
       };
 
-      await expect(
-        controller.gmailAuthCallback({ code: 'gmail-code' }, mockRequest)
-      ).rejects.toThrow('No session found');
+      try {
+        await controller.gmailAuthCallback({ code: 'gmail-code' }, mockRequest);
+        fail('Should have thrown an exception');
+      } catch (e) {
+        expect(e).toBeInstanceOf(InternalServerErrorException);
+      }
     });
   });
 
@@ -690,9 +700,12 @@ describe('AuthController', () => {
         user: { id: null, name: 'Test User' },
       };
 
-      await expect(
-        controller.jiraAuthCallback({ code: 'jira-code' }, mockRequest)
-      ).rejects.toThrow('No session found');
+      try {
+        await controller.jiraAuthCallback({ code: 'jira-code' }, mockRequest);
+        fail('Should have thrown an exception');
+      } catch (e) {
+        expect(e).toBeInstanceOf(InternalServerErrorException);
+      }
     });
   });
 });

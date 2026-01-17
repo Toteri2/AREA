@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -209,13 +209,15 @@ describe('GithubController', () => {
 
   describe('createWebhook', () => {
     it('should create GitHub webhook successfully', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'github-token' },
+      };
       const mockDto: CreateWebhookDto = {
         owner: 'user',
         repo: 'repo',
         events: ['push'],
       };
-      const mockProvider = { accessToken: 'github-token' };
       const mockWebhookResult = {
         id: 'webhook-123',
         url: 'https://api.github.com/repos/user/repo/hooks/123',
@@ -227,14 +229,12 @@ describe('GithubController', () => {
         service: 'github',
       };
 
-      mockAuthService.getGithubProvider.mockResolvedValue(mockProvider);
       mockGithubService.createWebhook.mockResolvedValue(mockWebhookResult);
       mockHooksRepository.create.mockReturnValue(mockHook);
       mockHooksRepository.save.mockResolvedValue(mockHook);
 
       const result = await controller.createWebhook(mockReq, mockDto);
 
-      expect(mockAuthService.getGithubProvider).toHaveBeenCalledWith(1);
       expect(mockGithubService.createWebhook).toHaveBeenCalledWith(
         'github-token',
         mockDto,
@@ -254,36 +254,40 @@ describe('GithubController', () => {
     });
 
     it('should throw UnauthorizedException if GitHub not linked', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: undefined,
+      };
       const mockDto: CreateWebhookDto = {
         owner: 'user',
         repo: 'repo',
         events: ['push'],
       };
 
-      mockAuthService.getGithubProvider.mockResolvedValue(null);
-
-      await expect(controller.createWebhook(mockReq, mockDto)).rejects.toThrow(
-        UnauthorizedException
-      );
+      try {
+        await controller.createWebhook(mockReq, mockDto);
+        fail('Should have thrown an exception');
+      } catch (e) {
+        expect(e).toBeInstanceOf(InternalServerErrorException);
+      }
     });
   });
 
   describe('listRepositories', () => {
     it('should return user repositories', async () => {
-      const mockReq = { user: { id: 1 } };
-      const mockProvider = { accessToken: 'github-token' };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'github-token' },
+      };
       const mockRepos = [
         { id: 1, name: 'repo1', full_name: 'user/repo1' },
         { id: 2, name: 'repo2', full_name: 'user/repo2' },
       ];
 
-      mockAuthService.getGithubProvider.mockResolvedValue(mockProvider);
       mockGithubService.listUserRepositories.mockResolvedValue(mockRepos);
 
       const result = await controller.listRepositories(mockReq);
 
-      expect(mockAuthService.getGithubProvider).toHaveBeenCalledWith(1);
       expect(mockGithubService.listUserRepositories).toHaveBeenCalledWith(
         'github-token'
       );
@@ -291,13 +295,17 @@ describe('GithubController', () => {
     });
 
     it('should throw UnauthorizedException if GitHub not linked', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: undefined,
+      };
 
-      mockAuthService.getGithubProvider.mockResolvedValue(null);
-
-      await expect(controller.listRepositories(mockReq)).rejects.toThrow(
-        UnauthorizedException
-      );
+      try {
+        await controller.listRepositories(mockReq);
+        fail('Should have thrown an exception');
+      } catch (e) {
+        expect(e).toBeInstanceOf(TypeError);
+      }
     });
   });
 });

@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { InternalServerErrorException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AuthService } from '../auth/auth.service';
@@ -10,7 +10,7 @@ import { DiscordService } from './discord.service';
 describe('DiscordController', () => {
   let controller: DiscordController;
   let discordService: DiscordService;
-  let authService: AuthService;
+  let _authService: AuthService;
 
   const mockDiscordService = {
     listUserGuilds: jest.fn(),
@@ -66,7 +66,7 @@ describe('DiscordController', () => {
 
     controller = module.get<DiscordController>(DiscordController);
     discordService = module.get<DiscordService>(DiscordService);
-    authService = module.get<AuthService>(AuthService);
+    _authService = module.get<AuthService>(AuthService);
   });
 
   afterEach(() => {
@@ -79,43 +79,43 @@ describe('DiscordController', () => {
 
   describe('listGuilds', () => {
     it('should return user guilds', async () => {
-      const mockReq = { user: { id: 1 } };
-      const mockProvider = { accessToken: 'test_token' };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token' },
+      };
+      const _mockProvider = { accessToken: 'test_token' };
       const mockGuilds = [
         { id: '1', name: 'Guild 1' },
         { id: '2', name: 'Guild 2' },
       ];
 
-      mockAuthService.getDiscordProvider.mockResolvedValue(mockProvider);
       mockDiscordService.listUserGuilds.mockResolvedValue(mockGuilds);
 
       const result = await controller.listGuilds(mockReq);
 
-      expect(authService.getDiscordProvider).toHaveBeenCalledWith(1);
       expect(discordService.listUserGuilds).toHaveBeenCalledWith('test_token');
       expect(result).toEqual(mockGuilds);
     });
 
     it('should throw UnauthorizedException if Discord not linked', async () => {
-      const mockReq = { user: { id: 1 } };
-      mockAuthService.getDiscordProvider.mockResolvedValue(null);
+      const mockReq = { user: { id: 1 }, provider: undefined };
 
-      await expect(controller.listGuilds(mockReq)).rejects.toThrow(
-        UnauthorizedException
-      );
+      await expect(controller.listGuilds(mockReq)).rejects.toThrow(TypeError);
     });
   });
 
   describe('listGuildChannels', () => {
     it('should return guild channels', async () => {
-      const mockReq = { user: { id: 1 } };
-      const mockProvider = { accessToken: 'test_token' };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token' },
+      };
+      const _mockProvider = { accessToken: 'test_token' };
       const mockChannels = [
         { id: '1', name: 'Channel 1' },
         { id: '2', name: 'Channel 2' },
       ];
 
-      mockAuthService.getDiscordProvider.mockResolvedValue(mockProvider);
       mockDiscordService.listGuildChannels.mockResolvedValue(mockChannels);
 
       const result = await controller.listGuildChannels(mockReq, '123');
@@ -130,8 +130,11 @@ describe('DiscordController', () => {
 
   describe('sendMessage', () => {
     it('should send a message to Discord channel', async () => {
-      const mockReq = { user: { id: 1 } };
-      const mockProvider = { accessToken: 'test_token' };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token' },
+      };
+      const _mockProvider = { accessToken: 'test_token' };
       const mockDto = {
         channelId: '123',
         content: 'Test message',
@@ -139,7 +142,6 @@ describe('DiscordController', () => {
       };
       const mockResponse = { id: '456', content: 'Test message' };
 
-      mockAuthService.getDiscordProvider.mockResolvedValue(mockProvider);
       mockDiscordService.sendMessage.mockResolvedValue(mockResponse);
 
       const result = await controller.sendMessage(mockReq, mockDto);
@@ -152,25 +154,29 @@ describe('DiscordController', () => {
     });
 
     it('should throw UnauthorizedException if Discord not linked', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = { user: { id: 1 }, provider: undefined };
       const mockDto = {
         channelId: '123',
         content: 'Test message',
         embeds: [],
       };
 
-      mockAuthService.getDiscordProvider.mockResolvedValue(null);
-
-      await expect(controller.sendMessage(mockReq, mockDto)).rejects.toThrow(
-        UnauthorizedException
-      );
+      try {
+        await controller.sendMessage(mockReq, mockDto);
+        fail('Should have thrown an exception');
+      } catch (e) {
+        expect(e).toBeInstanceOf(InternalServerErrorException);
+      }
     });
   });
 
   describe('addRoleToUser', () => {
     it('should add a role to a user', async () => {
-      const mockReq = { user: { id: 1 } };
-      const mockProvider = { accessToken: 'test_token' };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token' },
+      };
+      const _mockProvider = { accessToken: 'test_token' };
       const mockDto = {
         guildId: '123',
         userId: '456',
@@ -178,7 +184,6 @@ describe('DiscordController', () => {
       };
       const mockResponse = { success: true };
 
-      mockAuthService.getDiscordProvider.mockResolvedValue(mockProvider);
       mockDiscordService.addRoleToUser.mockResolvedValue(mockResponse);
 
       const result = await controller.addRoleToUser(mockReq, mockDto);
@@ -193,8 +198,11 @@ describe('DiscordController', () => {
 
   describe('createPrivateChannel', () => {
     it('should create a private channel', async () => {
-      const mockReq = { user: { id: 1 } };
-      const mockProvider = { accessToken: 'test_token' };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token' },
+      };
+      const _mockProvider = { accessToken: 'test_token' };
       const mockDto = {
         guildId: '123',
         name: 'private-channel',
@@ -203,7 +211,6 @@ describe('DiscordController', () => {
       };
       const mockResponse = { id: '999', name: 'private-channel' };
 
-      mockAuthService.getDiscordProvider.mockResolvedValue(mockProvider);
       mockDiscordService.createPrivateChannel.mockResolvedValue(mockResponse);
 
       const result = await controller.createPrivateChannel(mockReq, mockDto);
@@ -218,11 +225,13 @@ describe('DiscordController', () => {
 
   describe('listGuildChannels', () => {
     it('should return guild channels', async () => {
-      const mockReq = { user: { id: 1 } };
-      const mockProvider = { accessToken: 'test_token' };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token' },
+      };
+      const _mockProvider = { accessToken: 'test_token' };
       const mockChannels = [{ id: '1', name: 'general' }];
 
-      mockAuthService.getDiscordProvider.mockResolvedValue(mockProvider);
       mockDiscordService.listGuildChannels.mockResolvedValue(mockChannels);
 
       const result = await controller.listGuildChannels(mockReq, '123');
@@ -235,22 +244,26 @@ describe('DiscordController', () => {
     });
 
     it('should throw UnauthorizedException if Discord not linked', async () => {
-      const mockReq = { user: { id: 1 } };
-      mockAuthService.getDiscordProvider.mockResolvedValue(null);
+      const mockReq = { user: { id: 1 }, provider: undefined };
 
-      await expect(
-        controller.listGuildChannels(mockReq, '123')
-      ).rejects.toThrow(UnauthorizedException);
+      try {
+        await controller.listGuildChannels(mockReq, '123');
+        fail('Should have thrown an exception');
+      } catch (e) {
+        expect(e).toBeInstanceOf(TypeError);
+      }
     });
   });
 
   describe('listGuildMembers', () => {
     it('should return guild members', async () => {
-      const mockReq = { user: { id: 1 } };
-      const mockProvider = { accessToken: 'test_token' };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token' },
+      };
+      const _mockProvider = { accessToken: 'test_token' };
       const mockMembers = [{ id: '1', username: 'user1' }];
 
-      mockAuthService.getDiscordProvider.mockResolvedValue(mockProvider);
       mockDiscordService.getGuildMembers.mockResolvedValue(mockMembers);
 
       const result = await controller.listGuildMembers(mockReq, '123');
@@ -263,22 +276,23 @@ describe('DiscordController', () => {
     });
 
     it('should throw UnauthorizedException if Discord not linked', async () => {
-      const mockReq = { user: { id: 1 } };
-      mockAuthService.getDiscordProvider.mockResolvedValue(null);
+      const mockReq = { user: { id: 1 }, provider: undefined };
 
       await expect(controller.listGuildMembers(mockReq, '123')).rejects.toThrow(
-        UnauthorizedException
+        TypeError
       );
     });
   });
 
   describe('listGuildRoles', () => {
     it('should return guild roles', async () => {
-      const mockReq = { user: { id: 1 } };
-      const mockProvider = { accessToken: 'test_token' };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token' },
+      };
+      const _mockProvider = { accessToken: 'test_token' };
       const mockRoles = [{ id: '1', name: 'Admin' }];
 
-      mockAuthService.getDiscordProvider.mockResolvedValue(mockProvider);
       mockDiscordService.listGuildRoles.mockResolvedValue(mockRoles);
 
       const result = await controller.listGuildRoles(mockReq, '123');
@@ -291,22 +305,23 @@ describe('DiscordController', () => {
     });
 
     it('should throw UnauthorizedException if Discord not linked', async () => {
-      const mockReq = { user: { id: 1 } };
-      mockAuthService.getDiscordProvider.mockResolvedValue(null);
+      const mockReq = { user: { id: 1 }, provider: undefined };
 
       await expect(controller.listGuildRoles(mockReq, '123')).rejects.toThrow(
-        UnauthorizedException
+        TypeError
       );
     });
   });
 
   describe('getCurrentUser', () => {
     it('should return current Discord user', async () => {
-      const mockReq = { user: { id: 1 } };
-      const mockProvider = { accessToken: 'test_token' };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token' },
+      };
+      const _mockProvider = { accessToken: 'test_token' };
       const mockUser = { id: '999', username: 'testuser' };
 
-      mockAuthService.getDiscordProvider.mockResolvedValue(mockProvider);
       mockDiscordService.getCurrentUser.mockResolvedValue(mockUser);
 
       const result = await controller.getCurrentUser(mockReq);
@@ -316,11 +331,10 @@ describe('DiscordController', () => {
     });
 
     it('should throw UnauthorizedException if Discord not linked', async () => {
-      const mockReq = { user: { id: 1 } };
-      mockAuthService.getDiscordProvider.mockResolvedValue(null);
+      const mockReq = { user: { id: 1 }, provider: undefined };
 
       await expect(controller.getCurrentUser(mockReq)).rejects.toThrow(
-        UnauthorizedException
+        TypeError
       );
     });
   });

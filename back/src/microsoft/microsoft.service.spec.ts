@@ -202,8 +202,9 @@ describe('MicrosoftService', () => {
       hookRepository.delete.mockResolvedValue({ affected: 1 });
 
       const result = await service.deleteSubscription(
-        'subscription-123',
-        'access-token'
+        1,
+        'access-token',
+        'subscription-123'
       );
 
       expect(result).toBeNull();
@@ -216,9 +217,7 @@ describe('MicrosoftService', () => {
           },
         }
       );
-      expect(hookRepository.delete).toHaveBeenCalledWith({
-        webhookId: 'subscription-123',
-      });
+      expect(hookRepository.delete).toHaveBeenCalledWith({ id: 1 });
     });
 
     it('should return data for non-204 response', async () => {
@@ -231,8 +230,9 @@ describe('MicrosoftService', () => {
       hookRepository.delete.mockResolvedValue({ affected: 1 });
 
       const result = await service.deleteSubscription(
-        'subscription-456',
-        'access-token'
+        2,
+        'access-token',
+        'subscription-456'
       );
 
       expect(result).toEqual(mockData);
