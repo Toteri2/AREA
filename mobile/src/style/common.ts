@@ -40,6 +40,15 @@ export const common = StyleSheet.create({
   },
   label: { fontSize: 14, color: '#888', fontWeight: '500' },
   value: { fontSize: 14, color: '#000000' },
+  input: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 14,
+    color: '#000',
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#1a1a2e',
+  },
 });
 
 // const styles = StyleSheet.create({

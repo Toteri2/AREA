@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -13,6 +14,9 @@ import {
 import { useDispatch } from 'react-redux';
 import { setBaseUrl } from '../shared/src/features/configSlice';
 import {
+  apiSlice,
+  clearToken,
+  logout,
   useAppSelector,
   useConnectionQuery,
   useGetGithubAuthUrlQuery,
@@ -70,6 +74,7 @@ export function Profile() {
   const dispatch = useDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const baseUrlFromStore = useAppSelector((state) => state.config.baseUrl);
+  const navigation = useNavigation<DashboardNavigationProp>();
 
   const [customBaseUrl, setCustomBaseUrl] = useState(baseUrlFromStore);
 
@@ -113,6 +118,19 @@ export function Profile() {
     },
   };
 
+  const handleLogout = async () => {
+    // Clear token from storage
+    await dispatch(clearToken());
+    // Reset API cache to clear all cached data
+    dispatch(apiSlice.util.resetApiState());
+    // Clear auth state
+    dispatch(logout());
+    // Navigate to login
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  };
   const updateBaseUrl = async () => {
     if (!customBaseUrl.startsWith('http')) {
       Alert.alert('Erreur', "L'URL doit commencer par http ou https");
@@ -122,6 +140,7 @@ export function Profile() {
     dispatch(setBaseUrl(customBaseUrl));
     await AsyncStorage.setItem('baseUrl', customBaseUrl);
     Alert.alert('Succès', 'Base URL mise à jour !');
+    handleLogout();
   };
 
   return (
