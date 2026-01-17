@@ -199,6 +199,13 @@ export class TwitchController {
     @Res() res
   ) {
     const bodyString = JSON.stringify(body);
+    console.log('Received Twitch webhook:', {
+      messageId,
+      timestamp,
+      messageType,
+      subscriptionType,
+      body: bodyString,
+    });
     if (messageType.localeCompare('webhook_callback_verification') === 0) {
       return res
         .set('Content-Type', 'text/plain')

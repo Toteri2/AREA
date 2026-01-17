@@ -5,9 +5,9 @@ import { ProviderGuard } from '../auth/guards/provider.guard';
 import { ReactionsModule } from '../reactions/reactions.module';
 import { Hook } from '../shared/entities/hook.entity';
 import { webhookRateLimiter } from '../shared/middleware/rate-limiters';
+import { DiscordBotService } from './discord.bot.service';
 import { DiscordController } from './discord.controller';
 import { DiscordService } from './discord.service';
-import { DiscordBotService } from './discord.bot.service';
 
 @Module({
   imports: [

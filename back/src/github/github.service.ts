@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import { handleAxiosError } from '../shared/utils/axios.handler';
 import { CreateWebhookDto } from './dto/create_git_webhook.dto';
 
 @Injectable()
@@ -12,45 +13,57 @@ export class GithubService {
     webhookUrl: string
   ) {
     const { owner, repo, events, secret } = dto;
-    const response = await axios.post(
-      `${this.baseUrl}/repos/${owner}/${repo}/hooks`,
-      {
-        name: 'web',
-        active: true,
-        events,
-        config: {
-          url: webhookUrl,
-          content_type: 'json',
-          insecure_ssl: '0',
-          ...(secret && { secret }),
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/repos/${owner}/${repo}/hooks`,
+        {
+          name: 'web',
+          active: true,
+          events,
+          config: {
+            url: webhookUrl,
+            content_type: 'json',
+            insecure_ssl: '0',
+            ...(secret && { secret }),
+          },
         },
-      },
-      {
-        headers: this.getHeaders(userAccessToken),
-      }
-    );
-    const result = await this.handleResponse(response);
-    return result;
+        {
+          headers: this.getHeaders(userAccessToken),
+        }
+      );
+      const result = await this.handleResponse(response);
+      return result;
+    } catch (error) {
+      handleAxiosError(error, 'Failed to create GitHub webhook');
+    }
   }
 
   async listUserRepositories(userAccessToken: string) {
-    const response = await axios.get(
-      `${this.baseUrl}/user/repos?per_page=100`,
-      {
-        headers: this.getHeaders(userAccessToken),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/user/repos?per_page=100`,
+        {
+          headers: this.getHeaders(userAccessToken),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to list user repositories');
+    }
   }
 
   async listWebhooks(userAccessToken: string, owner: string, repo: string) {
-    const response = await axios.get(
-      `${this.baseUrl}/repos/${owner}/${repo}/hooks`,
-      {
-        headers: this.getHeaders(userAccessToken),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/repos/${owner}/${repo}/hooks`,
+        {
+          headers: this.getHeaders(userAccessToken),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to list webhooks');
+    }
   }
 
   async deleteWebhook(
@@ -59,13 +72,17 @@ export class GithubService {
     repo: string,
     hookId: string
   ) {
-    const response = await axios.delete(
-      `${this.baseUrl}/repos/${owner}/${repo}/hooks/${hookId}`,
-      {
-        headers: this.getHeaders(userAccessToken),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.delete(
+        `${this.baseUrl}/repos/${owner}/${repo}/hooks/${hookId}`,
+        {
+          headers: this.getHeaders(userAccessToken),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to delete webhook');
+    }
   }
 
   getHeaders(accessToken: string) {

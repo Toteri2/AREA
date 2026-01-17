@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import * as crypto from 'crypto';
+import { handleAxiosError } from 'src/shared/utils/axios.handler';
 import { CreateTwitchWebhookDto } from './dto/twitch.dto';
 
 @Injectable()
@@ -29,33 +30,43 @@ export class TwitchService {
   }
 
   async getCurrentUser(userAccessToken: string) {
-    await this.rateLimit();
-    const response = await axios.get(`${this.baseUrl}/users`, {
-      headers: this.getHeaders(userAccessToken),
-    });
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(`${this.baseUrl}/users`, {
+        headers: this.getHeaders(userAccessToken),
+      });
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to get Twitch current user');
+    }
   }
 
   async getFollowedChannels(userAccessToken: string, userId: string) {
-    await this.rateLimit();
-    const response = await axios.get(
-      `${this.baseUrl}/channels/followed?user_id=${userId}`,
-      {
-        headers: this.getHeaders(userAccessToken),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/channels/followed?user_id=${userId}`,
+        {
+          headers: this.getHeaders(userAccessToken),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to get followed channels');
+    }
   }
 
   async getBroadcasterName(userAccessToken: string, broadcasterId: string) {
-    const response = await axios.get(
-      `${this.baseUrl}/users?id=${broadcasterId}`,
-      {
-        headers: this.getHeaders(userAccessToken),
-      }
-    );
-    const data = await this.handleResponse(response);
-    return data.data[0];
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/users?id=${broadcasterId}`,
+        {
+          headers: this.getHeaders(userAccessToken),
+        }
+      );
+      const data = await this.handleResponse(response);
+      return data.data[0];
+    } catch (error) {
+      handleAxiosError(error, 'Failed to get broadcaster name');
+    }
   }
 
   async createWebhook(dto: CreateTwitchWebhookDto, webhookUrl: string) {
@@ -66,29 +77,34 @@ export class TwitchService {
 
     const condition = this.buildCondition(eventType, broadcasterUserId);
     const version = eventType === 'channel.follow' ? '2' : '1';
+    console.log('Creating Twitch webhook with condition:', condition);
 
-    const response = await axios.post(
-      'https://api.twitch.tv/helix/eventsub/subscriptions',
-      {
-        type: eventType,
-        version,
-        condition,
-        transport: {
-          method: 'webhook',
-          callback: webhookUrl,
-          secret: secret || this.webhookSecret,
+    try {
+      const response = await axios.post(
+        'https://api.twitch.tv/helix/eventsub/subscriptions',
+        {
+          type: eventType,
+          version,
+          condition,
+          transport: {
+            method: 'webhook',
+            callback: webhookUrl,
+            secret: secret || this.webhookSecret,
+          },
         },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${appAccessToken}`,
-          'Client-Id': clientId,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${appAccessToken}`,
+            'Client-Id': clientId,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-    return this.handleResponse(response);
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to create Twitch webhook');
+    }
   }
 
   async deleteWebhook(subscriptionId: string) {
@@ -96,17 +112,21 @@ export class TwitchService {
     const clientId = this.configService.getOrThrow<string>('TWITCH_CLIENT_ID');
     const appAccessToken = await this.getAppAccessToken();
 
-    const response = await axios.delete(
-      `https://api.twitch.tv/helix/eventsub/subscriptions?id=${subscriptionId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${appAccessToken}`,
-          'Client-Id': clientId,
-        },
-      }
-    );
+    try {
+      const response = await axios.delete(
+        `https://api.twitch.tv/helix/eventsub/subscriptions?id=${subscriptionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${appAccessToken}`,
+            'Client-Id': clientId,
+          },
+        }
+      );
 
-    return this.handleResponse(response);
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to delete Twitch webhook');
+    }
   }
 
   verifyWebhookSignature(
@@ -216,17 +236,21 @@ export class TwitchService {
     params.append('client_secret', clientSecret);
     params.append('grant_type', 'client_credentials');
 
-    const response = await axios.post(
-      'https://id.twitch.tv/oauth2/token',
-      params,
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      }
-    );
+    try {
+      const response = await axios.post(
+        'https://id.twitch.tv/oauth2/token',
+        params,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        }
+      );
 
-    return response.data.access_token;
+      return response.data.access_token;
+    } catch (error) {
+      handleAxiosError(error, 'Failed to get Twitch app access token');
+    }
   }
 
   private getHeaders(accessToken: string) {

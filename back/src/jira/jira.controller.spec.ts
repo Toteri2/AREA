@@ -10,7 +10,7 @@ import { JiraService } from './jira.service';
 describe('JiraController', () => {
   let controller: JiraController;
   let jiraService: JiraService;
-  let authService: AuthService;
+  let _authService: AuthService;
   let reactionsService: ReactionsService;
   let hooksRepository: any;
 
@@ -90,7 +90,7 @@ describe('JiraController', () => {
 
     controller = module.get<JiraController>(JiraController);
     jiraService = module.get<JiraService>(JiraService);
-    authService = module.get<AuthService>(AuthService);
+    _authService = module.get<AuthService>(AuthService);
     reactionsService = module.get<ReactionsService>(ReactionsService);
     hooksRepository = module.get(getRepositoryToken(Hook));
   });
@@ -212,21 +212,26 @@ describe('JiraController', () => {
       mockHooksRepository.find.mockRejectedValue(new Error('Database error'));
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      await expect(
-        controller.handleWebhook(webhookData as any, mockRes)
-      ).rejects.toThrow('Database error');
+      await controller.handleWebhook(webhookData as any, mockRes);
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'Error handling Jira webhook:',
         'Database error'
       );
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        error: 'Failed to process webhook',
+      });
       consoleSpy.mockRestore();
     });
   });
 
   describe('listWebhooks', () => {
     it('should return user webhooks', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token', providerId: 'cloud-123' },
+      };
       const mockWebhooks = [
         { id: 1, service: 'jira', eventType: 'issue_created' },
         { id: 2, service: 'jira', eventType: 'issue_updated' },
@@ -242,19 +247,14 @@ describe('JiraController', () => {
       expect(jiraService.listUserWebhooks).toHaveBeenCalledWith(1);
       expect(result).toEqual(mockWebhooks);
     });
-
-    it('should throw UnauthorizedException if Jira not linked', async () => {
-      const mockReq = { user: { id: 1 } };
-
-      mockAuthService.getJiraProvider.mockResolvedValue(null);
-
-      await expect(controller.listWebhooks(mockReq)).rejects.toThrow();
-    });
   });
 
   describe('createWebhook', () => {
     it('should create a webhook', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token', providerId: 'cloud-123' },
+      };
       const mockDto = {
         projectKey: 'TEST',
         events: ['jira:issue_created'],
@@ -271,30 +271,17 @@ describe('JiraController', () => {
 
       const result = await controller.createWebhook(mockReq, mockDto);
 
-      expect(authService.getJiraProvider).toHaveBeenCalledWith(1);
-      expect(authService.getValidJiraToken).toHaveBeenCalledWith(1);
       expect(jiraService.createWebhook).toHaveBeenCalled();
       expect(result).toEqual(mockWebhook);
-    });
-
-    it('should throw UnauthorizedException if Jira not linked', async () => {
-      const mockReq = { user: { id: 1 } };
-      const mockDto = {
-        projectKey: 'TEST',
-        events: ['jira:issue_created'],
-      };
-
-      mockAuthService.getJiraProvider.mockResolvedValue(null);
-
-      await expect(
-        controller.createWebhook(mockReq, mockDto)
-      ).rejects.toThrow();
     });
   });
 
   describe('deleteWebhook', () => {
     it('should delete a webhook', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token', providerId: 'cloud-123' },
+      };
       const hookId = 1;
       const mockHook = {
         id: hookId,
@@ -317,8 +304,6 @@ describe('JiraController', () => {
       expect(mockHooksRepository.findOne).toHaveBeenCalledWith({
         where: { id: hookId, userId: 1, service: 'jira' },
       });
-      expect(authService.getJiraProvider).toHaveBeenCalledWith(1);
-      expect(authService.getValidJiraToken).toHaveBeenCalledWith(1);
       expect(jiraService.deleteWebhook).toHaveBeenCalledWith(
         'webhook-uuid-123',
         'test_token',
@@ -328,7 +313,10 @@ describe('JiraController', () => {
     });
 
     it('should throw NotFoundException when hook not found', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token', providerId: 'cloud-123' },
+      };
       const hookId = 1;
 
       mockHooksRepository.findOne.mockResolvedValue(null);
@@ -343,7 +331,10 @@ describe('JiraController', () => {
     });
 
     it('should throw UnauthorizedException if provider not found', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token', providerId: 'cloud-123' },
+      };
       const hookId = 1;
 
       mockAuthService.getValidJiraToken.mockResolvedValue('test_token');
@@ -360,7 +351,10 @@ describe('JiraController', () => {
     });
 
     it('should handle deletion error', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token', providerId: 'cloud-123' },
+      };
       const hookId = 1;
       const mockHook = {
         id: hookId,
@@ -391,7 +385,10 @@ describe('JiraController', () => {
 
   describe('listProjects', () => {
     it('should list user projects', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token', providerId: 'cloud-123' },
+      };
       const mockProjects = [{ id: '1', key: 'TEST', name: 'Test Project' }];
 
       mockAuthService.getJiraProvider.mockResolvedValue({ id: 1 });
@@ -399,21 +396,15 @@ describe('JiraController', () => {
 
       const result = await controller.listProjects(mockReq);
 
-      expect(authService.getJiraProvider).toHaveBeenCalledWith(1);
       expect(jiraService.listProjects).toHaveBeenCalledWith(1);
       expect(result).toEqual(mockProjects);
     });
 
-    it('should throw UnauthorizedException if Jira not linked', async () => {
-      const mockReq = { user: { id: 1 } };
-
-      mockAuthService.getJiraProvider.mockResolvedValue(null);
-
-      await expect(controller.listProjects(mockReq)).rejects.toThrow();
-    });
-
     it('should handle error fetching projects', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token', providerId: 'cloud-123' },
+      };
 
       mockAuthService.getJiraProvider.mockResolvedValue({ id: 1 });
       mockJiraService.listProjects.mockRejectedValue(new Error('API error'));
@@ -431,7 +422,10 @@ describe('JiraController', () => {
 
   describe('getIssue', () => {
     it('should get issue details', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token', providerId: 'cloud-123' },
+      };
       const issueKey = 'TEST-1';
       const mockIssue = { id: '123', key: issueKey, summary: 'Test Issue' };
 
@@ -440,22 +434,15 @@ describe('JiraController', () => {
 
       const result = await controller.getIssue(mockReq, issueKey);
 
-      expect(authService.getJiraProvider).toHaveBeenCalledWith(1);
       expect(jiraService.getIssue).toHaveBeenCalledWith(1, issueKey);
       expect(result).toEqual(mockIssue);
     });
 
-    it('should throw UnauthorizedException if Jira not linked', async () => {
-      const mockReq = { user: { id: 1 } };
-      const issueKey = 'TEST-1';
-
-      mockAuthService.getJiraProvider.mockResolvedValue(null);
-
-      await expect(controller.getIssue(mockReq, issueKey)).rejects.toThrow();
-    });
-
     it('should handle error fetching issue', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token', providerId: 'cloud-123' },
+      };
       const issueKey = 'TEST-1';
 
       mockAuthService.getJiraProvider.mockResolvedValue({ id: 1 });
@@ -474,7 +461,10 @@ describe('JiraController', () => {
 
   describe('listProjectIssues', () => {
     it('should list project issues', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token', providerId: 'cloud-123' },
+      };
       const projectKey = 'TEST';
       const mockIssues = [{ id: '123', key: 'TEST-1', summary: 'Issue 1' }];
 
@@ -483,24 +473,15 @@ describe('JiraController', () => {
 
       const result = await controller.listProjectIssues(mockReq, projectKey);
 
-      expect(authService.getJiraProvider).toHaveBeenCalledWith(1);
       expect(jiraService.listProjectIssues).toHaveBeenCalledWith(1, projectKey);
       expect(result).toEqual(mockIssues);
     });
 
-    it('should throw UnauthorizedException if Jira not linked', async () => {
-      const mockReq = { user: { id: 1 } };
-      const projectKey = 'TEST';
-
-      mockAuthService.getJiraProvider.mockResolvedValue(null);
-
-      await expect(
-        controller.listProjectIssues(mockReq, projectKey)
-      ).rejects.toThrow();
-    });
-
     it('should handle error fetching project issues', async () => {
-      const mockReq = { user: { id: 1 } };
+      const mockReq = {
+        user: { id: 1 },
+        provider: { accessToken: 'test_token', providerId: 'cloud-123' },
+      };
       const projectKey = 'TEST';
 
       mockAuthService.getJiraProvider.mockResolvedValue({ id: 1 });

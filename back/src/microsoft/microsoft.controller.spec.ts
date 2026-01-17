@@ -331,8 +331,9 @@ describe('MicrosoftController', () => {
       });
       expect(authService.getMicrosoftToken).toHaveBeenCalledWith(1);
       expect(microsoftService.deleteSubscription).toHaveBeenCalledWith(
-        'sub-123',
-        'test-token'
+        hookId,
+        'test-token',
+        'sub-123'
       );
       expect(result).toEqual({ message: 'Subscription deleted' });
     });

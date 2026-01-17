@@ -6,6 +6,7 @@ import {
   Get,
   Headers,
   HttpCode,
+  HttpException,
   HttpStatus,
   InternalServerErrorException,
   NotFoundException,
@@ -130,6 +131,9 @@ export class DiscordController {
         sendMessageDto
       );
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       console.error('Failed to send Discord message:', error);
       throw new InternalServerErrorException('Failed to send message');
     }
@@ -155,6 +159,9 @@ export class DiscordController {
         addRoleDto
       );
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       console.error('Failed to add role:', error);
       throw new InternalServerErrorException('Failed to add role to user');
     }
@@ -183,6 +190,9 @@ export class DiscordController {
         createChannelDto
       );
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       console.error('Failed to create channel:', error);
       throw new InternalServerErrorException(
         'Failed to create private channel'
@@ -217,16 +227,20 @@ export class DiscordController {
 
         for (const hook of hooks) {
           try {
-            if (!hook.additionalInfos || !hook.additionalInfos.events)
-              continue;
+            if (!hook.additionalInfos || !hook.additionalInfos.events) continue;
             const hookInfo = hook.additionalInfos as any;
             if (!hookInfo.events.includes(body.data.triggerType)) {
               continue;
             }
             const reactions = await this.reactionsService.findByHookId(hook.id);
-
             for (const reaction of reactions) {
               try {
+                if (
+                  body.data.channelId !== hookInfo.channelId ||
+                  body.data.guildId !== hookInfo.guildId
+                ) {
+                  continue;
+                }
                 await this.reactionsService.executeReaction(
                   reaction,
                   body,
@@ -363,11 +377,7 @@ export class DiscordController {
 
       return { result, hookId: savedHook.id };
     } catch (error) {
-      if (
-        error instanceof UnauthorizedException ||
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException
-      ) {
+      if (error instanceof HttpException) {
         throw error;
       }
       console.error('Failed to create Discord webhook:', error);

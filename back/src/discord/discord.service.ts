@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import { handleAxiosError } from '../shared/utils/axios.handler';
 import {
   AddRoleDto,
   CreatePrivateChannelDto,
@@ -20,23 +21,31 @@ export class DiscordService {
   }
 
   async getChannelMessages(userAccessToken: string, channelId: string) {
-    const response = await axios.get(
-      `${this.baseUrl}/channels/${channelId}/messages?limit=10`,
-      {
-        headers: this.getBotHeaders(),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/channels/${channelId}/messages?limit=10`,
+        {
+          headers: this.getBotHeaders(),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to get channel messages');
+    }
   }
 
   async getGuildMembers(userAccessToken: string, guildId: string) {
-    const response = await axios.get(
-      `${this.baseUrl}/guilds/${guildId}/members?limit=100`,
-      {
-        headers: this.getBotHeaders(),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/guilds/${guildId}/members?limit=100`,
+        {
+          headers: this.getBotHeaders(),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to get guild members');
+    }
   }
 
   async getMessageReactions(
@@ -44,30 +53,42 @@ export class DiscordService {
     channelId: string,
     messageId: string
   ) {
-    const response = await axios.get(
-      `${this.baseUrl}/channels/${channelId}/messages/${messageId}`,
-      {
-        headers: this.getBotHeaders(),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/channels/${channelId}/messages/${messageId}`,
+        {
+          headers: this.getBotHeaders(),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to get message reactions');
+    }
   }
 
   async listUserGuilds(userAccessToken: string) {
-    const response = await axios.get(`${this.baseUrl}/users/@me/guilds`, {
-      headers: this.getHeaders(userAccessToken),
-    });
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(`${this.baseUrl}/users/@me/guilds`, {
+        headers: this.getHeaders(userAccessToken),
+      });
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to list user guilds');
+    }
   }
 
   async listGuildChannels(userAccessToken: string, guildId: string) {
-    const response = await axios.get(
-      `${this.baseUrl}/guilds/${guildId}/channels`,
-      {
-        headers: this.getBotHeaders(),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/guilds/${guildId}/channels`,
+        {
+          headers: this.getBotHeaders(),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to list guild channels');
+    }
   }
 
   async sendMessage(userAccessToken: string, dto: SendMessageDto) {
@@ -78,31 +99,39 @@ export class DiscordService {
       body.embeds = embeds;
     }
 
-    const response = await axios.post(
-      `${this.baseUrl}/channels/${channelId}/messages`,
-      body,
-      {
-        headers: this.getBotHeaders(),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/channels/${channelId}/messages`,
+        body,
+        {
+          headers: this.getBotHeaders(),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to send message');
+    }
   }
 
   async addRoleToUser(userAccessToken: string, dto: AddRoleDto) {
     const { guildId, userId, roleId } = dto;
 
-    const response = await axios.put(
-      `${this.baseUrl}/guilds/${guildId}/members/${userId}/roles/${roleId}`,
-      {},
-      {
-        headers: this.getBotHeaders(),
-      }
-    );
+    try {
+      const response = await axios.put(
+        `${this.baseUrl}/guilds/${guildId}/members/${userId}/roles/${roleId}`,
+        {},
+        {
+          headers: this.getBotHeaders(),
+        }
+      );
 
-    if (response.status === 204) {
-      return { success: true, message: 'Role added successfully' };
+      if (response.status === 204) {
+        return { success: true, message: 'Role added successfully' };
+      }
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to add role to user');
     }
-    return this.handleResponse(response);
   }
 
   async createPrivateChannel(
@@ -120,31 +149,43 @@ export class DiscordService {
       body.permission_overwrites = permissionOverwrites;
     }
 
-    const response = await axios.post(
-      `${this.baseUrl}/guilds/${guildId}/channels`,
-      body,
-      {
-        headers: this.getBotHeaders(),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/guilds/${guildId}/channels`,
+        body,
+        {
+          headers: this.getBotHeaders(),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to create private channel');
+    }
   }
 
   async getCurrentUser(userAccessToken: string) {
-    const response = await axios.get(`${this.baseUrl}/users/@me`, {
-      headers: this.getHeaders(userAccessToken),
-    });
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(`${this.baseUrl}/users/@me`, {
+        headers: this.getHeaders(userAccessToken),
+      });
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to get current user');
+    }
   }
 
   async listGuildRoles(userAccessToken: string, guildId: string) {
-    const response = await axios.get(
-      `${this.baseUrl}/guilds/${guildId}/roles`,
-      {
-        headers: this.getBotHeaders(),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/guilds/${guildId}/roles`,
+        {
+          headers: this.getBotHeaders(),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to list guild roles');
+    }
   }
 
   getHeaders(accessToken: string) {
@@ -310,55 +351,78 @@ export class DiscordService {
       body.avatar = avatar;
     }
 
-    const response = await axios.post(
-      `${this.baseUrl}/channels/${channelId}/webhooks`,
-      body,
-      {
-        headers: this.getBotHeaders(),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/channels/${channelId}/webhooks`,
+        body,
+        {
+          headers: this.getBotHeaders(),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to create webhook');
+    }
   }
 
   async getChannelWebhooks(channelId: string) {
-    const response = await axios.get(
-      `${this.baseUrl}/channels/${channelId}/webhooks`,
-      {
-        headers: this.getBotHeaders(),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/channels/${channelId}/webhooks`,
+        {
+          headers: this.getBotHeaders(),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to get channel webhooks');
+    }
   }
 
   async getGuildWebhooks(guildId: string) {
-    const response = await axios.get(
-      `${this.baseUrl}/guilds/${guildId}/webhooks`,
-      {
-        headers: this.getBotHeaders(),
-      }
-    );
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/guilds/${guildId}/webhooks`,
+        {
+          headers: this.getBotHeaders(),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to get guild webhooks');
+    }
   }
 
   async getWebhook(webhookId: string) {
-    const response = await axios.get(`${this.baseUrl}/webhooks/${webhookId}`, {
-      headers: this.getBotHeaders(),
-    });
-    return this.handleResponse(response);
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/webhooks/${webhookId}`,
+        {
+          headers: this.getBotHeaders(),
+        }
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to get webhook');
+    }
   }
 
   async deleteWebhook(webhookId: string) {
-    const response = await axios.delete(
-      `${this.baseUrl}/webhooks/${webhookId}`,
-      {
-        headers: this.getBotHeaders(),
-      }
-    );
+    try {
+      const response = await axios.delete(
+        `${this.baseUrl}/webhooks/${webhookId}`,
+        {
+          headers: this.getBotHeaders(),
+        }
+      );
 
-    if (response.status === 204) {
-      return { success: true, message: 'Webhook deleted successfully' };
+      if (response.status === 204) {
+        return { success: true, message: 'Webhook deleted successfully' };
+      }
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to delete webhook');
     }
-    return this.handleResponse(response);
   }
 
   async executeWebhook(
@@ -372,19 +436,23 @@ export class DiscordService {
       body.embeds = embeds;
     }
 
-    const response = await axios.post(
-      `${this.baseUrl}/webhooks/${webhookId}/${webhookToken}`,
-      body,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/webhooks/${webhookId}/${webhookToken}`,
+        body,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-    if (response.status === 204) {
-      return { success: true, message: 'Message sent via webhook' };
+      if (response.status === 204) {
+        return { success: true, message: 'Message sent via webhook' };
+      }
+      return this.handleResponse(response);
+    } catch (error) {
+      handleAxiosError(error, 'Failed to execute webhook');
     }
-    return this.handleResponse(response);
   }
 }

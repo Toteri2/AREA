@@ -973,7 +973,7 @@ describe('AuthService', () => {
   });
 
   describe('findOrCreateGoogleUser', () => {
-    it('should return existing user if found', async () => {
+    it('should return existing user if found with existing Google provider', async () => {
       const existingUser = {
         id: 1,
         email: 'test@gmail.com',
@@ -981,7 +981,17 @@ describe('AuthService', () => {
         password: 'hashed',
       };
 
+      const existingGoogleProvider = {
+        id: 1,
+        userId: 1,
+        provider: 'google',
+        accessToken: 'existing-token',
+      };
+
       userRepository.findOne = jest.fn().mockResolvedValue(existingUser);
+      providerRepository.findOne = jest
+        .fn()
+        .mockResolvedValue(existingGoogleProvider);
 
       const result = await service.findOrCreateGoogleUser(
         'test@gmail.com',
@@ -990,10 +1000,32 @@ describe('AuthService', () => {
       );
 
       expect(result).toEqual(existingUser);
-      expect(userRepository.create).not.toHaveBeenCalled();
+      expect(providerRepository.findOne).toHaveBeenCalledWith({
+        where: { userId: 1, provider: 'google' },
+      });
     });
 
-    it('should create new user if not found', async () => {
+    it('should throw error if user exists without Google provider', async () => {
+      const existingUser = {
+        id: 1,
+        email: 'test@gmail.com',
+        name: 'Test User',
+        password: 'hashed',
+      };
+
+      userRepository.findOne = jest.fn().mockResolvedValue(existingUser);
+      providerRepository.findOne = jest.fn().mockResolvedValue(null);
+
+      await expect(
+        service.findOrCreateGoogleUser(
+          'test@gmail.com',
+          'Test User',
+          'google-id-123'
+        )
+      ).rejects.toThrow('An account with this email already exists');
+    });
+
+    it('should create new user and link Google provider if not found', async () => {
       const newUser = {
         id: 2,
         email: 'new@gmail.com',
@@ -1001,9 +1033,17 @@ describe('AuthService', () => {
         password: 'random-hashed',
       };
 
+      const newProvider = {
+        userId: 2,
+        user: newUser,
+        provider: 'google',
+        accessToken: 'google-id-456',
+      };
+
       userRepository.findOne = jest.fn().mockResolvedValue(null);
       userRepository.create = jest.fn().mockReturnValue(newUser);
       userRepository.save = jest.fn().mockResolvedValue(newUser);
+      providerRepository.save = jest.fn().mockResolvedValue(newProvider);
 
       const result = await service.findOrCreateGoogleUser(
         'new@gmail.com',
@@ -1013,6 +1053,12 @@ describe('AuthService', () => {
 
       expect(userRepository.create).toHaveBeenCalled();
       expect(userRepository.save).toHaveBeenCalled();
+      expect(providerRepository.save).toHaveBeenCalledWith({
+        userId: 2,
+        user: newUser,
+        provider: 'google',
+        accessToken: 'google-id-456',
+      });
       expect(result.email).toBe('new@gmail.com');
     });
   });

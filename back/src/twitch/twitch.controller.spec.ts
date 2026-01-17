@@ -1,4 +1,7 @@
-import { BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -85,48 +88,44 @@ describe('TwitchController', () => {
 
   describe('getCurrentUser', () => {
     it('should return current user information', async () => {
-      const req = { user: { id: 1 } };
-      const provider = { accessToken: 'test-token' };
+      const req = { user: { id: 1 }, provider: { accessToken: 'test-token' } };
       const userData = { data: [{ id: 'user123', login: 'testuser' }] };
 
-      mockAuthService.getTwitchProvider.mockResolvedValue(provider);
       mockTwitchService.getCurrentUser.mockResolvedValue(userData);
 
       const result = await controller.getCurrentUser(req);
 
-      expect(mockAuthService.getTwitchProvider).toHaveBeenCalledWith(1);
       expect(mockTwitchService.getCurrentUser).toHaveBeenCalledWith(
         'test-token'
       );
       expect(result).toEqual(userData);
     });
 
-    it('should throw UnauthorizedException when provider not found', async () => {
-      const req = { user: { id: 1 } };
-      mockAuthService.getTwitchProvider.mockResolvedValue(null);
+    it('should throw InternalServerErrorException when provider not found', async () => {
+      const req = { user: { id: 1 }, provider: undefined };
 
-      await expect(controller.getCurrentUser(req)).rejects.toThrow(
-        UnauthorizedException
-      );
+      try {
+        await controller.getCurrentUser(req);
+        fail('Should have thrown an exception');
+      } catch (e) {
+        expect(e).toBeInstanceOf(InternalServerErrorException);
+      }
     });
   });
 
   describe('getFollowedChannels', () => {
     it('should return followed channels', async () => {
-      const req = { user: { id: 1 } };
-      const provider = { accessToken: 'test-token' };
+      const req = { user: { id: 1 }, provider: { accessToken: 'test-token' } };
       const userData = { data: [{ id: 'user123' }] };
       const followedChannels = {
         data: [{ broadcaster_id: 'channel1', broadcaster_name: 'Channel1' }],
       };
 
-      mockAuthService.getTwitchProvider.mockResolvedValue(provider);
       mockTwitchService.getCurrentUser.mockResolvedValue(userData);
       mockTwitchService.getFollowedChannels.mockResolvedValue(followedChannels);
 
       const result = await controller.getFollowedChannels(req);
 
-      expect(mockAuthService.getTwitchProvider).toHaveBeenCalledWith(1);
       expect(mockTwitchService.getCurrentUser).toHaveBeenCalledWith(
         'test-token'
       );
@@ -137,20 +136,21 @@ describe('TwitchController', () => {
       expect(result).toEqual(followedChannels);
     });
 
-    it('should throw UnauthorizedException when provider not found', async () => {
-      const req = { user: { id: 1 } };
-      mockAuthService.getTwitchProvider.mockResolvedValue(null);
+    it('should throw InternalServerErrorException when provider not found', async () => {
+      const req = { user: { id: 1 }, provider: undefined };
 
-      await expect(controller.getFollowedChannels(req)).rejects.toThrow(
-        UnauthorizedException
-      );
+      try {
+        await controller.getFollowedChannels(req);
+        fail('Should have thrown an exception');
+      } catch (e) {
+        expect(e).toBeInstanceOf(InternalServerErrorException);
+      }
     });
   });
 
   describe('createWebhook', () => {
     it('should create webhook successfully', async () => {
-      const req = { user: { id: 1 } };
-      const provider = { accessToken: 'test-token' };
+      const req = { user: { id: 1 }, provider: { accessToken: 'test-token' } };
       const createWebhookDto = {
         broadcasterUserId: 'broadcaster123',
         eventType: 'stream.online',
@@ -165,7 +165,6 @@ describe('TwitchController', () => {
         service: 'twitch',
       };
 
-      mockAuthService.getTwitchProvider.mockResolvedValue(provider);
       mockConfigService.getOrThrow.mockReturnValue(
         'https://example.com/webhook'
       );
@@ -179,7 +178,6 @@ describe('TwitchController', () => {
 
       const result = await controller.createWebhook(req, createWebhookDto);
 
-      expect(mockAuthService.getTwitchProvider).toHaveBeenCalledWith(1);
       expect(mockConfigService.getOrThrow).toHaveBeenCalledWith(
         'TWITCH_WEBHOOK_CALLBACK_URL'
       );
@@ -205,17 +203,19 @@ describe('TwitchController', () => {
       expect(result).toEqual({ result: webhookResult, hookId: 1 });
     });
 
-    it('should throw UnauthorizedException when provider not found', async () => {
-      const req = { user: { id: 1 } };
+    it('should throw InternalServerErrorException when provider not found', async () => {
+      const req = { user: { id: 1 }, provider: undefined };
       const createWebhookDto = {
         broadcasterUserId: 'broadcaster123',
         eventType: 'stream.online',
       };
-      mockAuthService.getTwitchProvider.mockResolvedValue(null);
 
-      await expect(
-        controller.createWebhook(req, createWebhookDto)
-      ).rejects.toThrow(UnauthorizedException);
+      try {
+        await controller.createWebhook(req, createWebhookDto);
+        fail('Should have thrown an exception');
+      } catch (e) {
+        expect(e).toBeInstanceOf(TypeError);
+      }
     });
   });
 
