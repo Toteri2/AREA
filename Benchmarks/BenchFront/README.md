@@ -123,6 +123,52 @@ Let's see what numbers we get from benchmarking the Vue.js application :
 
 We can see that Vue.js has the smallest bundle size and fastest initial load time, followed by React and then Angular.
 
+## Accessibility (PSH - Personnes en Situation de Handicap)
+
+Web accessibility ensures people with disabilities can use the application via assistive technologies (screen readers, keyboard navigation). Here's a comparison of accessibility support for each framework according to WCAG 2.1 standards.
+
+### Accessibility Features Comparison
+
+|                           | Angular           | React              | Vue.js        |
+| ------------------------- | ----------------- | ------------------ | ------------- |
+| **ARIA Support**          | ✅ First-class    | ✅ Native JSX      | ✅ Native     |
+| **Screen Readers**        | ✅ Excellent      | ✅ Excellent       | ✅ Good       |
+| **Keyboard Nav**          | ✅ Built-in (CDK) | ⚠️ Manual          | ⚠️ Manual     |
+| **Focus Management**      | ✅ CDK Tools      | ✅ Refs            | ✅ $refs      |
+| **Accessible Components** | ✅ Material (AA)  | ✅ Reach UI, Aria  | ⚠️ Limited    |
+| **Dev Tools/Linting**     | ✅ Yes            | ✅ jsx-a11y plugin | ✅ vuejs-a11y |
+| **Documentation**         | ✅ Comprehensive  | ✅ Excellent       | ⚠️ Growing    |
+
+**Screen Reader Compatibility:**
+- Angular: NVDA, JAWS, VoiceOver ✅
+- React: NVDA, JAWS, VoiceOver, Narrator ✅
+- Vue.js: NVDA, JAWS, VoiceOver ✅
+
+### Key Accessibility Strengths
+
+**Angular:**
+- Angular CDK provides built-in accessibility utilities (A11yModule, FocusTrap, LiveAnnouncer)
+- Angular Material components pre-tested with screen readers (WCAG 2.1 Level AA)
+- TypeScript catches missing ARIA attributes at compile-time
+
+**React:**
+- eslint-plugin-jsx-a11y automatically catches 80% of accessibility issues
+- Large ecosystem of accessible components (Reach UI, Chakra UI, MUI, React Aria)
+- Excellent documentation with real-world examples
+- @testing-library/react enforces accessibility best practices
+
+**Vue.js:**
+- Clean template syntax makes ARIA attributes easy to read
+- Vue 3 Composition API improves accessibility patterns
+- Growing ecosystem (PrimeVue with WCAG support)
+
+### Accessibility Verdict for AREA Frontend
+
+**React chosen for accessibility:**
+- **Automatic detection:** eslint-plugin-jsx-a11y catches issues during development
+- **Ecosystem:** Pre-built accessible components reduce development time
+- **WCAG 2.1 compliance:** React Aria (Adobe) ensures Level AA conformance
+
 ## Security
 
 This is a comparison between the security languages CVE during the last 2 years.
