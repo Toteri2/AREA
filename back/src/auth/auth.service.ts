@@ -69,7 +69,14 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.userRepository.findOneBy({ email });
-    if (user && (await bcrypt.compare(password, user.password))) return user;
+    if (!user) return null;
+    const googleProvider = await this.providerRepository.findOne({
+      where: { userId: user.id, provider: ProviderType.GOOGLE },
+    });
+    if (googleProvider) {
+      return null;
+    }
+    if (await bcrypt.compare(password, user.password)) return user;
     return null;
   }
 
@@ -660,18 +667,33 @@ export class AuthService {
     googleId: string
   ): Promise<User> {
     let user = await this.userRepository.findOne({ where: { email } });
-    if (!user) {
-      const randomPassword = await bcrypt.hash(
-        randomBytes(32).toString('hex'),
-        10
-      );
-      user = this.userRepository.create({
-        email,
-        name,
-        password: randomPassword,
+    if (user) {
+      const existingGoogleProvider = await this.providerRepository.findOne({
+        where: { userId: user.id, provider: ProviderType.GOOGLE },
       });
-      user = await this.userRepository.save(user);
+      if (!existingGoogleProvider) {
+        throw new Error(
+          'An account with this email already exists. Please login with your password instead, or link your Google account from your profile settings.'
+        );
+      }
+      return user;
     }
+    const randomPassword = await bcrypt.hash(
+      randomBytes(32).toString('hex'),
+      10
+    );
+    user = this.userRepository.create({
+      email,
+      name,
+      password: randomPassword,
+    });
+    user = await this.userRepository.save(user);
+    await this.providerRepository.save({
+      userId: user.id,
+      user: user,
+      provider: ProviderType.GOOGLE,
+      accessToken: googleId,
+    });
 
     return user;
   }

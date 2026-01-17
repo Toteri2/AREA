@@ -273,9 +273,7 @@ export class AuthController {
       'DISCORD_CALLBACK_URL'
     );
     const redirectUri = encodeURIComponent(discordAuthCallbackUrl);
-    const scope = encodeURIComponent(
-      'identify guilds bot'
-    );
+    const scope = encodeURIComponent('identify guilds bot messages.read');
     const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}&permissions=268503056`;
     return url;
   }
@@ -514,6 +512,10 @@ export class AuthController {
     status: 400,
     description: 'Invalid code.',
   })
+  @ApiResponse({
+    status: 409,
+    description: 'Account with this email already exists.',
+  })
   async googleAuthCallback(@Body() body: { code: string }, @Res() res) {
     try {
       if (!body.code) {
@@ -532,6 +534,9 @@ export class AuthController {
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
+      }
+      if (error?.message?.includes('already exists')) {
+        throw new ConflictException(error.message);
       }
       console.error('Google auth error:', error);
       throw new InternalServerErrorException(
