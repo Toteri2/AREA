@@ -5,7 +5,7 @@ export const common = StyleSheet.create({
     backgroundColor: '#1a1a2e',
   },
   contentApp: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#e9e9e9',
   },
   headerTitleApp: {
     fontWeight: '600',

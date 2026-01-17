@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import type { RootStackParamList } from '../navigation';
 import { useAppSelector } from '../shared/src/native';
 import styles from '../style/index';
@@ -26,6 +27,7 @@ export function Dashboard() {
           style={styles.card}
           onPress={() => navigation.navigate('Profile')}
         >
+          <Icon name='user' size={20} color='#000' solid />
           <Text style={styles.cardTitle}>Profile</Text>
           <Text style={styles.cardDescription}>View and edit your profile</Text>
         </TouchableOpacity>

@@ -20,7 +20,10 @@ export const card = StyleSheet.create({
     fontSize: 22,
     fontWeight: '600',
     color: '#1a1a2e',
-    marginBottom: 8,
+    marginLeft: 10,
+    marginRight: 10,
+    marginBottom: 7,
+    textAlign: 'center',
   },
 
   card: {
