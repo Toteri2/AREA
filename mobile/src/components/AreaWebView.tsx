@@ -13,10 +13,12 @@ export function AreaWebView({ url }: AreaWebViewProps) {
   const injectedJS = `
     (function () {
       try {
-        const token = ${JSON.stringify(token || '')};
-        if (token) {
-          localStorage.setItem('area_token', token);
-          console.log('Token set successfully');
+        if (window.location.origin === 'https://front.mambokara.dev') {
+          const token = ${JSON.stringify(token || '')};
+          if (token) {
+            localStorage.setItem('area_token', token);
+            console.log('Token set successfully');
+          }
         }
       } catch (e) {
         console.error('Error setting token:', e);
@@ -25,6 +27,12 @@ export function AreaWebView({ url }: AreaWebViewProps) {
     true;
   `;
 
+  const isUrlAllowed = (url: string) => {
+    return (
+      url.startsWith('https://front.mambokara.dev') || url.startsWith('area://')
+    );
+  };
+
   return (
     <View style={styles.container}>
       <WebView
@@ -32,7 +40,13 @@ export function AreaWebView({ url }: AreaWebViewProps) {
         injectedJavaScriptBeforeContentLoaded={injectedJS}
         javaScriptEnabled={true}
         domStorageEnabled={true}
-        originWhitelist={['*']}
+        originWhitelist={['https://front.mambokara.dev/*', 'area://*']}
+        onShouldStartLoadWithRequest={(request) => {
+          if (isUrlAllowed(request.url)) {
+            return true;
+          }
+          return false;
+        }}
         startInLoadingState={true}
         style={styles.webview}
         renderLoading={() => (
@@ -50,9 +64,9 @@ export function AreaWebView({ url }: AreaWebViewProps) {
         }}
         onLoadStart={() => console.log('WebView loading started')}
         onLoadEnd={() => console.log('WebView loading ended')}
-        mixedContentMode='always'
-        allowsInlineMediaPlayback={true}
-        mediaPlaybackRequiresUserAction={false}
+        mixedContentMode='never'
+        allowsInlineMediaPlayback={false}
+        mediaPlaybackRequiresUserAction={true}
         sharedCookiesEnabled={true}
       />
     </View>
