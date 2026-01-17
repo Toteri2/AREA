@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import session from 'express-session';
 import { AppModule } from './app.module';
+import { globalRateLimiter } from './shared/middleware/rate-limiters';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -39,6 +40,8 @@ async function bootstrap() {
     },
     credentials: true,
   });
+
+  app.use(globalRateLimiter);
 
   app.use(
     session({

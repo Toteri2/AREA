@@ -303,7 +303,6 @@ describe('TwitchService', () => {
       hmac.update(message);
       const validHex = hmac.digest('hex');
 
-      // Create an invalid signature with same length
       const invalidHex = validHex.split('').reverse().join('');
       const invalidSignature = 'sha256=' + invalidHex;
 

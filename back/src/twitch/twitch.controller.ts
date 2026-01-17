@@ -147,6 +147,7 @@ export class TwitchController {
   })
   @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.TWITCH)
+  @UseGuards(AuthGuard('jwt'))
   async createWebhook(
     @Req() req,
     @Body() createWebhookDto: CreateTwitchWebhookDto
