@@ -5,7 +5,7 @@ export const common = StyleSheet.create({
     backgroundColor: '#1a1a2e',
   },
   contentApp: {
-    backgroundColor: '#ffffffff',
+    backgroundColor: '#F5F5F5',
   },
   headerTitleApp: {
     fontWeight: '600',
@@ -27,7 +27,7 @@ export const common = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#000000',
     marginBottom: 16,
   },
   infoSection: { marginBottom: 24 },
@@ -39,7 +39,7 @@ export const common = StyleSheet.create({
     borderBottomColor: '#0f3460',
   },
   label: { fontSize: 14, color: '#888', fontWeight: '500' },
-  value: { fontSize: 14, color: '#fff' },
+  value: { fontSize: 14, color: '#000000' },
 });
 
 // const styles = StyleSheet.create({

@@ -126,20 +126,22 @@ export function Profile() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.card}>
-        <View style={styles.infoSection}>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Name</Text>
-            <Text style={styles.value}>{user?.name}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Email</Text>
-            <Text style={styles.value}>{user?.email}</Text>
+      <View style={styles.cardsContainer}>
+        <View style={styles.card}>
+          <View style={styles.infoSection}>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Name</Text>
+              <Text style={styles.value}>{user?.name}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Email</Text>
+              <Text style={styles.value}>{user?.email}</Text>
+            </View>
           </View>
         </View>
 
-        <View style={styles.baseUrlSection}>
-          <Text style={styles.sectionTitle}>API Base URL</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>API Base URL</Text>
           <TextInput
             style={styles.input}
             value={customBaseUrl}
@@ -152,8 +154,8 @@ export function Profile() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.actionsSection}>
-          <Text style={styles.sectionTitle}>Connected Services</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Connected Services</Text>
           {services.map((service) => {
             const mapping = getAuthMapping[service.name];
             if (!mapping) return null;
