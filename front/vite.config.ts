@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => {
             dedupe: ['react', 'react-dom'],
         },
         server: {
+            allowedHosts: ['front.mambokara.dev'],
             proxy: {
                 '/api': {
                     target: env.VITE_API_URL || 'http://localhost:8080',
