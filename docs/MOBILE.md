@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
 ```bash
 cd android
 ./gradlew assembleRelease
-# Output: android/app/build/outputs/apk/release/app-release.apk
+# Output: android/app/build/outputs/apk/release/client.apk
 ```
 
 **Docker:**
