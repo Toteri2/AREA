@@ -6,6 +6,7 @@ export const authRateLimiter = rateLimit({
   message: 'Trop de tentatives, réessayez dans une minute.',
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
 });
 
 export const webhookRateLimiter = rateLimit({
@@ -14,8 +15,8 @@ export const webhookRateLimiter = rateLimit({
   message: 'Trop de requêtes, réessayez dans une minute.',
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
 });
-
 
 export const reactionRateLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -23,6 +24,7 @@ export const reactionRateLimiter = rateLimit({
   message: 'Trop de requêtes, réessayez dans une minute.',
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
 });
 
 export const globalRateLimiter = rateLimit({
@@ -31,4 +33,5 @@ export const globalRateLimiter = rateLimit({
   message: 'Trop de requêtes depuis cette IP, réessayez plus tard.',
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
 });
