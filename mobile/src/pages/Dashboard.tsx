@@ -19,7 +19,6 @@ export function Dashboard() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.welcomeCard}>
         <Text style={styles.welcomeTitle}>Welcome, {user?.name}!</Text>
-        {/* <Text style={styles.welcomeEmail}>{user?.email}</Text> */}
       </View>
 
       <View style={styles.cardsContainer}>
@@ -27,8 +26,10 @@ export function Dashboard() {
           style={styles.card}
           onPress={() => navigation.navigate('Profile')}
         >
-          <Icon name='user' size={20} color='#000' solid />
-          <Text style={styles.cardTitle}>Profile</Text>
+          <View style={styles.cardHeader}>
+            <Icon name='user' size={20} color='#000' solid />
+            <Text style={styles.cardTitle}>Profile</Text>
+          </View>
           <Text style={styles.cardDescription}>View and edit your profile</Text>
         </TouchableOpacity>
 
@@ -36,7 +37,10 @@ export function Dashboard() {
           style={styles.card}
           onPress={() => navigation.navigate('Area')}
         >
-          <Text style={styles.cardTitle}>Area</Text>
+          <View style={styles.cardHeader}>
+            <Icon name='cog' size={20} color='#000' solid />
+            <Text style={styles.cardTitle}>Area</Text>
+          </View>
           <Text style={styles.cardDescription}>Area page (automation)</Text>
         </TouchableOpacity>
       </View>

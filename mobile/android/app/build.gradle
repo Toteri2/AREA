@@ -103,7 +103,14 @@ android {
             include "arm64-v8a", "x86_64"  // Seulement ces 2 architectures
         }
     }
-    
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            if (output.filters.isEmpty()) {
+                // APK universel (pas de filtre ABI)
+                output.outputFileName = "app-release.apk"
+            }
+        }
+    }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug

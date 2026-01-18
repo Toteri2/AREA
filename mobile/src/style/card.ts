@@ -38,6 +38,12 @@ export const card = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
