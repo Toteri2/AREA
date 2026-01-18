@@ -4,7 +4,6 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   HttpCode,
   HttpException,
   HttpStatus,
@@ -207,14 +206,8 @@ export class DiscordController {
     status: 200,
     description: 'Webhook event received successfully.',
   })
-  async handleWebhook(
-    @Body() body: any,
-    @Headers('x-signature-ed25519') signature: string,
-    @Headers('x-signature-timestamp') timestamp: string
-  ) {
+  async handleWebhook(@Body() body: any) {
     try {
-      console.log('Discord webhook received');
-      console.log('Payload:', body);
 
       if (body.type === 1) {
         return { type: 1 };
@@ -235,10 +228,7 @@ export class DiscordController {
             const reactions = await this.reactionsService.findByHookId(hook.id);
             for (const reaction of reactions) {
               try {
-                if (
-                  body.data.channelId !== hookInfo.channelId ||
-                  body.data.guildId !== hookInfo.guildId
-                ) {
+                if ( body.data.channelId !== hookInfo.channelId ) {
                   continue;
                 }
                 await this.reactionsService.executeReaction(
@@ -262,6 +252,9 @@ export class DiscordController {
       return { success: true };
     } catch (error) {
       console.error('Discord webhook error:', error);
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Failed to process webhook');
     }
   }
