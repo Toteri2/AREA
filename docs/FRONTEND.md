@@ -5,7 +5,8 @@
 **Technology Stack:** React 19 + Vite + TypeScript
 **State Management:** Redux Toolkit + RTK Query
 **Routing:** React Router v7
-**UI Library:** ReactFlow (visual editor) + Dagre (auto-layout)
+**UI Library:** ReactFlow (visual editor)
+**Graph Layout:** Dagre (auto-arrange nodes)
 **Notifications:** React-Toastify (toast notifications)
 ## Project Structure
 
@@ -158,7 +159,7 @@ Users drag-and-drop services instead of filling complex forms.
 2. **Visual Connections:** Connect Action → Reaction with edges (ReactFlow)
 3. **Dynamic Forms:** Configuration modal adapts to service type
 4. **Live Sync:** Fetches existing webhooks, displays on canvas
-5. **Auto-Layout (Dagre):** Automatic node positioning for clean graph layout
+5. **Auto-Layout (Dagre):** Graph layout algorithm that automatically arranges nodes for optimal readability
 
 ### Custom Hooks
 
