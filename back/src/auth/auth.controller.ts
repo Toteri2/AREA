@@ -215,7 +215,7 @@ export class AuthController {
       nonce: Math.random().toString(36).substring(7),
     };
     const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
-    return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&response_mode=query&scope=offline_access user.read mail.read&state=${state}`;
+    return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&response_mode=query&scope=offline_access https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/User.Read https://graph.microsoft.com/Mail.ReadWrite&state=${state}`;
   }
 
   @Post('microsoft/validate')
