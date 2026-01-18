@@ -19,13 +19,13 @@ import {
   logout,
   useAppSelector,
   useConnectionQuery,
-  useGetDiscordAuthUrlQuery,
-  useGetGithubAuthUrlQuery,
-  useGetGmailAuthUrlQuery,
-  useGetJiraAuthUrlQuery,
-  useGetMicrosoftAuthUrlQuery,
   useGetServicesQuery,
-  useGetTwitchAuthUrlQuery,
+  useLazyGetDiscordAuthUrlQuery,
+  useLazyGetGithubAuthUrlQuery,
+  useLazyGetGmailAuthUrlQuery,
+  useLazyGetJiraAuthUrlQuery,
+  useLazyGetMicrosoftAuthUrlQuery,
+  useLazyGetTwitchAuthUrlQuery,
 } from '../shared/src/native';
 import styles from '../style/index';
 
@@ -78,50 +78,49 @@ export function Profile() {
   const services: Service[] = servicesData?.server?.services ?? [];
   const serviceNames = new Set(services.map((s) => s.name));
 
-  const { refetch: getGithubAuthUrl } = useGetGithubAuthUrlQuery(
-    serviceNames.has('github') ? { mobile: true } : { skip: true }
-  );
-  const { refetch: getGmailAuthUrl } = useGetGmailAuthUrlQuery(
-    serviceNames.has('gmail') ? { mobile: true } : { skip: true }
-  );
-  const { refetch: getMicrosoftAuthUrl } = useGetMicrosoftAuthUrlQuery(
-    serviceNames.has('microsoft') ? { mobile: true } : { skip: true }
-  );
-  const { refetch: getDiscordAuthUrl } = useGetDiscordAuthUrlQuery(
-    serviceNames.has('discord') ? { mobile: true } : { skip: true }
-  );
-  const { refetch: getJiraAuthUrl } = useGetJiraAuthUrlQuery(
-    serviceNames.has('jira') ? { mobile: true } : { skip: true }
-  );
-  const { refetch: getTwitchAuthUrl } = useGetTwitchAuthUrlQuery(
-    serviceNames.has('twitch') ? { mobile: true } : { skip: true }
-  );
+  const [getGithubAuthUrl] = useLazyGetGithubAuthUrlQuery();
+  const [getGmailAuthUrl] = useLazyGetGmailAuthUrlQuery();
+  const [getMicrosoftAuthUrl] = useLazyGetMicrosoftAuthUrlQuery();
+  const [getDiscordAuthUrl] = useLazyGetDiscordAuthUrlQuery();
+  const [getJiraAuthUrl] = useLazyGetJiraAuthUrlQuery();
+  const [getTwitchAuthUrl] = useLazyGetTwitchAuthUrlQuery();
 
   const githubConnection = useConnectionQuery(
-    serviceNames.has('github') ? { provider: 'github' } : undefined
+    serviceNames.has('github') ? { provider: 'github' } : undefined,
+    { skip: !serviceNames.has('github') }
   );
+
   const gmailConnection = useConnectionQuery(
-    serviceNames.has('gmail') ? { provider: 'gmail' } : undefined
+    serviceNames.has('gmail') ? { provider: 'gmail' } : undefined,
+    { skip: !serviceNames.has('gmail') }
   );
+
   const microsoftConnection = useConnectionQuery(
-    serviceNames.has('microsoft') ? { provider: 'microsoft' } : undefined
+    serviceNames.has('microsoft') ? { provider: 'microsoft' } : undefined,
+    { skip: !serviceNames.has('microsoft') }
   );
   const discordConnection = useConnectionQuery(
-    serviceNames.has('discord') ? { provider: 'discord' } : undefined
+    serviceNames.has('discord') ? { provider: 'discord' } : undefined,
+    { skip: !serviceNames.has('discord') }
   );
   const jiraConnection = useConnectionQuery(
-    serviceNames.has('jira') ? { provider: 'jira' } : undefined
+    serviceNames.has('jira') ? { provider: 'jira' } : undefined,
+    { skip: !serviceNames.has('jira') }
   );
   const twitchConnection = useConnectionQuery(
-    serviceNames.has('twitch') ? { provider: 'twitch' } : undefined
+    serviceNames.has('twitch') ? { provider: 'twitch' } : undefined,
+    { skip: !serviceNames.has('twitch') }
   );
 
   const handleOAuthRedirect = async (
-    getUrl: () => Promise<{ data?: { url: string }; error?: unknown }>,
+    trigger: (args: { mobile: boolean }) => Promise<{
+      data?: { url: string };
+      error?: unknown;
+    }>,
     label: string
   ) => {
     try {
-      const result = await getUrl();
+      const result = await trigger({ mobile: true });
       if (result.data?.url) {
         await Linking.openURL(result.data.url);
       } else {
@@ -137,38 +136,38 @@ export function Profile() {
     {
       label: string;
       connection: typeof githubConnection;
-      getAuthUrl: () => Promise<{ data?: { url: string }; error?: unknown }>;
+      trigger: typeof getGithubAuthUrl;
     }
   > = {
     github: {
       label: 'GitHub',
       connection: githubConnection,
-      getAuthUrl: getGithubAuthUrl,
+      trigger: getGithubAuthUrl,
     },
     gmail: {
       label: 'Gmail',
       connection: gmailConnection,
-      getAuthUrl: getGmailAuthUrl,
+      trigger: getGmailAuthUrl,
     },
     microsoft: {
       label: 'Microsoft',
       connection: microsoftConnection,
-      getAuthUrl: getMicrosoftAuthUrl,
+      trigger: getMicrosoftAuthUrl,
     },
     discord: {
       label: 'Discord',
       connection: discordConnection,
-      getAuthUrl: getDiscordAuthUrl,
+      trigger: getDiscordAuthUrl,
     },
     jira: {
       label: 'Jira',
       connection: jiraConnection,
-      getAuthUrl: getJiraAuthUrl,
+      trigger: getJiraAuthUrl,
     },
     twitch: {
       label: 'Twitch',
       connection: twitchConnection,
-      getAuthUrl: getTwitchAuthUrl,
+      trigger: getTwitchAuthUrl,
     },
   };
 
@@ -222,9 +221,7 @@ export function Profile() {
                 label={config.label}
                 isLoading={config.connection.isLoading}
                 isLinked={config.connection.data?.connected === true}
-                onLink={() =>
-                  handleOAuthRedirect(config.getAuthUrl, config.label)
-                }
+                onLink={() => handleOAuthRedirect(config.trigger, config.label)}
               />
             );
           })}

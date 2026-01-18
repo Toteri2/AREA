@@ -115,6 +115,7 @@ export const apiSlice = createApi({
         const { data } = await queryFulfilled;
         dispatch(persistToken(data.access_token));
       },
+      invalidatesTags: ['User'],
     }),
 
     // --- GitHub ---
@@ -135,6 +136,7 @@ export const apiSlice = createApi({
         method: 'POST',
         body: { code },
       }),
+      invalidatesTags: ['User'],
     }),
 
     // --- Microsoft ---
@@ -156,6 +158,7 @@ export const apiSlice = createApi({
           method: 'POST',
           body: { code },
         }),
+        invalidatesTags: ['User'],
       }
     ),
 
@@ -177,6 +180,7 @@ export const apiSlice = createApi({
         method: 'POST',
         body: { code },
       }),
+      invalidatesTags: ['User'],
     }),
 
     // --- Discord ---
@@ -200,6 +204,7 @@ export const apiSlice = createApi({
         method: 'POST',
         body: { code, state },
       }),
+      invalidatesTags: ['User'],
     }),
 
     // --- Jira ---
@@ -220,6 +225,7 @@ export const apiSlice = createApi({
         method: 'POST',
         body: { code },
       }),
+      invalidatesTags: ['User'],
     }),
 
     // --- Twitch ---
@@ -243,6 +249,7 @@ export const apiSlice = createApi({
         method: 'POST',
         body: { code, state },
       }),
+      invalidatesTags: ['User'],
     }),
   }),
 });
@@ -276,13 +283,16 @@ export const {
 
   // Discord
   useGetDiscordAuthUrlQuery,
+  useLazyGetDiscordAuthUrlQuery,
   useValidateDiscordMutation,
 
   // Jira
   useGetJiraAuthUrlQuery,
+  useLazyGetJiraAuthUrlQuery,
   useValidateJiraMutation,
 
   // Twitch
   useGetTwitchAuthUrlQuery,
+  useLazyGetTwitchAuthUrlQuery,
   useValidateTwitchMutation,
 } = apiSlice;

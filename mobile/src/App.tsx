@@ -13,7 +13,10 @@ import {
   useGoogleAuthValidateMutation,
   useValidateDiscordMutation,
   useValidateGithubMutation,
+  useValidateGmailMutation,
+  useValidateJiraMutation,
   useValidateMicrosoftMutation,
+  useValidateTwitchMutation,
 } from './shared/src/native';
 import styles from './style/index';
 
@@ -26,6 +29,9 @@ function AppNavigator() {
   const [validateGoogle] = useGoogleAuthValidateMutation();
   const [validateMicrosoft] = useValidateMicrosoftMutation();
   const [validateDiscord] = useValidateDiscordMutation();
+  const [validateGmail] = useValidateGmailMutation();
+  const [validateJira] = useValidateJiraMutation();
+  const [validateTwitch] = useValidateTwitchMutation();
 
   useEffect(() => {
     const handleDeepLink = async ({ url }: { url: string }) => {
@@ -50,6 +56,15 @@ function AppNavigator() {
         } else if (url.includes('auth/discord')) {
           await validateDiscord({ code, state }).unwrap();
           Alert.alert('Success', 'Discord account linked successfully!');
+        } else if (url.includes('auth/gmail')) {
+          await validateGmail({ code }).unwrap();
+          Alert.alert('Success', 'Gmail account linked successfully!');
+        } else if (url.includes('auth/jira')) {
+          await validateJira({ code }).unwrap();
+          Alert.alert('Success', 'Jira account linked successfully!');
+        } else if (url.includes('auth/twitch')) {
+          await validateTwitch({ code, state }).unwrap();
+          Alert.alert('Success', 'Twitch account linked successfully!');
         }
       } catch (_error) {
         Alert.alert('Error', 'Failed to link account. Please try again.');
@@ -58,7 +73,15 @@ function AppNavigator() {
 
     const sub = Linking.addEventListener('url', handleDeepLink);
     return () => sub.remove();
-  }, [validateGithub, validateGoogle, validateMicrosoft, validateDiscord]);
+  }, [
+    validateGithub,
+    validateGoogle,
+    validateMicrosoft,
+    validateDiscord,
+    validateGmail,
+    validateJira,
+    validateTwitch,
+  ]);
 
   if (isLoading) {
     return (
