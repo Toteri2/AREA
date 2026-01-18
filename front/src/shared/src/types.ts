@@ -214,6 +214,7 @@ export interface ActionNodeData {
 export interface ReactionNodeData {
   label: string;
   reactionType: number;
+  reactionId?: number; // Added for updates
   reactionName?: string; // Name from API (e.g., 'send_message')
   serviceName?: string; // Service from API (e.g., 'discord')
   config: {

@@ -32,6 +32,8 @@ const selectDiscordWebhooks =
   apiSlice.endpoints.listDiscordWebhooks.select(undefined);
 const selectTwitchWebhooks =
   apiSlice.endpoints.listTwitchWebhooks.select(undefined);
+const selectJiraWebhooks =
+  apiSlice.endpoints.listJiraWebhooks.select(undefined);
 const selectReactions = apiSlice.endpoints.listReactions.select(undefined);
 
 // Aggregating selector that returns the graph { nodes, edges }
@@ -42,6 +44,7 @@ export const selectBlueprintGraph = createSelector(
     selectMicrosoftWebhooks,
     selectDiscordWebhooks,
     selectTwitchWebhooks,
+    selectJiraWebhooks,
     selectReactions,
   ],
   (
@@ -50,6 +53,7 @@ export const selectBlueprintGraph = createSelector(
     microsoftResult,
     discordResult,
     twitchResult,
+    jiraResult,
     reactionsResult
   ) => {
     const webhooks: Webhook[] = [
@@ -58,6 +62,7 @@ export const selectBlueprintGraph = createSelector(
       ...(microsoftResult.data || []),
       ...(discordResult.data || []),
       ...(twitchResult.data || []),
+      ...(jiraResult.data || []),
     ];
     const reactions = reactionsResult.data || [];
 
@@ -208,6 +213,7 @@ export const selectBlueprintGraph = createSelector(
         data: {
           label: reaction.config?.name as string,
           reactionType: reaction.reactionType,
+          reactionId: reaction.id,
           reactionName: foundName || (reaction.config?.name as string),
           serviceName: foundService,
           config: reaction.config,

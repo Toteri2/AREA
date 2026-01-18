@@ -8,6 +8,7 @@ import type {
 import {
   useCreateDiscordWebhookMutation,
   useCreateGmailSubscriptionMutation,
+  useCreateJiraWebhookMutation,
   useCreateMicrosoftSubscriptionMutation,
   useCreateReactionMutation,
   useCreateTwitchWebhookMutation,
@@ -19,10 +20,9 @@ import {
   useDeleteMicrosoftSubscriptionMutation,
   useDeleteReactionMutation,
   useDeleteTwitchWebhookMutation,
+  useUpdateReactionMutation,
 } from '../../../shared/src/web';
 import {
-  generateEdgeId,
-  generateReactionNodeId,
   generateUniqueNodeId,
 } from '../utils';
 
@@ -52,10 +52,12 @@ export function useBlueprintGraph(
     useCreateMicrosoftSubscriptionMutation();
   const [createGmailSubscription] = useCreateGmailSubscriptionMutation();
   const [createReaction] = useCreateReactionMutation();
+  const [updateReaction] = useUpdateReactionMutation();
   const [deleteReaction] = useDeleteReactionMutation();
   const [deleteMicrosoftSubscription] =
     useDeleteMicrosoftSubscriptionMutation();
   const [deleteGmailSubscription] = useDeleteGmailSubscriptionMutation();
+  const [createJiraWebhook] = useCreateJiraWebhookMutation();
   const [deleteJiraWebhook] = useDeleteJiraWebhookMutation();
   const [deleteGithubWebhook] = useDeleteGithubWebhookMutation();
   const [createDiscordWebhook] = useCreateDiscordWebhookMutation();
@@ -115,25 +117,22 @@ export function useBlueprintGraph(
               if (n.id === targetNode.id) {
                 return {
                   ...n,
-                  id: generateReactionNodeId(newReaction.id),
                   position: targetNode.position,
                   positionAbsolute: targetNode.positionAbsolute,
-                  data: { ...n.data, reactionId: newReaction.id },
+                  data: { ...n.data, reactionId: newReaction.id, isConfigured: true },
                   selected: true,
                 };
               }
               return n;
             })
           );
-          const newEdgeId = generateEdgeId(finalHookId, newReaction.id);
-          const newTargetId = generateReactionNodeId(newReaction.id);
 
           setEdges((eds) =>
             addEdge(
               {
                 ...params,
-                target: newTargetId,
-                id: newEdgeId,
+                target: params.target,
+                id: `edge_local_${Date.now()}`,
                 animated: true,
                 style: { stroke: '#9e9e9e', strokeWidth: 2 },
               },
@@ -348,11 +347,37 @@ export function useBlueprintGraph(
               isConfigured: true,
             };
             showStatus('success', 'Twitch webhook created!');
+          } else if (actionData.service === 'jira' && !actionData.webhookId) {
+            const webhook = await createJiraWebhook({
+              projectKey: actionData.config.projectKey as string,
+              events: (actionData.config.events as string[]) || [],
+            }).unwrap();
+            finalData = {
+              ...actionData,
+              webhookId: webhook.hookId,
+              isConfigured: true,
+            };
+            showStatus('success', 'Jira webhook created!');
           }
         } catch (error) {
           console.error(error);
           showStatus('error', 'Failed to configure action');
           return;
+        }
+      } else if (selectedNode.type === 'reaction') {
+        const reactionData = finalData as ReactionNodeData;
+        if (reactionData.reactionId) {
+          try {
+            await updateReaction({
+              id: reactionData.reactionId,
+              config: reactionData.config,
+            }).unwrap();
+            showStatus('success', 'Reaction updated!');
+          } catch (error) {
+            console.error('Failed to update reaction:', error);
+            showStatus('error', 'Failed to update reaction.');
+            return;
+          }
         }
       }
 
@@ -370,6 +395,7 @@ export function useBlueprintGraph(
       createGmailSubscription,
       createDiscordWebhook,
       createTwitchWebhook,
+      updateReaction,
       setNodes,
       setShowConfigModal,
       setSelectedNode,

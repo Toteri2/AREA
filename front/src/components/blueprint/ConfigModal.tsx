@@ -7,6 +7,7 @@ import type {
 import { DiscordConfigForm } from './forms/DiscordConfigForm';
 import { GithubConfigForm } from './forms/GithubConfigForm';
 import { GmailConfigForm } from './forms/GmailConfigForm';
+import { JiraConfigForm } from './forms/JiraConfigForm';
 import { MicrosoftConfigForm } from './forms/MicrosoftConfigForm';
 import { ReactionConfigForm } from './forms/ReactionConfigForm';
 import { TwitchConfigForm } from './forms/TwitchConfigForm';
@@ -199,6 +200,10 @@ function ConfigModalComponent({
               onChange={handleConfigChange}
               eventType={actionData.eventType}
             />
+          )}
+
+          {isAction && actionData?.service === 'jira' && (
+            <JiraConfigForm config={config} onChange={handleConfigChange} />
           )}
 
           {!isAction && reactionData && reactionConfig && (

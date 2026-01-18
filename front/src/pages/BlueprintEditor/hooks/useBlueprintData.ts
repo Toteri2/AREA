@@ -10,6 +10,7 @@ import {
   useListDiscordWebhooksQuery,
   useListGithubWebhooksQuery,
   useListGmailWebhooksQuery,
+  useListJiraWebhooksQuery,
   useListMicrosoftWebhooksQuery,
   useListReactionsQuery,
   useListTwitchWebhooksQuery,
@@ -35,32 +36,40 @@ export function useBlueprintData() {
     useConnectionQuery({ provider: 'discord' });
   const { data: twitchConn, isLoading: isLoadingTwitchConn } =
     useConnectionQuery({ provider: 'twitch' });
+  const { data: jiraConn, isLoading: isLoadingJiraConn } = useConnectionQuery({
+    provider: 'jira',
+  });
 
   const isGithubConnected = githubConn?.connected ?? false;
   const isGmailConnected = gmailConn?.connected ?? false;
   const isMicrosoftConnected = microsoftConn?.connected ?? false;
   const isDiscordConnected = discordConn?.connected ?? false;
   const isTwitchConnected = twitchConn?.connected ?? false;
+  const isJiraConnected = jiraConn?.connected ?? false;
 
   // Trigger fetches (subscriptions)
-  const { isLoading: isLoadingGithub } = useListGithubWebhooksQuery(undefined, {
-    skip: !isGithubConnected,
-  });
-  const { isLoading: isLoadingGmail } = useListGmailWebhooksQuery(undefined, {
-    skip: !isGmailConnected,
-  });
-  const { isLoading: isLoadingMicrosoft } = useListMicrosoftWebhooksQuery(
-    undefined,
-    { skip: !isMicrosoftConnected }
-  );
-  const { isLoading: isLoadingDiscord } = useListDiscordWebhooksQuery(
-    undefined,
-    { skip: !isDiscordConnected }
-  );
-  const { isLoading: isLoadingTwitch } = useListTwitchWebhooksQuery(undefined, {
-    skip: !isTwitchConnected,
-  });
-  const { isLoading: isLoadingReactions } = useListReactionsQuery();
+  const { isLoading: isLoadingGithub, isFetching: isFetchingGithub } =
+    useListGithubWebhooksQuery(undefined, {
+      skip: !isGithubConnected,
+    });
+  const { isLoading: isLoadingGmail, isFetching: isFetchingGmail } =
+    useListGmailWebhooksQuery(undefined, {
+      skip: !isGmailConnected,
+    });
+  const { isLoading: isLoadingMicrosoft, isFetching: isFetchingMicrosoft } =
+    useListMicrosoftWebhooksQuery(undefined, { skip: !isMicrosoftConnected });
+  const { isLoading: isLoadingDiscord, isFetching: isFetchingDiscord } =
+    useListDiscordWebhooksQuery(undefined, { skip: !isDiscordConnected });
+  const { isLoading: isLoadingTwitch, isFetching: isFetchingTwitch } =
+    useListTwitchWebhooksQuery(undefined, {
+      skip: !isTwitchConnected,
+    });
+  const { isLoading: isLoadingJira, isFetching: isFetchingJira } =
+    useListJiraWebhooksQuery(undefined, {
+      skip: !isJiraConnected,
+    });
+  const { isLoading: isLoadingReactions, isFetching: isFetchingReactions } =
+    useListReactionsQuery();
 
   const isLoading =
     isLoadingGithubConn ||
@@ -72,8 +81,21 @@ export function useBlueprintData() {
     isLoadingMicrosoft ||
     isLoadingDiscord ||
     isLoadingTwitchConn ||
+    isLoadingTwitchConn ||
     isLoadingTwitch ||
+    isLoadingJiraConn ||
+    isLoadingJira ||
     isLoadingReactions;
+
+  const isSyncing =
+    isFetchingGithub ||
+    isFetchingGmail ||
+    isFetchingMicrosoft ||
+    isFetchingDiscord ||
+    isFetchingDiscord ||
+    isFetchingTwitch ||
+    isFetchingJira ||
+    isFetchingReactions;
 
   const {
     nodes: computedNodes,
@@ -82,7 +104,8 @@ export function useBlueprintData() {
   } = useSelector(selectBlueprintGraph);
 
   useEffect(() => {
-    if (isLoading) return;
+    // Block sync if initial loading OR if syncing (background refetch)
+    if (isLoading || isSyncing) return;
 
     setNodes((currentNodes) => {
       const mergedNodes = [...currentNodes];
@@ -96,16 +119,24 @@ export function useBlueprintData() {
         if (incomingNodeMap.has(currentNode.id)) {
           match = incomingNodeMap.get(currentNode.id);
         } else if (currentNode.id.startsWith('node_')) {
-          const currentWebhookId = (currentNode.data as ActionNodeData)
-            ?.webhookId;
-          const currentService = (currentNode.data as ActionNodeData)?.service;
+          const actionData = currentNode.data as ActionNodeData;
+          const reactionData = currentNode.data as ReactionNodeData;
 
-          if (currentWebhookId) {
+          // Match Action Nodes
+          if (currentNode.type === 'action' && actionData.webhookId) {
             match = computedNodes.find(
               (n) =>
                 n.type === 'action' &&
-                (n.data as ActionNodeData).webhookId === currentWebhookId &&
-                (n.data as ActionNodeData).service === currentService
+                (n.data as ActionNodeData).webhookId === actionData.webhookId &&
+                (n.data as ActionNodeData).service === actionData.service
+            );
+          }
+          // Match Reaction Nodes
+          else if (currentNode.type === 'reaction' && reactionData.reactionId) {
+            match = computedNodes.find(
+              (n) =>
+                n.type === 'reaction' &&
+                (n.data as ReactionNodeData).reactionId === reactionData.reactionId
             );
           }
         }
@@ -140,7 +171,14 @@ export function useBlueprintData() {
     setEdges(computedEdges);
 
     hasLoadedRef.current = true;
-  }, [computedNodes, computedEdges, isLoading, setNodes, setEdges]);
+  }, [
+    computedNodes,
+    computedEdges,
+    isLoading,
+    isSyncing,
+    setNodes,
+    setEdges,
+  ]);
 
   return {
     nodes,

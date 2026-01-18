@@ -445,11 +445,14 @@ export const apiSlice = createApi({
     >({
       query: () => '/jira/projects',
     }),
-    listJiraWebhooks: builder.query<
-      Array<{ id: string; projectKey: string; events: string[] }>,
-      void
-    >({
+    listJiraWebhooks: builder.query<Hook[], void>({
       query: () => '/jira/webhooks',
+      transformResponse: (hooks: Hook[]) =>
+        hooks.map((hook) => ({
+          ...hook,
+          config: hook.additionalInfos,
+        })),
+      providesTags: ['Webhooks'],
     }),
     listJiraProjectIssues: builder.query<
       Array<{ id: string; key: string; fields: { summary: string } }>,
@@ -464,7 +467,7 @@ export const apiSlice = createApi({
         }>,
     }),
     createJiraWebhook: builder.mutation<
-      { id: string },
+      { hookId: number },
       { projectKey: string; events: string[] }
     >({
       query: (dto) => ({
@@ -472,12 +475,14 @@ export const apiSlice = createApi({
         method: 'POST',
         body: dto,
       }),
+      invalidatesTags: ['Webhooks'],
     }),
     deleteJiraWebhook: builder.mutation<void, { id: string }>({
       query: ({ id }) => ({
         url: `/jira/webhook/${id}`,
         method: 'DELETE',
       }),
+      invalidatesTags: ['Webhooks'],
     }),
 
     // --- Reactions ---
@@ -497,6 +502,17 @@ export const apiSlice = createApi({
       query: (id) => ({
         url: `/reactions/${id}`,
         method: 'DELETE',
+      }),
+      invalidatesTags: ['Reactions'],
+    }),
+    updateReaction: builder.mutation<
+      Reaction,
+      { id: number; config: Record<string, unknown> }
+    >({
+      query: ({ id, config }) => ({
+        url: `/reactions/${id}`,
+        method: 'PATCH',
+        body: { config },
       }),
       invalidatesTags: ['Reactions'],
     }),
@@ -573,4 +589,5 @@ export const {
   useListReactionsQuery,
   useCreateReactionMutation,
   useDeleteReactionMutation,
+  useUpdateReactionMutation,
 } = apiSlice;
