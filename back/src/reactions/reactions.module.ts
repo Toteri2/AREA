@@ -1,4 +1,10 @@
-import { forwardRef, Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
+import {
+  forwardRef,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { DiscordModule } from 'src/discord/discord.module';
@@ -18,7 +24,6 @@ import { reactionRateLimiter } from 'src/shared/middleware/rate-limiters';
   providers: [ReactionsService],
   exports: [ReactionsService],
 })
-
 export class ReactionsModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer

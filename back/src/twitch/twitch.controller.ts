@@ -194,18 +194,11 @@ export class TwitchController {
     @Headers('twitch-eventsub-message-timestamp') timestamp: string,
     @Headers('twitch-eventsub-message-signature') signature: string,
     @Headers('twitch-eventsub-message-type') messageType: string,
-    @Headers('twitch-eventsub-subscription-type') subscriptionType: string,
     @Body() body: any,
-    @Res() res
+    @Res() res,
+    @Req() req
   ) {
-    const bodyString = JSON.stringify(body);
-    console.log('Received Twitch webhook:', {
-      messageId,
-      timestamp,
-      messageType,
-      subscriptionType,
-      body: bodyString,
-    });
+    const bodyString = req.rawBody || JSON.stringify(body);
     if (messageType.localeCompare('webhook_callback_verification') === 0) {
       return res
         .set('Content-Type', 'text/plain')
