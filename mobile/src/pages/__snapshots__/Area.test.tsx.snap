@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Area Component devrait rendre correctement 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+/>
+`;
+
+exports[`Area Component must render correctly 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+/>
+`;

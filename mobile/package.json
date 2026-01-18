@@ -7,12 +7,15 @@
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest",
     "lint:check": "biome check .",
     "lint:fix": "biome check . --write --unsafe",
     "format:check": "biome format .",
     "format:fix": "biome format . --write",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:update-snapshots": "jest --updateSnapshot"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",

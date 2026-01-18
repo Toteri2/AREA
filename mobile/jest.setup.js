@@ -8,6 +8,18 @@ jest.mock('react-native-webview', () => {
   };
 });
 
+// Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
+
+// Mock Redux store si nécessaire
+jest.mock('./src/shared/src/features/authSlice', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+// Mock du module shared si nécessaire
+jest.mock('./src/shared/src/native', () => ({
+  __esModule: true,
+}));

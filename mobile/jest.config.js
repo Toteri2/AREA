@@ -2,7 +2,7 @@ module.exports = {
   preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|react-native-webview|@react-navigation)/)',
+    'node_modules/(?!(react-native|@react-native|react-native-webview|@react-navigation|@reduxjs/toolkit|immer|redux)/)',
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   collectCoverageFrom: [
@@ -11,4 +11,10 @@ module.exports = {
     '!**/node_modules/**',
     '!**/__tests__/**',
   ],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
+  },
 };
