@@ -446,7 +446,7 @@ export const apiSlice = createApi({
       query: () => '/jira/projects',
     }),
     listJiraWebhooks: builder.query<Hook[], void>({
-      query: () => '/jira/webhooks',
+      query: () => '/jira/webhook',
       transformResponse: (hooks: Hook[]) =>
         hooks.map((hook) => ({
           ...hook,
