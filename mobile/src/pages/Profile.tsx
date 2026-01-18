@@ -236,7 +236,7 @@ export function Profile() {
             style={styles.input}
             value={customBaseUrl}
             onChangeText={setCustomBaseUrl}
-            placeholder='https://api.mambokara.dev'
+            placeholder={customBaseUrl}
             placeholderTextColor='#888'
           />
           <TouchableOpacity style={styles.button} onPress={updateBaseUrl}>
