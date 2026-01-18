@@ -77,6 +77,7 @@ Key endpoint: `GET /about.json` (server metadata)
 
 ## Documentation
 
+- [Web Documentation](https://mamborea.github.io/Deployment/#)
 - [Setup Guide](docs/SETUP.md)
 - [API Reference](docs/API.md)
 - [Frontend Architecture](docs/FRONTEND.md)
