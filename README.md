@@ -1,9 +1,9 @@
 # AREA - Action-REAction Platform
 
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18.1-blue.svg)](https://www.postgresql.org/)
-[![NestJS](https://img.shields.io/badge/NestJS-11.1.9-blue.svg)](https://nestjs.com/)
-[![React](https://img.shields.io/badge/React-19.2-blue.svg)](https://nestjs.com/)
-[![React Native](https://img.shields.io/badge/React%20Native-0.82.1-blue.svg)](https://nestjs.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
+[![NestJS](https://img.shields.io/badge/NestJS-11.0.1-blue.svg)](https://nestjs.com/)
+[![React](https://img.shields.io/badge/React-19.2.0-blue.svg)](https://react.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.82.1-blue.svg)](https://reactnative.dev/)
 
 Automation platform similar to IFTTT/Zapier, allowing users to create workflows by connecting Actions to REActions.
 

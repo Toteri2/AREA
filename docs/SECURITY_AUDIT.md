@@ -42,7 +42,7 @@ async getUserReactions(@Req() req) {
 - No secrets in source code
 - Swagger UI disableable in production
 - TypeScript strict mode enabled
-- Rate limiting via @nestjs/throttler
+- Rate limiting via express-rate-limit
 
 ---
 
@@ -128,7 +128,7 @@ const user = await this.userRepository.findOne({
 - Modular monolithic architecture
 - Separation of concerns (MVC pattern)
 - Server-side validation
-- Rate limiting (@nestjs/throttler)
+- Rate limiting (express-rate-limit middleware)
 
 ---
 
@@ -331,4 +331,4 @@ const user = await this.userRepository.findOne({
 
 ## Conclusion
 
-The AREA project implements solid security measures covering all critical aspects of OWASP Top 10 2025. Rate limiting is implemented via NestJS Throttler to protect all routes against abuse. Key improvements needed for production include centralized logging and monitoring. The identified CVEs in dependencies are either non-critical or do not affect our usage patterns.
+The AREA project implements solid security measures covering all critical aspects of OWASP Top 10 2025. Rate limiting is implemented via express-rate-limit middleware with specific limiters for authentication, webhooks, reactions, and a global limiter. Key improvements needed for production include centralized logging and monitoring. The identified CVEs in dependencies are either non-critical or do not affect our usage patterns.
