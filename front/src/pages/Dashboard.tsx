@@ -9,7 +9,6 @@ function Dashboard() {
       <h1>Dashboard</h1>
       <div className='welcome-card'>
         <h2>Welcome, {user?.name}!</h2>
-        <p>Email: {user?.email}</p>
       </div>
       <div className='dashboard-links'>
         <Link to='/area' className='dashboard-card'>
