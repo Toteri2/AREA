@@ -27,11 +27,9 @@ import { DiscordService } from './discord.service';
 })
 export class DiscordModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(webhookRateLimiter)
-      .forRoutes({
-        path: 'discord/create-webhook',
-        method: RequestMethod.POST,
-      });
+    consumer.apply(webhookRateLimiter).forRoutes({
+      path: 'discord/create-webhook',
+      method: RequestMethod.POST,
+    });
   }
 }

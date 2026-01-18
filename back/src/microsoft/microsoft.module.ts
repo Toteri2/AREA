@@ -20,11 +20,9 @@ import { MicrosoftService } from './microsoft.service';
 })
 export class MicrosoftModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(webhookRateLimiter)
-      .forRoutes({
-        path: 'microsoft/create-webhook',
-        method: RequestMethod.POST,
-      });
+    consumer.apply(webhookRateLimiter).forRoutes({
+      path: 'microsoft/create-webhook',
+      method: RequestMethod.POST,
+    });
   }
 }

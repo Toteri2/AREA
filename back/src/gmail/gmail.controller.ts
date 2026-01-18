@@ -12,6 +12,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -29,6 +30,7 @@ export class GmailController {
   constructor(
     private readonly gmailService: GmailService,
     private readonly authService: AuthService,
+    readonly _configService: ConfigService,
     @InjectRepository(Hook)
     private hooksRepository: Repository<Hook>
   ) {}
@@ -40,7 +42,10 @@ export class GmailController {
     status: 200,
     description: 'Webhook event received successfully.',
   })
-  async webhook(@Body() body: any, @Res() res) {
+  async webhook(
+    @Body() body: any,
+    @Res() res
+  ) {
     try {
       if (body.message?.data) {
         const decodedData = JSON.parse(

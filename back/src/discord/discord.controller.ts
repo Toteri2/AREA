@@ -208,7 +208,6 @@ export class DiscordController {
   })
   async handleWebhook(@Body() body: any) {
     try {
-
       if (body.type === 1) {
         return { type: 1 };
       }
@@ -228,7 +227,7 @@ export class DiscordController {
             const reactions = await this.reactionsService.findByHookId(hook.id);
             for (const reaction of reactions) {
               try {
-                if ( body.data.channelId !== hookInfo.channelId ) {
+                if (body.data.channelId !== hookInfo.channelId) {
                   continue;
                 }
                 await this.reactionsService.executeReaction(

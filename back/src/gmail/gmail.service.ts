@@ -190,9 +190,10 @@ export class GmailService {
 
       const historyData = historyResponse.data;
       return historyData.history?.some((hist: any) =>
-        hist.messagesAdded?.some((msg: any) =>
-          msg.message?.labelIds?.includes('INBOX')
-        )
+        hist.messagesAdded?.some((msg: any) => {
+          const labels = msg.message?.labelIds || [];
+          return labels.includes('INBOX') && !labels.includes('SENT');
+        })
       );
     } catch (error) {
       console.error('Error checking message added in inbox:', error);
@@ -215,7 +216,12 @@ export class GmailService {
       );
 
       const historyData = historyResponse.data;
-      return historyData.history?.some((hist: any) => hist.messagesAdded);
+      return historyData.history?.some((hist: any) =>
+        hist.messagesAdded?.some((msg: any) => {
+          const labels = msg.message?.labelIds || [];
+          return !labels.includes('SENT');
+        })
+      );
     } catch (error) {
       console.error('Error checking message added:', error);
       handleAxiosError(error, 'Failed to check message added');
