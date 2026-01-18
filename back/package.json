@@ -6,7 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "overrides": {
-    "diff": "^8.0.3"
+    "diff": "^8.0.3",
+    "undici": "^6.23.0"
   },
   "scripts": {
     "build": "nest build",
