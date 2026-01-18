@@ -2,7 +2,6 @@ import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DiscordBotService } from './discord.bot.service';
 
-// Mock the entire discord.js module
 jest.mock('discord.js', () => ({
   Client: jest.fn().mockImplementation(() => ({
     on: jest.fn(),
@@ -46,9 +45,7 @@ describe('DiscordBotService', () => {
       ],
     }).compile();
 
-    // @ts-expect-error
     service = module.get<DiscordBotService>(DiscordBotService);
-    // @ts-expect-error
     configService = module.get<ConfigService>(ConfigService);
   });
 
