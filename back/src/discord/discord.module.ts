@@ -1,4 +1,10 @@
-import { forwardRef, Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
+import {
+  forwardRef,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { ProviderGuard } from '../auth/guards/provider.guard';
@@ -23,6 +29,9 @@ export class DiscordModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(webhookRateLimiter)
-      .forRoutes({ path: 'discord/create-webhook', method: RequestMethod.POST });
+      .forRoutes({
+        path: 'discord/create-webhook',
+        method: RequestMethod.POST,
+      });
   }
 }

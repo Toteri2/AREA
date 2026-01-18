@@ -1,4 +1,9 @@
-import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { ProviderGuard } from 'src/auth/guards/provider.guard';
@@ -17,6 +22,9 @@ export class MicrosoftModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(webhookRateLimiter)
-      .forRoutes({ path: 'microsoft/create-webhook', method: RequestMethod.POST });
+      .forRoutes({
+        path: 'microsoft/create-webhook',
+        method: RequestMethod.POST,
+      });
   }
 }

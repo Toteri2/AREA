@@ -25,14 +25,12 @@ export class ProviderGuard implements CanActivate {
       PROVIDER_KEY,
       [context.getHandler(), context.getClass()]
     );
-
     if (!requiredProvider) {
       return true;
     }
 
     const request = context.switchToHttp().getRequest();
     const userId = request.user?.id;
-
     if (!userId) {
       throw new UnauthorizedException('No user session found');
     }
@@ -63,7 +61,6 @@ export class ProviderGuard implements CanActivate {
           `Unknown provider: ${requiredProvider}`
         );
     }
-
     if (!provider) {
       throw new UnauthorizedException(`${requiredProvider} account not linked`);
     }
