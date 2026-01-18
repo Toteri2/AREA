@@ -41,7 +41,7 @@
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "class-validator": "^0.14.2",
-    "discord.js": "^13.17.1",
+    "discord.js": "^14.25.1",
     "express-rate-limit": "^8.2.1",
     "express-session": "^1.18.2",
     "passport": "^0.7.0",
@@ -99,7 +99,8 @@
       "!**/strategies/*.ts",
       "!**/*.module.ts",
       "!**/*.dto.ts",
-      "!**/*.enum.ts"
+      "!**/*.enum.ts",
+      "!**/middleware/rate-limiters.ts"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
