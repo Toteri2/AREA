@@ -109,16 +109,27 @@ export class AuthService {
   }
 
   async getGithubProvider(userId: number): Promise<Provider | null> {
-    return this.providerRepository.findOneBy({
-      userId,
-      provider: ProviderType.GITHUB,
+    console.log('Fetching GitHub provider for user ID:', userId);
+    return this.providerRepository.findOne({
+      where: {
+        userId,
+        provider: ProviderType.GITHUB,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
 
   async getMicrosoftProvider(userId: number): Promise<Provider | null> {
-    return this.providerRepository.findOneBy({
-      userId,
-      provider: ProviderType.MICROSOFT,
+    return this.providerRepository.findOne({
+      where: {
+        userId,
+        provider: ProviderType.MICROSOFT,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
 
@@ -142,22 +153,37 @@ export class AuthService {
   }
 
   async getDiscordProvider(userId: number): Promise<Provider | null> {
-    return this.providerRepository.findOneBy({
-      userId,
-      provider: ProviderType.DISCORD,
+    return this.providerRepository.findOne({
+      where: {
+        userId,
+        provider: ProviderType.DISCORD,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
   async getGmailProvider(userId: number): Promise<Provider | null> {
-    return this.providerRepository.findOneBy({
-      userId,
-      provider: ProviderType.GMAIL,
+    return this.providerRepository.findOne({
+      where: {
+        userId,
+        provider: ProviderType.GMAIL,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
 
   async getJiraProvider(userId: number): Promise<Provider | null> {
-    return this.providerRepository.findOneBy({
-      userId,
-      provider: ProviderType.JIRA,
+    return this.providerRepository.findOne({
+      where: {
+        userId,
+        provider: ProviderType.JIRA,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
 
@@ -181,9 +207,14 @@ export class AuthService {
   }
 
   async getTwitchProvider(userId: number): Promise<Provider | null> {
-    return this.providerRepository.findOneBy({
-      userId,
-      provider: ProviderType.TWITCH,
+    return this.providerRepository.findOne({
+      where: {
+        userId,
+        provider: ProviderType.TWITCH,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
 
