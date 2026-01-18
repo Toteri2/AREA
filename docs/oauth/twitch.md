@@ -22,10 +22,11 @@
 Add these to your `.env` file:
 
 ```env
-TWITCH_CLIENT_ID=your_client_id_here
-TWITCH_CLIENT_SECRET=your_client_secret_here
-TWITCH_CALLBACK_URL=https://your-public-url/twitch/callback
-TWITCH_WEBHOOK_SECRET=your_random_secret_here
+TWITCH_CLIENT_ID=your-twitch-client-id
+TWITCH_CLIENT_SECRET=your-twitch-client-secret
+TWITCH_CALLBACK_URL=http://localhost:8081/twitch/callback
+TWITCH_WEBHOOK_CALLBACK_URL=http://localhost:8080/twitch/webhook
+TWITCH_WEBHOOK_SECRET=your_twitch_webhook_secret_change_in_production
 ```
 
 Generate a random webhook secret:
@@ -53,5 +54,5 @@ ngrok http 8080
 
 The app requests these scopes:
 - `user:read:email` - Read user email
-- `user:read:follows` - Read user's followed channels
+- `moderator:read:followers` - Read user's followed channels
 - `channel:read:subscriptions` - Read channel subscriptions

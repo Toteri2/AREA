@@ -24,9 +24,11 @@
 Add these to your `.env` file:
 
 ```env
-DISCORD_CLIENT_ID=your_client_id_here
-DISCORD_CLIENT_SECRET=your_client_secret_here
+DISCORD_CLIENT_ID=your-discord-client-id
+DISCORD_CLIENT_SECRET=your-discord-client-secret
+DISCORD_BOT_TOKEN=your-discord-bot-token
 DISCORD_CALLBACK_URL=http://localhost:8081/discord/callback
+DISCORD_WEBHOOK_URL=http://localhost:8080/discord/webhook
 ```
 
 ## Bot Setup
@@ -41,7 +43,7 @@ DISCORD_CALLBACK_URL=http://localhost:8081/discord/callback
 Add to `.env`:
 
 ```env
-DISCORD_BOT_TOKEN=your_bot_token_here
+DISCORD_BOT_TOKEN=your-discord-bot-token
 ```
 
 ## Required Scopes
@@ -49,4 +51,5 @@ DISCORD_BOT_TOKEN=your_bot_token_here
 The app requests these OAuth2 scopes:
 - `identify` - Read user information
 - `guilds` - Read user's guilds (servers)
-- `email` - Read user's email
+- `messages.read` - Read messages
+- `bot` - Add bot to servers

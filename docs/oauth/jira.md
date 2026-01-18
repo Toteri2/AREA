@@ -16,7 +16,6 @@
 5. Click **"Save changes"**
 
 ## Configure Permissions
-
 1. Click **"Permissions"** in the left sidebar
 2. Click **"Add"** next to Jira API
 3. Configure scopes:
@@ -24,6 +23,7 @@
    - `write:jira-work` - Create and manage issues
    - `read:jira-user` - View user profiles
    - `manage:jira-webhook` - Manage Jira webhooks
+   - `offline_access` - Maintain access to data you have given it access to
 4. Click **"Save"**
 
 ## Get Credentials
@@ -37,9 +37,11 @@
 Add these to your `.env` file:
 
 ```env
-JIRA_CLIENT_ID=your_client_id_here
-JIRA_CLIENT_SECRET=your_client_secret_here
+JIRA_CLIENT_ID=your-jira-client-id
+JIRA_CLIENT_SECRET=your-jira-client-secret
 JIRA_CALLBACK_URL=http://localhost:8081/jira/callback
+JIRA_WEBHOOK_URL=http://localhost:8080/jira/webhook
+JIRA_WEBHOOK_SECRET=your_jira_webhook_secret_change_in_production
 ```
 
 ## Webhook Configuration

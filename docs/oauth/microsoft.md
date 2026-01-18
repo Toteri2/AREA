@@ -32,7 +32,9 @@
    - `User.Read` - Read user profile
    - `Mail.Read` - Read user mail
    - `Mail.Send` - Send mail as user
-   - `Calendars.Read` - Read user calendars
+   - `Mail.ReadWrite` - Read and write access to user mail
+   - `Subscription.Read.All` - Read all webhook subscriptions
+   - `offline_access` - Maintain access to data you have given it access to
 6. Click **"Add permissions"**
 7. Click **"Grant admin consent"** if you're an admin
 
@@ -41,9 +43,11 @@
 Add these to your `.env` file:
 
 ```env
-MICROSOFT_CLIENT_ID=your_application_id_here
-MICROSOFT_CLIENT_SECRET=your_client_secret_here
-MICROSOFT_CALLBACK_URL=http://localhost:8080/auth/microsoft/validate
+MICROSOFT_CLIENT_ID=your-microsoft-client-id
+MICROSOFT_CLIENT_SECRET=your-microsoft-client-secret
+MICROSOFT_CALLBACK_URL=http://localhost:8081/microsoft/callback
+MICROSOFT_WEBHOOK_URL=http://localhost:8080/microsoft/webhook
+MICROSOFT_WEBHOOK_SECRET=your_microsoft_webhook_secret_change_in_production
 ```
 
 ## Webhook Subscription

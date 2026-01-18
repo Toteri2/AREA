@@ -31,13 +31,13 @@ http://localhost:8080
 - `GET /auth/me` - Get authenticated user profile
 
 **OAuth URLs (get authorization URL):**
-- `GET /auth/github/url?mobile=false` - Get GitHub OAuth URL
-- `GET /auth/microsoft/url?mobile=false` - Get Microsoft OAuth URL
-- `GET /auth/discord/url` - Get Discord OAuth URL
-- `GET /auth/twitch/url` - Get Twitch OAuth URL
-- `GET /auth/gmail/url?mobile=false` - Get Gmail OAuth URL
-- `GET /auth/google/url?mobile=false` - Get Google OAuth URL (for login/register)
-- `GET /auth/jira/url?mobile=false` - Get Jira OAuth URL
+- `GET /auth/github/url?mobile=<true|false>` - Get GitHub OAuth URL
+- `GET /auth/microsoft/url?mobile=<true|false>` - Get Microsoft OAuth URL
+- `GET /auth/discord/url?mobile=<true|false>` - Get Discord OAuth URL
+- `GET /auth/twitch/url?mobile=<true|false>` - Get Twitch OAuth URL
+- `GET /auth/gmail/url?mobile=<true|false>` - Get Gmail OAuth URL
+- `GET /auth/google/url?mobile=<true|false>` - Get Google OAuth URL (for login/register)
+- `GET /auth/jira/url?mobile=<true|false>` - Get Jira OAuth URL
 
 **OAuth Validation (link account):**
 - `POST /auth/github/validate` - Link GitHub account
@@ -116,7 +116,7 @@ Each service (GitHub, Discord, Microsoft, Gmail, Jira, Twitch) provides the foll
 
 **Actions:**
 - `message_added_inbox` - New message in inbox
-- `message_added` - New message in any folder
+- `message_added` - New message in any folder except in 'Sent'
 - `message_deleted` - Message deleted
 
 **Reactions:**

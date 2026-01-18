@@ -24,13 +24,14 @@
    - **Developer contact information:** Your email
 5. Click **"Save and Continue"**
 6. Click **"Add or Remove Scopes"**
-7. Add these scopes:
-   - `https://www.googleapis.com/auth/gmail.readonly`
-   - `https://www.googleapis.com/auth/gmail.send`
+7. Add these scopes for gmail:
    - `https://www.googleapis.com/auth/gmail.modify`
-8. Click **"Update"** and **"Save and Continue"**
-9. Add test users if in testing mode
-10. Click **"Save and Continue"**
+8. And these for google:
+   - `https://www.googleapis.com/auth/userinfo.email`
+   - `https://www.googleapis.com/auth/userinfo.profile`
+9. Click **"Update"** and **"Save and Continue"**
+10. Add test users if in testing mode
+11. Click **"Save and Continue"**
 
 ## Create OAuth Credentials
 
@@ -39,7 +40,7 @@
 3. Select **"Web application"**
 4. Fill in the details:
    - **Name:** AREA OAuth Client
-   - **Authorized redirect URIs:** `http://localhost:8081/gmail/callback`
+   - **Authorized redirect URIs:** `http://localhost:8081/gmail/callback`, `http://localhost:8081/google/callback`
 5. Click **"Create"**
 6. **Copy the Client ID and Client Secret**
 
@@ -62,11 +63,12 @@
 Add these to your `.env` file:
 
 ```env
-GMAIL_CLIENT_ID=your_client_id_here.apps.googleusercontent.com
-GMAIL_CLIENT_SECRET=your_client_secret_here
+GMAIL_CLIENT_ID=your-gmail-client-id
+GMAIL_CLIENT_SECRET=your-gmail-client-secret
 GMAIL_CALLBACK_URL=http://localhost:8081/gmail/callback
-GMAIL_PROJECT_ID=your_project_id
-GMAIL_TOPIC_NAME=projects/your_project_id/topics/gmail-notifications
+GOOGLE_CALLBACK_URL=http://localhost:8081/google/callback
+GMAIL_WEBHOOK_URL=http://localhost:8080/gmail/webhook
+GMAIL_TOPIC_NAME=projects/capable-acrobat-479308-b5/topics/area
 ```
 
 ## Webhook Configuration
