@@ -13,14 +13,8 @@ export const common = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
   },
   content: {
-    padding: 20,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
     padding: 20,
   },
 
