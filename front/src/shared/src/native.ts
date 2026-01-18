@@ -1,4 +1,3 @@
-// @ts-expect-error - React Native async storage is not available in web environment
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 declare const __DEV__: boolean;
