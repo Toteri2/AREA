@@ -10,9 +10,12 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 import { ActionNode, ReactionNode } from '../../components/blueprint';
 import { ConfigModal } from '../../components/blueprint/ConfigModal';
-import 'react-toastify/dist/ReactToastify.css';
+
 import type {
   ActionNodeData,
   ReactionNodeData,
@@ -172,11 +175,57 @@ function BlueprintEditorContent() {
 
   if (isLoading) {
     return (
-      <div
-        className='blueprint-editor'
-        style={{ justifyContent: 'center', alignItems: 'center' }}
-      >
-        <p>Loading automations...</p>
+      <div className='blueprint-editor'>
+        {/* Sidebar Skeleton */}
+        <aside
+          className='blueprint-sidebar open'
+          style={{ pointerEvents: 'none' }}
+        >
+          <h2>
+            <Skeleton width={100} />
+          </h2>
+          <section className='sidebar-section'>
+            <h3>
+              <Skeleton width={80} />
+            </h3>
+            <p className='sidebar-hint'>
+              <Skeleton count={2} />
+            </p>
+            <div className='sidebar-service'>
+              <h4>
+                <Skeleton width={120} />
+              </h4>
+              <div
+                style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+              >
+                <Skeleton height={40} count={3} borderRadius={8} />
+              </div>
+            </div>
+            <div className='sidebar-service'>
+              <h4>
+                <Skeleton width={120} />
+              </h4>
+              <div
+                style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+              >
+                <Skeleton height={40} count={2} borderRadius={8} />
+              </div>
+            </div>
+          </section>
+        </aside>
+
+        {/* Canvas Skeleton */}
+        <section
+          className='blueprint-canvas'
+          style={{ position: 'relative', background: '#f5f5f5' }}
+        >
+          <div style={{ position: 'absolute', top: '30%', left: '20%' }}>
+            <Skeleton width={180} height={80} borderRadius={8} />
+          </div>
+          <div style={{ position: 'absolute', top: '50%', left: '50%' }}>
+            <Skeleton width={180} height={80} borderRadius={8} />
+          </div>
+        </section>
       </div>
     );
   }
