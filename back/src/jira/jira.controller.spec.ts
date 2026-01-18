@@ -11,8 +11,8 @@ describe('JiraController', () => {
   let controller: JiraController;
   let jiraService: JiraService;
   let _authService: AuthService;
-  let reactionsService: ReactionsService;
-  let hooksRepository: any;
+  let _reactionsService: ReactionsService;
+  let _hooksRepository: any;
 
   const mockJiraService = {
     listUserWebhooks: jest.fn(),
@@ -40,6 +40,7 @@ describe('JiraController', () => {
         JIRA_CLIENT_ID: 'test-jira-id',
         JIRA_CLIENT_SECRET: 'test-jira-secret',
         JIRA_WEBHOOK_URL: 'https://test.com/webhook',
+        JIRA_WEBHOOK_SECRET: 'test-jira-webhook-secret',
       };
       return config[key];
     }),
@@ -48,6 +49,7 @@ describe('JiraController', () => {
         JIRA_CLIENT_ID: 'test-jira-id',
         JIRA_CLIENT_SECRET: 'test-jira-secret',
         JIRA_WEBHOOK_URL: 'https://test.com/webhook',
+        JIRA_WEBHOOK_SECRET: 'test-jira-webhook-secret',
       };
       return config[key];
     }),
@@ -91,8 +93,8 @@ describe('JiraController', () => {
     controller = module.get<JiraController>(JiraController);
     jiraService = module.get<JiraService>(JiraService);
     _authService = module.get<AuthService>(AuthService);
-    reactionsService = module.get<ReactionsService>(ReactionsService);
-    hooksRepository = module.get(getRepositoryToken(Hook));
+    _reactionsService = module.get<ReactionsService>(ReactionsService);
+    _hooksRepository = module.get(getRepositoryToken(Hook));
   });
 
   afterEach(() => {
@@ -109,9 +111,12 @@ describe('JiraController', () => {
         webhookEvent: 'jira:issue_created',
         issue: { id: '123', key: 'TEST-1' },
       };
-      const mockRes = {
+      const mockReq: any = {
+        query: { secret: 'test-jira-webhook-secret' },
+      };
+      const mockRes: any = {
         status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
+        send: jest.fn().mockReturnThis(),
       };
       const hooks = [{ id: 1, userId: 1, service: 'jira' }];
       const reactions = [{ id: 1, action: 'test' }];
@@ -119,26 +124,20 @@ describe('JiraController', () => {
       mockHooksRepository.find.mockResolvedValue(hooks);
       mockReactionsService.findByHookId.mockResolvedValue(reactions);
       mockReactionsService.executeReaction.mockResolvedValue(undefined);
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-      await controller.handleWebhook(webhookData as any, mockRes);
+      await controller.handleWebhook(webhookData as any, mockReq, mockRes);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Jira webhook received:',
-        'jira:issue_created'
-      );
-      expect(hooksRepository.find).toHaveBeenCalledWith({
+      expect(mockHooksRepository.find).toHaveBeenCalledWith({
         where: { service: 'jira' },
       });
-      expect(reactionsService.findByHookId).toHaveBeenCalledWith(1);
-      expect(reactionsService.executeReaction).toHaveBeenCalledWith(
+      expect(mockReactionsService.findByHookId).toHaveBeenCalledWith(1);
+      expect(mockReactionsService.executeReaction).toHaveBeenCalledWith(
         reactions[0],
         webhookData,
         1
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({ success: true });
-      consoleSpy.mockRestore();
     });
 
     it('should handle reaction execution error', async () => {
@@ -146,9 +145,12 @@ describe('JiraController', () => {
         webhookEvent: 'jira:issue_created',
         issue: { id: '123', key: 'TEST-1' },
       };
-      const mockRes = {
+      const mockReq: any = {
+        query: { secret: 'test-jira-webhook-secret' },
+      };
+      const mockRes: any = {
         status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
+        send: jest.fn().mockReturnThis(),
       };
       const hooks = [{ id: 1, userId: 1, service: 'jira' }];
       const reactions = [{ id: 1, action: 'test' }];
@@ -160,10 +162,10 @@ describe('JiraController', () => {
       );
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      await controller.handleWebhook(webhookData as any, mockRes);
+      await controller.handleWebhook(webhookData as any, mockReq, mockRes);
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to execute reaction 1:',
+        `Failed to execute reaction 1:`,
         expect.any(Error)
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -176,9 +178,12 @@ describe('JiraController', () => {
         webhookEvent: 'jira:issue_created',
         issue: { id: '123', key: 'TEST-1' },
       };
-      const mockRes = {
+      const mockReq: any = {
+        query: { secret: 'test-jira-webhook-secret' },
+      };
+      const mockRes: any = {
         status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
+        send: jest.fn().mockReturnThis(),
       };
       const hooks = [{ id: 1, userId: 1, service: 'jira' }];
 
@@ -188,10 +193,10 @@ describe('JiraController', () => {
       );
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      await controller.handleWebhook(webhookData as any, mockRes);
+      await controller.handleWebhook(webhookData as any, mockReq, mockRes);
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        'Error processing hook 1:',
+        `Error processing hook 1:`,
         expect.any(Error)
       );
       expect(mockRes.status).toHaveBeenCalledWith(200);
@@ -204,15 +209,18 @@ describe('JiraController', () => {
         webhookEvent: 'jira:issue_created',
         issue: { id: '123', key: 'TEST-1' },
       };
-      const mockRes = {
+      const mockReq: any = {
+        query: { secret: 'test-jira-webhook-secret' },
+      };
+      const mockRes: any = {
         status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
+        send: jest.fn().mockReturnThis(),
       };
 
       mockHooksRepository.find.mockRejectedValue(new Error('Database error'));
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      await controller.handleWebhook(webhookData as any, mockRes);
+      await controller.handleWebhook(webhookData as any, mockReq, mockRes);
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'Error handling Jira webhook:',

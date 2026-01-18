@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import axios from 'axios';
 import { GithubService } from './github.service';
@@ -10,7 +11,15 @@ describe('GithubService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GithubService],
+      providers: [
+        GithubService,
+        {
+          provide: ConfigService,
+          useValue: {
+            getOrThrow: jest.fn().mockReturnValue('test-webhook-secret'),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<GithubService>(GithubService);
@@ -58,7 +67,7 @@ describe('GithubService', () => {
             url: 'https://example.com/webhook',
             content_type: 'json',
             insecure_ssl: '0',
-            secret: 'webhook-secret',
+            secret: 'test-webhook-secret',
           },
         },
         {
@@ -95,7 +104,9 @@ describe('GithubService', () => {
       expect(mockedAxios.post).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          config: expect.not.objectContaining({ secret: expect.anything() }),
+          config: expect.objectContaining({
+            secret: 'test-webhook-secret',
+          }),
         }),
         expect.any(Object)
       );

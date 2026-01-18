@@ -10,7 +10,6 @@ describe('AppService', () => {
       providers: [AppService],
     }).compile();
 
-    // @ts-expect-error
     service = module.get<AppService>(AppService);
   });
 

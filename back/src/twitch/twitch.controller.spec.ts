@@ -225,27 +225,27 @@ describe('TwitchController', () => {
       const timestamp = '2023-01-01T00:00:00Z';
       const signature = 'sha256=test';
       const messageType = 'webhook_callback_verification';
-      const subscriptionType = 'stream.online';
       const body = { challenge: 'test-challenge' };
-      const res = {
+      const mockRes: any = {
         set: jest.fn().mockReturnThis(),
         status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
+        send: jest.fn().mockReturnThis(),
       };
+      const mockReq: any = {};
 
       await controller.webhook(
         messageId,
         timestamp,
         signature,
         messageType,
-        subscriptionType,
         body,
-        res
+        mockRes,
+        mockReq
       );
 
-      expect(res.set).toHaveBeenCalledWith('Content-Type', 'text/plain');
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith('test-challenge');
+      expect(mockRes.set).toHaveBeenCalledWith('Content-Type', 'text/plain');
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith('test-challenge');
     });
 
     it('should throw BadRequestException for invalid signature', async () => {
@@ -253,12 +253,12 @@ describe('TwitchController', () => {
       const timestamp = '2023-01-01T00:00:00Z';
       const signature = 'sha256=invalid';
       const messageType = 'notification';
-      const subscriptionType = 'stream.online';
       const body = { event: {} };
-      const res = {
+      const mockRes: any = {
         status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
+        send: jest.fn().mockReturnThis(),
       };
+      const mockReq: any = {};
 
       mockTwitchService.verifyWebhookSignature.mockReturnValue(false);
 
@@ -268,9 +268,9 @@ describe('TwitchController', () => {
           timestamp,
           signature,
           messageType,
-          subscriptionType,
           body,
-          res
+          mockRes,
+          mockReq
         )
       ).rejects.toThrow(BadRequestException);
     });
@@ -280,15 +280,15 @@ describe('TwitchController', () => {
       const timestamp = '2023-01-01T00:00:00Z';
       const signature = 'sha256=valid';
       const messageType = 'notification';
-      const subscriptionType = 'stream.online';
       const body = {
         subscription: { id: 'sub123' },
         event: { broadcaster_user_id: 'broadcaster123' },
       };
-      const res = {
+      const mockRes: any = {
         status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
+        send: jest.fn().mockReturnThis(),
       };
+      const mockReq: any = {};
       const hooks = [{ id: 1, userId: 1, webhookId: 'sub123' }];
       const reactions = [
         {
@@ -311,9 +311,9 @@ describe('TwitchController', () => {
         timestamp,
         signature,
         messageType,
-        subscriptionType,
         body,
-        res
+        mockRes,
+        mockReq
       );
 
       expect(mockTwitchService.verifyWebhookSignature).toHaveBeenCalledWith(
@@ -331,8 +331,8 @@ describe('TwitchController', () => {
         body,
         1
       );
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith({ status: 'ok' });
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith({ status: 'ok' });
     });
 
     it('should handle notification without subscription', async () => {
@@ -340,12 +340,12 @@ describe('TwitchController', () => {
       const timestamp = '2023-01-01T00:00:00Z';
       const signature = 'sha256=valid';
       const messageType = 'notification';
-      const subscriptionType = 'stream.online';
       const body = { event: {} };
-      const res = {
+      const mockRes: any = {
         status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
+        send: jest.fn().mockReturnThis(),
       };
+      const mockReq: any = {};
 
       mockTwitchService.verifyWebhookSignature.mockReturnValue(true);
 
@@ -354,13 +354,13 @@ describe('TwitchController', () => {
         timestamp,
         signature,
         messageType,
-        subscriptionType,
         body,
-        res
+        mockRes,
+        mockReq
       );
 
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith({ status: 'ok' });
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith({ status: 'ok' });
       expect(mockHooksRepository.find).not.toHaveBeenCalled();
     });
 
@@ -369,12 +369,12 @@ describe('TwitchController', () => {
       const timestamp = '2023-01-01T00:00:00Z';
       const signature = 'sha256=valid';
       const messageType = 'revocation';
-      const subscriptionType = 'stream.online';
       const body = { subscription: { id: 'sub123' } };
-      const res = {
+      const mockRes: any = {
         status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
+        send: jest.fn().mockReturnThis(),
       };
+      const mockReq: any = {};
 
       mockTwitchService.verifyWebhookSignature.mockReturnValue(true);
 
@@ -383,13 +383,13 @@ describe('TwitchController', () => {
         timestamp,
         signature,
         messageType,
-        subscriptionType,
         body,
-        res
+        mockRes,
+        mockReq
       );
 
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith({ status: 'ok' });
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith({ status: 'ok' });
     });
 
     it('should handle reaction execution error gracefully', async () => {
@@ -397,15 +397,15 @@ describe('TwitchController', () => {
       const timestamp = '2023-01-01T00:00:00Z';
       const signature = 'sha256=valid';
       const messageType = 'notification';
-      const subscriptionType = 'stream.online';
       const body = {
         subscription: { id: 'sub123' },
         event: {},
       };
-      const res = {
+      const mockRes: any = {
         status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
+        send: jest.fn().mockReturnThis(),
       };
+      const mockReq: any = {};
       const hooks = [{ id: 1, userId: 1, webhookId: 'sub123' }];
       const reactions = [
         {
@@ -434,14 +434,14 @@ describe('TwitchController', () => {
         timestamp,
         signature,
         messageType,
-        subscriptionType,
         body,
-        res
+        mockRes,
+        mockReq
       );
 
       expect(consoleSpy).toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith({ status: 'ok' });
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith({ status: 'ok' });
 
       consoleSpy.mockRestore();
     });
