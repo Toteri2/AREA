@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsString } from 'class-validator';
 
 export class CreateWebhookDto {
   @IsString()
@@ -16,9 +16,4 @@ export class CreateWebhookDto {
     type: [String],
   })
   events: string[];
-
-  @IsString()
-  @IsOptional()
-  @ApiProperty({ description: 'The secret for the webhook', required: false })
-  secret?: string;
 }

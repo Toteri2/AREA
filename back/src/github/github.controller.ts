@@ -48,10 +48,19 @@ export class GithubController {
   async webhook(
     @Body() body: any,
     @Headers('x-github-delivery') deliveryId: string,
-    @Headers('x-github-hook-id') hookId: string
+    @Headers('x-github-hook-id') hookId: string,
+    @Headers('x-hub-signature-256') signature: string,
+    @Req() req
   ) {
-    console.log('GitHub webhook received:', deliveryId);
-    console.log('Payload:', body);
+    const rawBody = req.rawBody || JSON.stringify(body);
+    const isValid = this.githubService.verifyWebhookSignature(
+      rawBody,
+      signature
+    );
+
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid webhook signature');
+    }
 
     if (body.repository) {
       const _repoFullName = body.repository.full_name;

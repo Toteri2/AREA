@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import * as crypto from 'crypto';
 import { handleAxiosError } from '../shared/utils/axios.handler';
 import { CreateWebhookDto } from './dto/create_git_webhook.dto';
 
@@ -7,12 +9,19 @@ import { CreateWebhookDto } from './dto/create_git_webhook.dto';
 export class GithubService {
   private readonly baseUrl = 'https://api.github.com';
 
+  constructor(private configService: ConfigService) {}
+
   async createWebhook(
     userAccessToken: string,
     dto: CreateWebhookDto,
     webhookUrl: string
   ) {
-    const { owner, repo, events, secret } = dto;
+    const { owner, repo, events } = dto;
+
+    const webhookSecret = this.configService.getOrThrow<string>(
+      'GITHUB_WEBHOOK_SECRET'
+    );
+
     try {
       const response = await axios.post(
         `${this.baseUrl}/repos/${owner}/${repo}/hooks`,
@@ -24,7 +33,7 @@ export class GithubService {
             url: webhookUrl,
             content_type: 'json',
             insecure_ssl: '0',
-            ...(secret && { secret }),
+            secret: webhookSecret,
           },
         },
         {
@@ -98,5 +107,31 @@ export class GithubService {
       return null;
     }
     return response.data;
+  }
+
+  verifyWebhookSignature(payload: string, signature: string): boolean {
+    if (!signature) {
+      return false;
+    }
+
+    try {
+      const webhookSecret = this.configService.getOrThrow<string>(
+        'GITHUB_WEBHOOK_SECRET'
+      );
+
+      if (!webhookSecret) {
+        return true;
+      }
+      const hmac = crypto.createHmac('sha256', webhookSecret);
+      hmac.update(payload);
+      const expectedSignature = 'sha256=' + hmac.digest('hex');
+
+      return crypto.timingSafeEqual(
+        Buffer.from(signature),
+        Buffer.from(expectedSignature)
+      );
+    } catch {
+      return false;
+    }
   }
 }
