@@ -208,6 +208,8 @@ export function useBlueprintGraph(
       deleteGmailSubscription,
       deleteJiraWebhook,
       deleteGithubWebhook,
+      deleteDiscordWebhook,
+      deleteTwitchWebhook,
       webhooks,
     ]
   );
@@ -366,6 +368,8 @@ export function useBlueprintGraph(
       createWebhook,
       createMicrosoftSubscription,
       createGmailSubscription,
+      createDiscordWebhook,
+      createTwitchWebhook,
       setNodes,
       setShowConfigModal,
       setSelectedNode,

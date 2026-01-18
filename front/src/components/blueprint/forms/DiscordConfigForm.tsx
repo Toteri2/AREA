@@ -24,11 +24,10 @@ export function DiscordConfigForm({
   const { data: guilds = [], isLoading: isLoadingGuilds } =
     useListDiscordGuildsQuery();
 
-  const { data: channels = [], isLoading: _isLoadingChannels } =
-    useListDiscordChannelsQuery(
-      { guildId: selectedGuild },
-      { skip: !selectedGuild }
-    );
+  const { data: channels = [] } = useListDiscordChannelsQuery(
+    { guildId: selectedGuild },
+    { skip: !selectedGuild }
+  );
 
   useEffect(() => {
     const newConfig: Record<string, unknown> = {

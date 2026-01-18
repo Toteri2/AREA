@@ -28,6 +28,13 @@ export function ReactionJiraConfigForm({
 
   const [selectedProjectForIssue, setSelectedProjectForIssue] = useState('');
 
+  const updateConfigField = useCallback(
+    (field: string, value: string) => {
+      onChange({ ...config, [field]: value });
+    },
+    [config, onChange]
+  );
+
   useEffect(() => {
     if (!config.issueType) {
       updateConfigField('issueType', 'Task');
@@ -35,11 +42,8 @@ export function ReactionJiraConfigForm({
     if (!config.priority) {
       updateConfigField('priority', 'Medium');
     }
-  }, [config.issueType, config.priority]);
+  }, [config.issueType, config.priority, updateConfigField]);
 
-  const updateConfigField = (field: string, value: string) => {
-    onChange({ ...config, [field]: value });
-  };
 
   const handleProjectSelectForIssue = (projectKey: string) => {
     setSelectedProjectForIssue(projectKey);

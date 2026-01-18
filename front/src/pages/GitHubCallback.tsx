@@ -51,7 +51,7 @@ function GitHubCallback() {
         setTimeout(() => {
           navigate('/profile');
         }, 1000);
-      } catch (_error) {
+      } catch {
         if (validationKey) sessionStorage.removeItem(validationKey);
         setStatus('Failed to link GitHub account. See console for details.');
       }
