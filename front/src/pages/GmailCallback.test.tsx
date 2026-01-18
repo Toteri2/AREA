@@ -24,11 +24,13 @@ describe('GmailCallback', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    delete (window as any).location;
-    (window as any).location = {
-      href: '',
-      search: '',
-    };
+    Object.defineProperty(window, 'location', {
+      value: {
+        href: '',
+        search: '',
+      },
+      writable: true,
+    });
     (useValidateGmailMutation as unknown as Mock).mockReturnValue([
       mockValidateGmail,
       { isLoading: false },

@@ -24,11 +24,14 @@ describe('JiraCallback', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    delete (window as any).location;
-    (window as any).location = {
-      href: '',
-      search: '',
-    };
+    sessionStorage.clear();
+    Object.defineProperty(window, 'location', {
+      value: {
+        href: '',
+        search: '',
+      },
+      writable: true,
+    });
     (useValidateJiraMutation as unknown as Mock).mockReturnValue([
       mockValidateJira,
       { isLoading: false },
@@ -118,13 +121,24 @@ describe('JiraCallback', () => {
       </MemoryRouter>
     );
 
+    // First wait for the linking status
     await waitFor(() => {
       expect(
-        screen.getByText(
-          'Failed to link Jira account. See console for details.'
-        )
+        screen.getByText('Linking your Jira account...')
       ).toBeInTheDocument();
     });
+
+    // Then wait for the error message
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText(
+            'Failed to link Jira account. See console for details.'
+          )
+        ).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
 
     expect(consoleErrorSpy).toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -153,7 +167,7 @@ describe('JiraCallback', () => {
     expect(screen.getByText('Validating...')).toBeInTheDocument();
   });
 
-  it('handles invalid state gracefully', () => {
+  it('handles invalid state gracefully', async () => {
     const code = 'test-code';
     const invalidState = 'invalid-base64';
     window.location.search = `?code=${code}&state=${invalidState}`;
@@ -162,16 +176,28 @@ describe('JiraCallback', () => {
       .spyOn(console, 'error')
       .mockImplementation(() => {});
 
+    mockValidateJira.mockReturnValue({
+      unwrap: vi.fn().mockResolvedValue({}),
+    });
+
     render(
       <MemoryRouter>
         <JiraCallback />
       </MemoryRouter>
     );
 
-    expect(consoleErrorSpy).toHaveBeenCalled();
-    expect(
-      screen.getByText('Linking your Jira account...')
-    ).toBeInTheDocument();
+    // State decode error is logged, but validation continues
+    await waitFor(() => {
+      expect(consoleErrorSpy).toHaveBeenCalled();
+    });
+
+    // The component continues and successfully completes validation
+    await waitFor(
+      () => {
+        expect(screen.getByText('Success! Redirecting...')).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
 
     consoleErrorSpy.mockRestore();
   });

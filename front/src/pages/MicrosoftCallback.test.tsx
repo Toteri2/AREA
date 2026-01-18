@@ -24,11 +24,13 @@ describe('MicrosoftCallback', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    delete (window as any).location;
-    (window as any).location = {
-      href: '',
-      search: '',
-    };
+    Object.defineProperty(window, 'location', {
+      value: {
+        href: '',
+        search: '',
+      },
+      writable: true,
+    });
     (useValidateMicrosoftMutation as unknown as Mock).mockReturnValue([
       mockValidateMicrosoft,
       { isLoading: false },

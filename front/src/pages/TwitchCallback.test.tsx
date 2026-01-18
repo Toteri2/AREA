@@ -24,11 +24,14 @@ describe('TwitchCallback', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    delete (window as any).location;
-    (window as any).location = {
-      href: '',
-      search: '',
-    };
+    sessionStorage.clear();
+    Object.defineProperty(window, 'location', {
+      value: {
+        href: '',
+        search: '',
+      },
+      writable: true,
+    });
     (useValidateTwitchMutation as unknown as Mock).mockReturnValue([
       mockValidateTwitch,
       { isLoading: false },
@@ -134,13 +137,24 @@ describe('TwitchCallback', () => {
       </MemoryRouter>
     );
 
+    // First wait for the linking status
     await waitFor(() => {
       expect(
-        screen.getByText(
-          'Failed to link Twitch account. See console for details.'
-        )
+        screen.getByText('Linking your Twitch account...')
       ).toBeInTheDocument();
     });
+
+    // Then wait for the error message
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText(
+            'Failed to link Twitch account. See console for details.'
+          )
+        ).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
 
     expect(consoleErrorSpy).toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -169,7 +183,7 @@ describe('TwitchCallback', () => {
     expect(screen.getByText('Validating...')).toBeInTheDocument();
   });
 
-  it('handles invalid state gracefully', () => {
+  it('handles invalid state gracefully', async () => {
     const code = 'test-code';
     const invalidState = 'invalid-base64';
     window.location.search = `?code=${code}&state=${invalidState}`;
@@ -178,16 +192,28 @@ describe('TwitchCallback', () => {
       .spyOn(console, 'error')
       .mockImplementation(() => {});
 
+    mockValidateTwitch.mockReturnValue({
+      unwrap: vi.fn().mockResolvedValue({}),
+    });
+
     render(
       <MemoryRouter>
         <TwitchCallback />
       </MemoryRouter>
     );
 
-    expect(consoleErrorSpy).toHaveBeenCalled();
-    expect(
-      screen.getByText('Linking your Twitch account...')
-    ).toBeInTheDocument();
+    // State decode error is logged, but validation continues
+    await waitFor(() => {
+      expect(consoleErrorSpy).toHaveBeenCalled();
+    });
+
+    // The component continues and successfully completes validation
+    await waitFor(
+      () => {
+        expect(screen.getByText('Success! Redirecting...')).toBeInTheDocument();
+      },
+      { timeout: 2000 }
+    );
 
     consoleErrorSpy.mockRestore();
   });

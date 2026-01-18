@@ -24,11 +24,13 @@ describe('GitHubCallback', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    delete (window as any).location;
-    (window as any).location = {
-      href: '',
-      search: '',
-    };
+    Object.defineProperty(window, 'location', {
+      value: {
+        href: '',
+        search: '',
+      },
+      writable: true,
+    });
     (useValidateGithubMutation as unknown as Mock).mockReturnValue([
       mockValidateGithub,
       { isLoading: false },

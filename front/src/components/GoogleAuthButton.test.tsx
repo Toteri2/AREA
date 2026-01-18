@@ -12,8 +12,10 @@ import { useGoogleAuthUrlQuery } from '../shared/src/web';
 describe('GoogleAuthButton', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete (window as any).location;
-    (window as any).location = { href: '' };
+    Object.defineProperty(window, 'location', {
+      value: { href: '' },
+      writable: true,
+    });
   });
 
   it('renders button with default text', () => {

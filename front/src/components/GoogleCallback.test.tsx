@@ -31,11 +31,13 @@ describe('GoogleCallback', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     sessionStorage.clear();
-    delete (window as any).location;
-    (window as any).location = {
-      href: '',
-      search: '',
-    };
+    Object.defineProperty(window, 'location', {
+      value: {
+        href: '',
+        search: '',
+      },
+      writable: true,
+    });
     (useGoogleAuthValidateMutation as unknown as Mock).mockReturnValue([
       mockGoogleAuthValidate,
       { isLoading: false },

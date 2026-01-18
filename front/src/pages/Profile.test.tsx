@@ -113,8 +113,10 @@ describe('Profile component', () => {
 
     const githubButton = screen.getByText('Link GitHub Account');
 
-    delete (window as any).location;
-    window.location = { href: '' } as any;
+    Object.defineProperty(window, 'location', {
+      value: { href: '' },
+      writable: true,
+    });
 
     await fireEvent.click(githubButton);
 
@@ -130,8 +132,10 @@ describe('Profile component', () => {
 
     const msButton = screen.getByText('Link Microsoft Account');
 
-    delete (window as any).location;
-    window.location = { href: '' } as any;
+    Object.defineProperty(window, 'location', {
+      value: { href: '' },
+      writable: true,
+    });
 
     await fireEvent.click(msButton);
 
@@ -153,7 +157,7 @@ describe('Profile component', () => {
 
   it('shows success message when GitHub account is linked', () => {
     (useConnectionQuery as unknown as Mock).mockImplementation(
-      (params: any) => {
+      (params: { provider?: string }) => {
         if (params?.provider === 'github') {
           return {
             isLoading: false,
@@ -175,7 +179,7 @@ describe('Profile component', () => {
 
   it('shows success message when Microsoft account is linked', () => {
     (useConnectionQuery as unknown as Mock).mockImplementation(
-      (params: any) => {
+      (params: { provider?: string }) => {
         if (params?.provider === 'microsoft') {
           return {
             isLoading: false,

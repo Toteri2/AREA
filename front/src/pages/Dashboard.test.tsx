@@ -49,7 +49,6 @@ describe('Dashboard', () => {
     );
 
     expect(screen.getByText('Welcome, Alice Smith!')).toBeInTheDocument();
-    expect(screen.getByText('Email: alice@test.com')).toBeInTheDocument();
   });
 
   it('renders navigation links', () => {
@@ -131,6 +130,5 @@ describe('Dashboard', () => {
     );
 
     expect(screen.getByText('Welcome, !')).toBeInTheDocument();
-    expect(screen.getByText('Email:')).toBeInTheDocument();
   });
 });

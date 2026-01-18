@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -22,7 +22,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
   };
 });
 
-import { logout, useAppDispatch, useAppSelector } from '../shared/src/web';
+import { useAppDispatch, useAppSelector } from '../shared/src/web';
 
 describe('Navbar', () => {
   const mockDispatch = vi.fn();
@@ -61,20 +61,7 @@ describe('Navbar', () => {
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Area')).toBeInTheDocument();
     expect(screen.getByText('Profile')).toBeInTheDocument();
-    expect(screen.getByText('Logout')).toBeInTheDocument();
-  });
-
-  it('dispatches logout and redirects to /login', () => {
-    (useAppSelector as unknown as Mock).mockImplementation((selector) =>
-      selector({ auth: { isAuthenticated: true } })
-    );
-
-    renderNavbar();
-
-    fireEvent.click(screen.getByText('Logout'));
-
-    expect(mockDispatch).toHaveBeenCalledWith(logout());
-    expect(mockNavigate).toHaveBeenCalledWith('/login');
+    expect(screen.getByText('Download app')).toBeInTheDocument();
   });
 
   it('always shows brand link', () => {

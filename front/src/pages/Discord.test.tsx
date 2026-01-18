@@ -109,7 +109,8 @@ describe('Discord', () => {
     const repoButton = screen.getByText('user1/repo1').closest('button');
     expect(repoButton).not.toHaveClass('selected');
 
-    fireEvent.click(repoButton!);
+    expect(repoButton).toBeTruthy();
+    fireEvent.click(repoButton as HTMLElement);
 
     expect(repoButton).toHaveClass('selected');
   });
@@ -118,7 +119,8 @@ describe('Discord', () => {
     render(<Discord />);
 
     const repoButton = screen.getByText('user1/repo1').closest('button');
-    fireEvent.click(repoButton!);
+    expect(repoButton).toBeTruthy();
+    fireEvent.click(repoButton as HTMLElement);
 
     const createButton = screen.getByText('Create Webhook');
     fireEvent.click(createButton);
@@ -135,7 +137,8 @@ describe('Discord', () => {
     render(<Discord />);
 
     const repoButton = screen.getByText('user1/repo1').closest('button');
-    fireEvent.click(repoButton!);
+    expect(repoButton).toBeTruthy();
+    fireEvent.click(repoButton as HTMLElement);
 
     fireEvent.click(screen.getByText('Create Webhook'));
 
@@ -172,7 +175,9 @@ describe('Discord', () => {
 
     render(<Discord />);
 
-    fireEvent.click(screen.getByText('user1/repo1').closest('button')!);
+    const repoButton = screen.getByText('user1/repo1').closest('button');
+    expect(repoButton).toBeTruthy();
+    fireEvent.click(repoButton as HTMLElement);
     fireEvent.click(screen.getByText('Create Webhook'));
 
     fireEvent.change(screen.getByLabelText('Payload URL'), {
@@ -188,7 +193,9 @@ describe('Discord', () => {
   it('toggles event selection', () => {
     render(<Discord />);
 
-    fireEvent.click(screen.getByText('user1/repo1').closest('button')!);
+    const repoButton = screen.getByText('user1/repo1').closest('button');
+    expect(repoButton).toBeTruthy();
+    fireEvent.click(repoButton as HTMLElement);
     fireEvent.click(screen.getByText('Create Webhook'));
 
     const pushCheckbox = screen.getByRole('checkbox', { name: /push/i });
@@ -204,12 +211,16 @@ describe('Discord', () => {
   it('closes form when repository selection changes', () => {
     render(<Discord />);
 
-    fireEvent.click(screen.getByText('user1/repo1').closest('button')!);
+    const repoButton1 = screen.getByText('user1/repo1').closest('button');
+    expect(repoButton1).toBeTruthy();
+    fireEvent.click(repoButton1 as HTMLElement);
     fireEvent.click(screen.getByText('Create Webhook'));
 
     expect(screen.getByLabelText('Payload URL')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('user2/repo2').closest('button')!);
+    const repoButton2 = screen.getByText('user2/repo2').closest('button');
+    expect(repoButton2).toBeTruthy();
+    fireEvent.click(repoButton2 as HTMLElement);
 
     expect(screen.queryByLabelText('Payload URL')).not.toBeInTheDocument();
   });
@@ -222,7 +233,9 @@ describe('Discord', () => {
 
     render(<Discord />);
 
-    fireEvent.click(screen.getByText('user1/repo1').closest('button')!);
+    const repoButton = screen.getByText('user1/repo1').closest('button');
+    expect(repoButton).toBeTruthy();
+    fireEvent.click(repoButton as HTMLElement);
     fireEvent.click(screen.getByText('Create Webhook'));
 
     const submitButton = screen.getByRole('button', {
