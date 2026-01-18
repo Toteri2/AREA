@@ -1,30 +1,30 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import type { ConfigFormProps } from './types';
 
 export function GmailConfigForm({
   config,
   onChange,
   actions = [],
+  eventType,
 }: ConfigFormProps) {
-  const [selectedGmailEventType, setSelectedGmailEventType] = useState<number>(
-    (config.eventType as number) || 1
-  );
-  const isInitialMount = useRef(true);
+  const selectedGmailEventType = (config.eventType as number) || 1;
 
   useEffect(() => {
-    if (isInitialMount.current && config.eventType) {
-      isInitialMount.current = false;
-      return;
+    if (!config.eventType) {
+      if (eventType && actions.length > 0) {
+        const actionName = eventType.includes('.')
+          ? eventType.split('.')[1]
+          : eventType;
+        const actionIndex = actions.findIndex((a) => a.name === actionName);
+        if (actionIndex !== -1) {
+          onChange({ ...config, eventType: actionIndex + 1 });
+          return;
+        }
+      }
+      onChange({ ...config, eventType: 1 });
     }
-    isInitialMount.current = false;
+  }, [config.eventType, onChange, config, eventType, actions]);
 
-    onChange({
-      eventType: selectedGmailEventType,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedGmailEventType]);
-
-  // Generate options dynamically from actions list (index + 1 corresponds to enum ID)
   const options = actions.map(
     (action: { name: string; description: string }, index: number) => ({
       id: index + 1,
@@ -39,7 +39,9 @@ export function GmailConfigForm({
         <select
           id='gmail-event'
           value={selectedGmailEventType}
-          onChange={(e) => setSelectedGmailEventType(Number(e.target.value))}
+          onChange={(e) =>
+            onChange({ ...config, eventType: Number(e.target.value) })
+          }
         >
           {options.map((option) => (
             <option key={option.id} value={option.id}>

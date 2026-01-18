@@ -1,47 +1,31 @@
 import { memo } from 'react';
 import { Handle, type NodeProps, Position } from 'reactflow';
+import {
+  REACTION_ICONS,
+  REACTION_ID_MAP,
+} from '../../pages/BlueprintEditor/constants';
 import type { ReactionNodeData } from '../../shared/src/types';
-
-const REACTION_ICONS: Record<number, string> = {
-  1: '✉️', // Outlook
-  2: '💬', // Discord Send Message
-  3: '📁', // Discord Create Channel
-  4: '🏷️', // Discord Add Role
-  5: '📧', // Gmail
-  6: '🎫', // Jira Create Issue
-  7: '💭', // Jira Add Comment
-  8: '📋', // Jira Update Status
-};
-
-const REACTION_LABELS: Record<number, string> = {
-  1: 'Outlook Email',
-  2: 'Discord Message',
-  3: 'Discord Channel',
-  4: 'Discord Role',
-  5: 'Gmail Email',
-  6: 'Jira Issue',
-  7: 'Jira Comment',
-  8: 'Jira Status',
-};
-
-const REACTION_COLORS: Record<number, string> = {
-  1: '#0078d4', // Microsoft Blue
-  2: '#5865f2', // Discord Blurple
-  3: '#5865f2', // Discord Blurple
-  4: '#5865f2', // Discord Blurple
-  5: '#ea4335', // Gmail Red
-  6: '#0052cc', // Jira Blue
-  7: '#0052cc', // Jira Blue
-  8: '#0052cc', // Jira Blue
-};
 
 function ReactionNodeComponent({
   data,
   selected,
 }: NodeProps<ReactionNodeData>) {
-  const icon = REACTION_ICONS[data.reactionType] || '⚡';
-  const typeLabel = REACTION_LABELS[data.reactionType] || 'Unknown';
-  const borderColor = REACTION_COLORS[data.reactionType] || '#2196f3';
+  // Find key for this reaction type
+  const getReactionKey = (type: number): string | null => {
+    for (const reactions of Object.values(REACTION_ID_MAP)) {
+      for (const [name, id] of Object.entries(reactions)) {
+        if (id === type) return name;
+      }
+    }
+    return null;
+  };
+
+  const reactionKey = getReactionKey(data.reactionType);
+  const icon =
+    (reactionKey && REACTION_ICONS[reactionKey]) || REACTION_ICONS.send_message; // Fallback
+
+  const typeLabel = reactionKey ? reactionKey.replace(/_/g, ' ') : 'Unknown';
+  const borderColor = '#2196f3';
 
   // Get preview text based on config
   const getPreview = () => {

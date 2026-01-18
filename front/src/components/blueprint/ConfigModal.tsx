@@ -166,7 +166,11 @@ function ConfigModalComponent({
         <div className='config-modal-body'>
           {/* Service Specific Forms */}
           {isAction && actionData?.service === 'github' && (
-            <GithubConfigForm config={config} onChange={handleConfigChange} />
+            <GithubConfigForm
+              config={config}
+              onChange={handleConfigChange}
+              eventType={actionData.eventType}
+            />
           )}
 
           {isAction && actionData?.service === 'microsoft' && (
@@ -180,6 +184,7 @@ function ConfigModalComponent({
             <GmailConfigForm
               config={config}
               onChange={handleConfigChange}
+              eventType={actionData.eventType}
               actions={
                 availableServices.find((s) => s.name === 'gmail')?.actions || []
               }

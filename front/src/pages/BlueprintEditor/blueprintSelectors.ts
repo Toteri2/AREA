@@ -1,4 +1,5 @@
 import { createSelector } from '@reduxjs/toolkit';
+import dagre from 'dagre';
 import type { Edge, Node } from 'reactflow';
 import { apiSlice } from '../../shared/src/services/api';
 import type {
@@ -222,14 +223,12 @@ export const selectBlueprintGraph = createSelector(
       });
 
       let sourceNodeId = '';
-      const hook = webhookMap.get(reaction.hookId);
+      const hookId = Number(reaction.hookId);
+      const hook = webhookMap.get(hookId);
 
       if (hook) {
         sourceNodeId = generateActionNodeId(hook.service, hook.id);
-      } else {
-        sourceNodeId = generateActionNodeId('github', reaction.hookId);
       }
-
       if (actionNodeIdSet.has(sourceNodeId)) {
         newEdges.push({
           id: generateEdgeId(reaction.hookId, reaction.id),
@@ -241,8 +240,35 @@ export const selectBlueprintGraph = createSelector(
       }
     });
 
+    // --- Auto Layout with Dagre ---
+    const allNodes = [...actionNodes, ...reactionNodes];
+
+    if (allNodes.length > 0) {
+      const dagreGraph = new dagre.graphlib.Graph();
+      dagreGraph.setDefaultEdgeLabel(() => ({}));
+
+      dagreGraph.setGraph({ rankdir: 'LR' });
+
+      allNodes.forEach((node) => {
+        dagreGraph.setNode(node.id, { width: 280, height: 100 });
+      });
+      newEdges.forEach((edge) => {
+        dagreGraph.setEdge(edge.source, edge.target);
+      });
+
+      dagre.layout(dagreGraph);
+
+      allNodes.forEach((node) => {
+        const nodeWithPosition = dagreGraph.node(node.id);
+        node.position = {
+          x: nodeWithPosition.x - 140,
+          y: nodeWithPosition.y - 50,
+        };
+      });
+    }
+
     return {
-      nodes: [...actionNodes, ...reactionNodes],
+      nodes: allNodes,
       edges: newEdges,
       webhooks,
     };

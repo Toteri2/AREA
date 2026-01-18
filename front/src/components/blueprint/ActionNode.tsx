@@ -1,14 +1,7 @@
 import { memo } from 'react';
 import { Handle, type NodeProps, Position } from 'reactflow';
+import { SERVICE_ICONS } from '../../pages/BlueprintEditor/constants';
 import type { ActionNodeData } from '../../shared/src/types';
-
-const SERVICE_ICONS: Record<string, string> = {
-  github: '📂',
-  gmail: '📧',
-  microsoft: '📬',
-  jira: '🎫',
-  discord: '💬',
-};
 
 const SERVICE_COLORS: Record<string, string> = {
   github: '#238636',
@@ -16,6 +9,7 @@ const SERVICE_COLORS: Record<string, string> = {
   microsoft: '#0078d4',
   jira: '#0052cc',
   discord: '#5865f2',
+  twitch: '#6441a5',
 };
 
 function ActionNodeComponent({ data, selected }: NodeProps<ActionNodeData>) {

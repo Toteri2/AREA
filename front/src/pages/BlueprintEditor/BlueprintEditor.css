@@ -625,4 +625,8 @@
     .react-flow__controls {
         display: none !important;
     }
+}.service-icon {
+    margin-right: 8px;
+    display: inline-flex;
+    vertical-align: middle;
 }

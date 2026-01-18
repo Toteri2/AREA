@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { useListRepositoriesQuery } from '../../../shared/src/web';
 import type { ConfigFormProps } from './types';
 
@@ -12,38 +12,37 @@ const GITHUB_EVENTS = [
   { id: 'release', label: 'Release' },
 ];
 
-export function GithubConfigForm({ config, onChange }: ConfigFormProps) {
-  const [selectedRepo, setSelectedRepo] = useState<string>(
-    (config.repo as string) || ''
-  );
-  const [selectedEvents, setSelectedEvents] = useState<string[]>(
-    (config.events as string[]) || ['push']
-  );
-  const isInitialMount = useRef(true);
-
+export function GithubConfigForm({
+  config,
+  onChange,
+  eventType,
+}: ConfigFormProps) {
   const { data: repositories = [], isLoading: isLoadingRepos } =
     useListRepositoriesQuery();
 
-  useEffect(() => {
-    if (isInitialMount.current && config.repo && config.events) {
-      isInitialMount.current = false;
-      return;
-    }
-    isInitialMount.current = false;
+  const selectedRepo = (config.repo as string) || '';
+  const selectedEvents = (config.events as string[]) || ['push'];
 
-    onChange({
-      repo: selectedRepo,
-      events: selectedEvents,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedRepo, selectedEvents]);
+  useEffect(() => {
+    if (!config.events) {
+      const initialEvent = config.eventType || eventType || 'push';
+      const eventId = String(initialEvent).replace('github.', '');
+      const isValidEvent = GITHUB_EVENTS.some((e) => e.id === eventId);
+      onChange({ ...config, events: [isValidEvent ? eventId : 'push'] });
+    }
+  }, [config.events, onChange, config, eventType]);
+
+  const handleRepoChange = (repo: string) => {
+    onChange({ ...config, repo });
+  };
 
   const toggleEvent = (eventId: string) => {
-    setSelectedEvents((prev) =>
-      prev.includes(eventId)
-        ? prev.filter((e) => e !== eventId)
-        : [...prev, eventId]
-    );
+    const currentEvents = (config.events as string[]) || ['push'];
+    const newEvents = currentEvents.includes(eventId)
+      ? currentEvents.filter((e) => e !== eventId)
+      : [...currentEvents, eventId];
+
+    onChange({ ...config, events: newEvents });
   };
 
   return (
@@ -63,7 +62,7 @@ export function GithubConfigForm({ config, onChange }: ConfigFormProps) {
           <select
             id='github-repo'
             value={selectedRepo}
-            onChange={(e) => setSelectedRepo(e.target.value)}
+            onChange={(e) => handleRepoChange(e.target.value)}
           >
             <option value=''>-- Select a repository --</option>
             {repositories.map((repo) => (
