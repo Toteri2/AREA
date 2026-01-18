@@ -41,4 +41,4 @@ ENV KEYSTORE_PASSWORD=
 ENV KEY_ALIAS=
 ENV KEY_PASSWORD=
 
-CMD ["bash", "-c", "cd android && ./gradlew assembleDebug assembleRelease --no-daemon"]
+CMD ["bash", "-c", "cd android && ./gradlew assembleDebug assembleRelease --no-daemon && mkdir -p /shared && cp app/build/outputs/apk/release/app-release.apk /shared/app-release.apk"]
