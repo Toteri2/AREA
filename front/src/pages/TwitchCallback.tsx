@@ -12,6 +12,15 @@ function TwitchCallback() {
     const code = params.get('code');
     const state = params.get('state');
 
+    const validationKey = code ? `twitch-callback:${code}` : null;
+    if (validationKey && sessionStorage.getItem(validationKey)) {
+      setStatus('Session already validated. Redirecting...');
+      setTimeout(() => {
+        navigate('/profile');
+      }, 1000);
+      return;
+    }
+
     if (!code) {
       setStatus('Error: No authorization code found.');
       return;
@@ -36,13 +45,16 @@ function TwitchCallback() {
 
     const linkAccount = async () => {
       setStatus('Linking your Twitch account...');
+      if (validationKey) sessionStorage.setItem(validationKey, 'pending');
       try {
         await validateTwitch({ code, state }).unwrap();
+        if (validationKey) sessionStorage.setItem(validationKey, 'done');
         setStatus('Success! Redirecting...');
         setTimeout(() => {
           navigate('/profile');
         }, 1000);
       } catch (_error) {
+        if (validationKey) sessionStorage.removeItem(validationKey);
         setStatus('Failed to link Twitch account. See console for details.');
         console.error(_error);
       }

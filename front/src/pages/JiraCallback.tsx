@@ -12,6 +12,15 @@ function JiraCallback() {
     const code = params.get('code');
     const state = params.get('state');
 
+    const validationKey = code ? `jira-callback:${code}` : null;
+    if (validationKey && sessionStorage.getItem(validationKey)) {
+      setStatus('Session already validated. Redirecting...');
+      setTimeout(() => {
+        navigate('/profile');
+      }, 1000);
+      return;
+    }
+
     if (!code) {
       setStatus('Error: No authorization code found.');
       return;
@@ -31,13 +40,16 @@ function JiraCallback() {
 
     const linkAccount = async () => {
       setStatus('Linking your Jira account...');
+      if (validationKey) sessionStorage.setItem(validationKey, 'pending');
       try {
         await validateJira({ code }).unwrap();
+        if (validationKey) sessionStorage.setItem(validationKey, 'done');
         setStatus('Success! Redirecting...');
         setTimeout(() => {
           navigate('/profile');
         }, 1000);
       } catch (_error) {
+        if (validationKey) sessionStorage.removeItem(validationKey);
         setStatus('Failed to link Jira account. See console for details.');
         console.error(_error);
       }

@@ -12,6 +12,15 @@ function MicrosoftCallback() {
     const code = params.get('code');
     const state = params.get('state');
 
+    const validationKey = code ? `microsoft-callback:${code}` : null;
+    if (validationKey && sessionStorage.getItem(validationKey)) {
+      setStatus('Session already validated. Redirecting...');
+      setTimeout(() => {
+        navigate('/profile');
+      }, 1000);
+      return;
+    }
+
     if (!code) {
       setStatus('Error: No authorization code found.');
       return;
@@ -34,8 +43,10 @@ function MicrosoftCallback() {
     // IF WEB (or if state is invalid): Continue with normal web login...
     const linkAccount = async () => {
       setStatus('Linking your Microsoft account...');
+      if (validationKey) sessionStorage.setItem(validationKey, 'pending');
       try {
         await validateMicrosoft({ code }).unwrap();
+        if (validationKey) sessionStorage.setItem(validationKey, 'done');
         setStatus('Success! Redirecting...');
       } catch (error) {
         // Account might still be linked despite error, redirect anyway
@@ -43,6 +54,7 @@ function MicrosoftCallback() {
           'Microsoft validation error (account may still be linked):',
           error
         );
+        if (validationKey) sessionStorage.removeItem(validationKey);
         setStatus('Linking complete. Redirecting...');
       }
       // Always redirect after a delay
