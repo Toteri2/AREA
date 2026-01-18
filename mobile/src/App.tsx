@@ -10,9 +10,9 @@ import {
   store,
   useAppSelector,
   useGetProfileQuery,
+  useGoogleAuthValidateMutation,
   useValidateDiscordMutation,
   useValidateGithubMutation,
-  useValidateGoogleMutation,
   useValidateMicrosoftMutation,
 } from './shared/src/native';
 import styles from './style/index';
@@ -23,7 +23,7 @@ function AppNavigator() {
   const { isAuthenticated, token } = useAppSelector((state) => state.auth);
   const { isLoading } = useGetProfileQuery(undefined, { skip: !token });
   const [validateGithub] = useValidateGithubMutation();
-  const [validateGoogle] = useValidateGoogleMutation();
+  const [validateGoogle] = useGoogleAuthValidateMutation();
   const [validateMicrosoft] = useValidateMicrosoftMutation();
   const [validateDiscord] = useValidateDiscordMutation();
 
@@ -31,6 +31,9 @@ function AppNavigator() {
     const handleDeepLink = async ({ url }: { url: string }) => {
       const codeMatch = url.match(/[?&]code=([^&]+)/);
       const code = codeMatch ? codeMatch[1] : null;
+
+      const stateMatch = url.match(/[?&]state=([^&]+)/);
+      const state = stateMatch ? stateMatch[1] : '';
 
       if (!code) return;
 
@@ -45,7 +48,7 @@ function AppNavigator() {
           await validateGoogle({ code }).unwrap();
           Alert.alert('Success', 'Google account linked successfully!');
         } else if (url.includes('auth/discord')) {
-          await validateDiscord({ code }).unwrap();
+          await validateDiscord({ code, state }).unwrap();
           Alert.alert('Success', 'Discord account linked successfully!');
         }
       } catch (_error) {
@@ -55,7 +58,7 @@ function AppNavigator() {
 
     const sub = Linking.addEventListener('url', handleDeepLink);
     return () => sub.remove();
-  }, [validateGithub, validateGoogle, validateMicrosoft]);
+  }, [validateGithub, validateGoogle, validateMicrosoft, validateDiscord]);
 
   if (isLoading) {
     return (

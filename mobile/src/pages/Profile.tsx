@@ -137,7 +137,7 @@ export function Profile() {
     {
       label: string;
       connection: typeof githubConnection;
-      getAuthUrl: () => Promise<any>;
+      getAuthUrl: () => Promise<{ data?: { url: string }; error?: unknown }>;
     }
   > = {
     github: {

@@ -1,18 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { persistToken } from '../features/authSlice';
 import type { RootState } from '../store';
-import type {
-  AboutResponse,
-  ApiAuthResponse,
-  CreateReactionDto,
-  CreateWebhookDto,
-  GmailSubscription,
-  MicrosoftSubscription,
-  Reaction,
-  Repository,
-  User,
-  Webhook,
-} from '../types';
+import type { AboutResponse, ApiAuthResponse, User } from '../types';
 
 const baseQueryCache = new Map<string, ReturnType<typeof fetchBaseQuery>>();
 
@@ -46,15 +35,12 @@ export const apiSlice = createApi({
     const cachedBaseQuery = getCachedBaseQuery(baseUrl);
     return cachedBaseQuery(args, api, extraOptions);
   },
-  tagTypes: [
-    'User',
-    'Repos',
-    'Webhooks',
-    'MicrosoftSubscriptions',
-    'GmailSubscriptions',
-    'Reactions',
-  ],
+  keepUnusedDataFor: 300,
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  tagTypes: ['User'],
   endpoints: (builder) => ({
+    // --- Auth & User ---
     login: builder.mutation<
       ApiAuthResponse,
       { email: string; password: string }
@@ -64,7 +50,7 @@ export const apiSlice = createApi({
         method: 'POST',
         body: credentials,
       }),
-      async onQueryStarted(args, { dispatch, queryFulfilled }) {
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
           dispatch(persistToken(data.access_token));
@@ -83,12 +69,31 @@ export const apiSlice = createApi({
         method: 'POST',
         body: userInfo,
       }),
-      async onQueryStarted(args, { dispatch, queryFulfilled }) {
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
         dispatch(persistToken(data.token));
       },
     }),
+    getProfile: builder.query<User, void>({
+      query: () => '/auth/me',
+      providesTags: ['User'],
+    }),
+    connection: builder.query<{ connected: boolean }, { provider: string }>({
+      query: ({ provider }) => ({
+        url: '/users/connection',
+        method: 'GET',
+        params: { provider },
+      }),
+    }),
+    getServices: builder.query<AboutResponse, void>({
+      query: () => ({
+        url: '/about.json',
+        method: 'GET',
+      }),
+      keepUnusedDataFor: 3600,
+    }),
 
+    // --- Google Auth ---
     googleAuthUrl: builder.query<{ url: string }, { mobile: string }>({
       query: ({ mobile }) => ({
         url: `/auth/google/url?mobile=${mobile}`,
@@ -97,7 +102,6 @@ export const apiSlice = createApi({
       }),
       transformResponse: (response: string) => ({ url: response }),
     }),
-
     googleAuthValidate: builder.mutation<
       { access_token: string },
       { code: string; state?: string }
@@ -107,16 +111,13 @@ export const apiSlice = createApi({
         method: 'POST',
         body: authData,
       }),
-      async onQueryStarted(args, { dispatch, queryFulfilled }) {
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         const { data } = await queryFulfilled;
         dispatch(persistToken(data.access_token));
       },
     }),
 
-    getProfile: builder.query<User, void>({
-      query: () => '/auth/me',
-      providesTags: ['User'],
-    }),
+    // --- GitHub ---
     getGithubAuthUrl: builder.query<
       { url: string },
       { mobile?: boolean } | undefined
@@ -135,23 +136,8 @@ export const apiSlice = createApi({
         body: { code },
       }),
     }),
-    validateGoogle: builder.mutation<ApiAuthResponse, { code: string }>({
-      query: ({ code }) => ({
-        url: '/auth/google/validate',
-        method: 'POST',
-        body: { code },
-      }),
-      async onQueryStarted(args, { dispatch, queryFulfilled }) {
-        try {
-          const { data } = await queryFulfilled;
-          await dispatch(persistToken(data.access_token)).unwrap();
-          dispatch(apiSlice.util.invalidateTags(['User']));
-        } catch (error) {
-          console.error('Google login failed:', error);
-        }
-      },
-      invalidatesTags: ['User'],
-    }),
+
+    // --- Microsoft ---
     getMicrosoftAuthUrl: builder.query<
       { url: string },
       { mobile?: boolean } | undefined
@@ -172,162 +158,8 @@ export const apiSlice = createApi({
         }),
       }
     ),
-    listRepositories: builder.query<Repository[], void>({
-      query: () => '/github/repositories',
-      providesTags: ['Repos'],
-    }),
-    listWebhooks: builder.query<Webhook[], { owner: string; repo: string }>({
-      query: ({ owner, repo }) =>
-        `/github/repositories/${owner}/${repo}/webhooks`,
-      providesTags: (result, error, { repo }) => [
-        { type: 'Webhooks', id: repo },
-      ],
-    }),
-    createWebhook: builder.mutation<Webhook, CreateWebhookDto>({
-      query: (dto) => ({
-        url: '/github/create-webhook',
-        method: 'POST',
-        body: dto,
-      }),
-      invalidatesTags: (result, error, dto) => [
-        { type: 'Webhooks', id: dto.repo },
-      ],
-    }),
-    listMicrosoftWebhooks: builder.query<MicrosoftSubscription[], void>({
-      query: () => '/microsoft/webhooks',
-      providesTags: ['MicrosoftSubscriptions'],
-    }),
-    createMicrosoftSubscription: builder.mutation<
-      MicrosoftSubscription,
-      { resource: string; changeType: string }
-    >({
-      query: (dto) => ({
-        url: '/microsoft/create-webhook',
-        method: 'POST',
-        body: dto,
-      }),
-      invalidatesTags: ['MicrosoftSubscriptions'],
-    }),
-    deleteMicrosoftSubscription: builder.mutation<void, { id: string }>({
-      query: ({ id }) => ({
-        url: `/microsoft/webhook?id=${id}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['MicrosoftSubscriptions'],
-    }),
 
-    ValidateDiscord: builder.mutation<
-      { success: boolean },
-      { code: string; state: string }
-    >({
-      query: ({ code, state }) => ({
-        url: '/auth/discord/validate',
-        method: 'POST',
-        body: { code, state },
-      }),
-    }),
-
-    ValidateTwitch: builder.mutation<
-      { success: boolean },
-      { code: string; state: string }
-    >({
-      query: ({ code, state }) => ({
-        url: '/auth/twitch/validate',
-        method: 'POST',
-        body: { code, state },
-      }),
-    }),
-
-    ValidateJira: builder.mutation<
-      { success: boolean },
-      { code: string; state: string }
-    >({
-      query: ({ code, state }) => ({
-        url: '/auth/jira/validate',
-        method: 'POST',
-        body: { code, state },
-      }),
-    }),
-
-    listReactions: builder.query<Reaction[], void>({
-      query: () => '/reactions',
-      providesTags: ['Reactions'],
-    }),
-    createReaction: builder.mutation<Reaction, CreateReactionDto>({
-      query: (dto) => ({
-        url: '/reactions',
-        method: 'POST',
-        body: dto,
-      }),
-      invalidatesTags: ['Reactions'],
-    }),
-    deleteReaction: builder.mutation<void, number>({
-      query: (id) => ({
-        url: `/reactions/${id}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['Reactions'],
-    }),
-
-    listUserWebhooks: builder.query<Webhook[], void>({
-      query: () => '/users/webhooks',
-      providesTags: ['Webhooks'],
-    }),
-
-    getDiscordAuthUrl: builder.query<
-      { url: string },
-      { mobile?: boolean } | undefined
-    >({
-      query: (args) => ({
-        url: '/auth/discord/url',
-        params: args?.mobile ? { mobile: 'true' } : undefined,
-        responseHandler: (response) => response.text(),
-      }),
-      transformResponse: (response: string) => ({ url: response }),
-    }),
-
-    listDiscordWebhooks: builder.query<{ webhooks: any[] }, void>({
-      query: () => ({
-        url: '/discord/webhooks',
-      }),
-    }),
-
-    getTwitchAuthUrl: builder.query<
-      { url: string },
-      { mobile?: boolean } | undefined
-    >({
-      query: (args) => ({
-        url: '/auth/twitch/url',
-        params: args?.mobile ? { mobile: 'true' } : undefined,
-        responseHandler: (response) => response.text(),
-      }),
-      transformResponse: (response: string) => ({ url: response }),
-    }),
-
-    listTwitchWebhooks: builder.query<{ webhooks: any[] }, void>({
-      query: () => ({
-        url: '/twitch/webhooks',
-      }),
-    }),
-
-    getJiraAuthUrl: builder.query<
-      { url: string },
-      { mobile?: boolean } | undefined
-    >({
-      query: (args) => ({
-        url: '/auth/jira/url',
-        params: args?.mobile ? { mobile: 'true' } : undefined,
-        responseHandler: (response) => response.text(),
-      }),
-      transformResponse: (response: string) => ({ url: response }),
-    }),
-
-    listJiraWebhooks: builder.query<{ webhooks: any[] }, void>({
-      query: () => ({
-        url: '/jira/webhooks',
-      }),
-    }),
-
+    // --- Gmail ---
     getGmailAuthUrl: builder.query<
       { url: string },
       { mobile?: boolean } | undefined
@@ -346,90 +178,111 @@ export const apiSlice = createApi({
         body: { code },
       }),
     }),
-    listGmailWebhooks: builder.query<GmailSubscription[], void>({
-      query: () => '/Gmail/webhooks',
-      providesTags: ['GmailSubscriptions'],
-    }),
-    createGmailSubscription: builder.mutation<
-      GmailSubscription,
-      { eventType: number }
+
+    // --- Discord ---
+    getDiscordAuthUrl: builder.query<
+      { url: string },
+      { mobile?: boolean } | undefined
     >({
-      query: (dto) => ({
-        url: '/gmail/create-webhook',
-        method: 'POST',
-        body: dto,
+      query: (args) => ({
+        url: '/auth/discord/url',
+        params: args?.mobile ? { mobile: 'true' } : undefined,
+        responseHandler: (response: Response) => response.text(),
       }),
-      invalidatesTags: ['GmailSubscriptions'],
+      transformResponse: (response: string) => ({ url: response }),
     }),
-    deleteGmailSubscription: builder.mutation<void, { id: string }>({
-      query: ({ id }) => ({
-        url: `/gmail/webhook?id=${id}`,
-        method: 'DELETE',
+    validateDiscord: builder.mutation<
+      { success: boolean },
+      { code: string; state: string }
+    >({
+      query: ({ code, state }) => ({
+        url: '/auth/discord/validate',
+        method: 'POST',
+        body: { code, state },
       }),
-      invalidatesTags: ['GmailSubscriptions'],
     }),
 
-    getServices: builder.query<AboutResponse, void>({
-      query: () => ({
-        url: '/about.json',
-        method: 'GET',
+    // --- Jira ---
+    getJiraAuthUrl: builder.query<
+      { url: string },
+      { mobile?: boolean } | undefined
+    >({
+      query: (args) => ({
+        url: '/auth/jira/url',
+        params: args?.mobile ? { mobile: 'true' } : undefined,
+        responseHandler: (response: Response) => response.text(),
+      }),
+      transformResponse: (response: string) => ({ url: response }),
+    }),
+    validateJira: builder.mutation<{ success: boolean }, { code: string }>({
+      query: ({ code }) => ({
+        url: '/auth/jira/validate',
+        method: 'POST',
+        body: { code },
       }),
     }),
-    connection: builder.query<{ connected: boolean }, { provider: string }>({
-      query: ({ provider }) => ({
-        url: '/users/connection',
-        method: 'GET',
-        params: { provider },
+
+    // --- Twitch ---
+    getTwitchAuthUrl: builder.query<
+      { url: string },
+      { mobile?: boolean } | undefined
+    >({
+      query: (args) => ({
+        url: '/auth/twitch/url',
+        params: args?.mobile ? { mobile: 'true' } : undefined,
+        responseHandler: (response: Response) => response.text(),
+      }),
+      transformResponse: (response: string) => ({ url: response }),
+    }),
+    validateTwitch: builder.mutation<
+      { success: boolean },
+      { code: string; state: string }
+    >({
+      query: ({ code, state }) => ({
+        url: '/auth/twitch/validate',
+        method: 'POST',
+        body: { code, state },
       }),
     }),
   }),
 });
 
 export const {
+  // Auth & User
   useLoginMutation,
   useRegisterMutation,
+  useGetProfileQuery,
+  useConnectionQuery,
+  useGetServicesQuery,
+
+  // Google
   useGoogleAuthUrlQuery,
   useGoogleAuthValidateMutation,
 
-  useGetProfileQuery,
+  // GitHub
   useGetGithubAuthUrlQuery,
   useLazyGetGithubAuthUrlQuery,
   useValidateGithubMutation,
-  useValidateGoogleMutation,
+
+  // Microsoft
   useGetMicrosoftAuthUrlQuery,
   useLazyGetMicrosoftAuthUrlQuery,
   useValidateMicrosoftMutation,
-  useListRepositoriesQuery,
-  useListWebhooksQuery,
-  useCreateWebhookMutation,
-  useListMicrosoftWebhooksQuery,
-  useCreateMicrosoftSubscriptionMutation,
-  useDeleteMicrosoftSubscriptionMutation,
 
-  useValidateDiscordMutation,
-  useGetDiscordAuthUrlQuery,
-  useListDiscordWebhooksQuery,
-
-  useValidateTwitchMutation,
-  useGetTwitchAuthUrlQuery,
-  useListTwitchWebhooksQuery,
-
-  useValidateJiraMutation,
-  useGetJiraAuthUrlQuery,
-  useListJiraWebhooksQuery,
-
-  useListReactionsQuery,
-  useCreateReactionMutation,
-  useDeleteReactionMutation,
-  useListUserWebhooksQuery,
-
+  // Gmail
   useGetGmailAuthUrlQuery,
   useLazyGetGmailAuthUrlQuery,
   useValidateGmailMutation,
-  useListGmailWebhooksQuery,
-  useCreateGmailSubscriptionMutation,
-  useDeleteGmailSubscriptionMutation,
 
-  useGetServicesQuery,
-  useConnectionQuery,
+  // Discord
+  useGetDiscordAuthUrlQuery,
+  useValidateDiscordMutation,
+
+  // Jira
+  useGetJiraAuthUrlQuery,
+  useValidateJiraMutation,
+
+  // Twitch
+  useGetTwitchAuthUrlQuery,
+  useValidateTwitchMutation,
 } = apiSlice;

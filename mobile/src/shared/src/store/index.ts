@@ -22,18 +22,23 @@ const logoutMiddleware: Middleware = (store) => (next) => (action) => {
   const result = next(action);
   if (logout.match(action)) {
     (store.dispatch as unknown as AppDispatch)(clearToken());
+    store.dispatch(apiSlice.util.resetApiState());
   }
   return result;
 };
 
 // Redux Store (will break the app easily on modification)
-export const createStore = (config: { storage: TokenStorage }) => {
+export const createStore = (config: {
+  storage: TokenStorage;
+  devTools?: boolean;
+}) => {
   return configureStore({
     reducer: {
       [apiSlice.reducerPath]: apiSlice.reducer,
       auth: authReducer,
       config: configReducer,
     },
+    devTools: config.devTools ?? false,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         thunk: {

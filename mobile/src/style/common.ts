@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 export const common = StyleSheet.create({
+  // App & Header
   headerApp: {
     backgroundColor: '#1a1a2e',
   },
@@ -10,13 +11,20 @@ export const common = StyleSheet.create({
   headerTitleApp: {
     fontWeight: '600',
   },
-
   container: {
     flex: 1,
+    backgroundColor: '#1a1a2e',
   },
   content: {
     padding: 20,
   },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 20,
+  },
+
+  // Text
   title: {
     fontSize: 28,
     fontWeight: 'bold',

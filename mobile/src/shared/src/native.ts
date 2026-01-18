@@ -12,6 +12,7 @@ const nativeStorage: TokenStorage = {
 
 export const store = createStore({
   storage: nativeStorage,
+  devTools: __DEV__,
 });
 
 const initializeBaseUrl = async () => {
