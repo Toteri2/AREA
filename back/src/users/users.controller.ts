@@ -30,7 +30,6 @@ export class UsersController {
   getUserWebhooks(@Req() req) {
     const userId = req.user.id;
     const hooks = this.usersService.getUserWebhooks(userId);
-    console.log('Retrieved user webhooks:', hooks);
     return hooks;
   }
 

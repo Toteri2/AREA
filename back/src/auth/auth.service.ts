@@ -109,7 +109,6 @@ export class AuthService {
   }
 
   async getGithubProvider(userId: number): Promise<Provider | null> {
-    console.log('Fetching GitHub provider for user ID:', userId);
     return this.providerRepository.findOne({
       where: {
         userId,

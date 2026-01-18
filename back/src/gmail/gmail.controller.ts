@@ -30,7 +30,6 @@ export class GmailController {
   constructor(
     private readonly gmailService: GmailService,
     private readonly authService: AuthService,
-    readonly _configService: ConfigService,
     @InjectRepository(Hook)
     private hooksRepository: Repository<Hook>
   ) {}

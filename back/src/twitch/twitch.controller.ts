@@ -198,7 +198,7 @@ export class TwitchController {
     @Res() res,
     @Req() req
   ) {
-    const bodyString = req.rawBody || JSON.stringify(body);
+    const bodyString = JSON.stringify(body);
     if (messageType.localeCompare('webhook_callback_verification') === 0) {
       return res
         .set('Content-Type', 'text/plain')

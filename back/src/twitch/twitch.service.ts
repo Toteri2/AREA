@@ -77,7 +77,6 @@ export class TwitchService {
 
     const condition = this.buildCondition(eventType, broadcasterUserId);
     const version = eventType === 'channel.follow' ? '2' : '1';
-    console.log('Creating Twitch webhook with condition:', condition);
 
     try {
       const response = await axios.post(

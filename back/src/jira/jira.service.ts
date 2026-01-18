@@ -106,7 +106,6 @@ export class JiraService {
         message: 'Jira webhook created successfully',
       };
     } catch (error) {
-      console.log('Jira webhook creation error details:', error);
       console.error(
         'Error creating Jira webhook:',
         error.response?.data || error.message
@@ -244,11 +243,11 @@ export class JiraService {
     }
 
     try {
-      const jiraWebhookSecret = this.configService.get<string>(
+      const jiraWebhookSecret = this.configService.getOrThrow<string>(
         'JIRA_WEBHOOK_SECRET'
       );
       if (!jiraWebhookSecret) {
-        return true;
+        return false;
       }
       return crypto.timingSafeEqual(
         Buffer.from(providedSecret),
