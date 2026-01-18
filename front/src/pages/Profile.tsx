@@ -126,6 +126,7 @@ function Profile() {
     try {
       const result = await getUrl();
       if (result.data?.url) {
+        // eslint-disable-next-line react-hooks/immutability
         window.location.href = result.data.url;
       } else {
         console.error(`Failed to fetch ${label} auth URL`, result.error);

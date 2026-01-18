@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// @ts-expect-error
+// @ts-expect-error - __DEV__ is a global variable provided by React Native
 declare const __DEV__: boolean;
 
 import { loadToken } from './features/authSlice';

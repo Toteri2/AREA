@@ -14,6 +14,7 @@ function GitHubCallback() {
 
     const validationKey = code ? `github-callback:${code}` : null;
     if (validationKey && sessionStorage.getItem(validationKey)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatus('Session already validated. Redirecting...');
       setTimeout(() => {
         navigate('/profile');
