@@ -48,7 +48,7 @@ function DiscordCallback() {
     const decodedState = parseState(state);
     if (decodedState.platform === 'mobile') {
       setStatus('Redirecting to mobile app...');
-      window.location.href = `area://auth/discord?code=${code}`;
+      window.location.href = `area://auth/discord?code=${code}&state=${state}`;
       return;
     }
 
