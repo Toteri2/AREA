@@ -145,9 +145,16 @@ export class TwitchController {
     status: 201,
     description: 'Webhook subscription created successfully.',
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid webhook data.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Twitch account not linked.',
+  })
   @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.TWITCH)
-  @UseGuards(AuthGuard('jwt'))
   async createWebhook(
     @Req() req,
     @Body() createWebhookDto: CreateTwitchWebhookDto

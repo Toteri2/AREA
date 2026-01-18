@@ -47,6 +47,10 @@ export class DiscordController {
     status: 200,
     description: 'List of guilds retrieved successfully.',
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Discord account not linked.',
+  })
   @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async listGuilds(@Req() req) {
@@ -58,6 +62,10 @@ export class DiscordController {
   @ApiResponse({
     status: 200,
     description: 'List of channels retrieved successfully.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Discord account not linked.',
   })
   @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
@@ -74,6 +82,10 @@ export class DiscordController {
     status: 200,
     description: 'List of members retrieved successfully.',
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Discord account not linked.',
+  })
   @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
   async listGuildMembers(@Req() req, @Param('guildId') guildId: string) {
@@ -88,6 +100,10 @@ export class DiscordController {
   @ApiResponse({
     status: 200,
     description: 'List of roles retrieved successfully.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Discord account not linked.',
   })
   @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.DISCORD)
@@ -205,6 +221,10 @@ export class DiscordController {
   @ApiResponse({
     status: 200,
     description: 'Webhook event received successfully.',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Failed to process webhook.',
   })
   async handleWebhook(@Body() body: any) {
     try {

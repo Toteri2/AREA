@@ -102,24 +102,15 @@ export class JiraController {
     }
   }
 
-  @Get('webhooks')
-  @ApiOperation({ summary: 'List all Jira webhooks for the logged-in user' })
-  @ApiResponse({
-    status: 200,
-    description: 'Jira webhooks retrieved successfully.',
-  })
-  @UseGuards(AuthGuard('jwt'), ProviderGuard)
-  @RequireProvider(ProviderType.JIRA)
-  async listWebhooks(@Req() req) {
-    const userId = req.user.id;
-    return this.jiraService.listUserWebhooks(userId);
-  }
-
   @Get('webhook')
-  @ApiOperation({ summary: 'List all webhooks for the current user' })
+  @ApiOperation({ summary: 'List all Jira webhooks for the current user' })
   @ApiResponse({
     status: 200,
     description: 'Webhooks retrieved successfully.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Jira account not linked.',
   })
   @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.JIRA)
@@ -133,6 +124,14 @@ export class JiraController {
   @ApiResponse({
     status: 200,
     description: 'Webhook details retrieved successfully.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Jira account not linked.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Hook not found.',
   })
   @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.JIRA)
@@ -150,10 +149,19 @@ export class JiraController {
   }
 
   @Post('create-webhook')
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a Jira webhook' })
   @ApiResponse({
     status: 201,
     description: 'The webhook has been successfully created.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid webhook data.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Jira account not linked.',
   })
   @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.JIRA)

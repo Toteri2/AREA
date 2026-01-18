@@ -191,6 +191,10 @@ export class GithubController {
     status: 200,
     description: 'List of webhooks retrieved successfully.',
   })
+  @ApiResponse({
+    status: 401,
+    description: 'GitHub account not linked.',
+  })
   @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.GITHUB)
   async listWebhooks(
@@ -211,6 +215,14 @@ export class GithubController {
   @ApiResponse({
     status: 200,
     description: 'Webhook deleted successfully.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'GitHub account not linked.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Hook not found.',
   })
   @UseGuards(AuthGuard('jwt'), ProviderGuard)
   @RequireProvider(ProviderType.GITHUB)

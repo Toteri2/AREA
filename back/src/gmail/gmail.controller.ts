@@ -40,6 +40,10 @@ export class GmailController {
     status: 200,
     description: 'Webhook event received successfully.',
   })
+  @ApiResponse({
+    status: 500,
+    description: 'Failed to process webhook.',
+  })
   async webhook(@Body() body: any, @Res() res) {
     try {
       if (body.message?.data) {
