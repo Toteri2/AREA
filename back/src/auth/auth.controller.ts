@@ -262,12 +262,20 @@ export class AuthController {
     description: 'Discord OAuth URL generated successfully.',
   })
   @UseGuards(JwtSessionGuard)
-  async getDiscordAuthUrl(@Req() req) {
+  async getDiscordAuthUrl(@Query('mobile') mobile: string, @Req() req) {
     const userId = req.session.userId;
-    const state = await this.authService.createOAuthStateToken(
+    const oauthState = await this.authService.createOAuthStateToken(
       userId,
       ProviderType.DISCORD
     );
+
+    const stateData = {
+      platform: mobile === 'true' ? 'mobile' : 'web',
+      nonce: Math.random().toString(36).substring(7),
+      oauthState: oauthState,
+    };
+    const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
+
     const clientId = this.configService.getOrThrow<string>('DISCORD_CLIENT_ID');
     const discordAuthCallbackUrl = this.configService.getOrThrow<string>(
       'DISCORD_CALLBACK_URL'
@@ -287,13 +295,19 @@ export class AuthController {
     description: 'Discord authentication state received.',
   })
   @UseGuards(JwtSessionGuard)
-  async discordAuthState(@Req() req) {
+  async discordAuthState(@Query('mobile') mobile: string, @Req() req) {
     const userId = req.session.userId;
-    const state = await this.authService.createOAuthStateToken(
+    const oauthState = await this.authService.createOAuthStateToken(
       userId,
       ProviderType.DISCORD
     );
-    return state;
+
+    const stateData = {
+      platform: mobile === 'true' ? 'mobile' : 'web',
+      nonce: Math.random().toString(36).substring(7),
+      oauthState: oauthState,
+    };
+    return Buffer.from(JSON.stringify(stateData)).toString('base64');
   }
 
   @Post('discord/validate')
@@ -317,8 +331,13 @@ export class AuthController {
         throw new BadRequestException('Code and state are required');
       }
 
+      const stateData = JSON.parse(
+        Buffer.from(state, 'base64').toString('utf-8')
+      );
+      const oauthState = stateData.oauthState;
+
       const userId = await this.authService.validateOAuthState(
-        state,
+        oauthState,
         ProviderType.DISCORD
       );
       if (!userId) {
@@ -349,12 +368,20 @@ export class AuthController {
     description: 'Twitch OAuth URL generated successfully.',
   })
   @UseGuards(JwtSessionGuard)
-  async getTwitchAuthUrl(@Req() req) {
+  async getTwitchAuthUrl(@Query('mobile') mobile: string, @Req() req) {
     const userId = req.session.userId;
-    const state = await this.authService.createOAuthStateToken(
+    const oauthState = await this.authService.createOAuthStateToken(
       userId,
       ProviderType.TWITCH
     );
+
+    const stateData = {
+      platform: mobile === 'true' ? 'mobile' : 'web',
+      nonce: Math.random().toString(36).substring(7),
+      oauthState: oauthState,
+    };
+    const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
+
     const clientId = this.configService.getOrThrow<string>('TWITCH_CLIENT_ID');
     const frontendUrl = this.configService.getOrThrow<string>('FRONTEND_URL');
     const redirectUri = encodeURIComponent(`${frontendUrl}/twitch/callback`);
@@ -386,8 +413,13 @@ export class AuthController {
         throw new BadRequestException('Code and state are required');
       }
 
+      const stateData = JSON.parse(
+        Buffer.from(state, 'base64').toString('utf-8')
+      );
+      const oauthState = stateData.oauthState;
+
       const userId = await this.authService.validateOAuthState(
-        state,
+        oauthState,
         ProviderType.TWITCH
       );
       if (!userId) {
@@ -421,6 +453,7 @@ export class AuthController {
     const redirectUri =
       this.configService.getOrThrow<string>('GMAIL_CALLBACK_URL');
 
+    console.log('Gmail Callback URL:', mobile);
     const stateData = {
       platform: mobile === 'true' ? 'mobile' : 'web',
       nonce: Math.random().toString(36).substring(7),
@@ -428,6 +461,7 @@ export class AuthController {
 
     const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
     const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=https://www.googleapis.com/auth/gmail.modify&state=${state}&prompt=consent&access_type=offline`;
+    console.log('Gmail Auth URL:', url);
     return url;
   }
 
