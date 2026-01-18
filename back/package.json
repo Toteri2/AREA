@@ -5,6 +5,10 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "overrides": {
+    "diff": "^8.0.3",
+    "undici": "^6.23.0"
+  },
   "scripts": {
     "build": "nest build",
     "start": "nest start",
@@ -38,9 +42,8 @@
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "class-validator": "^0.14.2",
-    "crypto": "^1.0.1",
-    "express-rate-limit": "^8.2.1",
     "discord.js": "^14.25.1",
+    "express-rate-limit": "^8.2.1",
     "express-session": "^1.18.2",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
@@ -49,7 +52,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "swagger-ui-express": "^5.0.1",
-    "typeorm": "^0.3.27"
+    "typeorm": "^0.3.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.7",
@@ -97,7 +100,8 @@
       "!**/strategies/*.ts",
       "!**/*.module.ts",
       "!**/*.dto.ts",
-      "!**/*.enum.ts"
+      "!**/*.enum.ts",
+      "!**/middleware/rate-limiters.ts"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
