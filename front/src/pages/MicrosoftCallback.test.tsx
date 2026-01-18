@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MicrosoftCallback } from './MicrosoftCallback';
 
 const mockNavigate = vi.fn();
@@ -60,7 +60,9 @@ describe('MicrosoftCallback', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Redirecting to mobile app...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Redirecting to mobile app...')
+    ).toBeInTheDocument();
     expect(window.location.href).toBe(`area://auth/microsoft?code=${code}`);
   });
 
@@ -135,9 +137,7 @@ describe('MicrosoftCallback', () => {
     ]);
 
     mockValidateMicrosoft.mockReturnValue({
-      unwrap: vi.fn().mockImplementation(
-        () => new Promise(() => {})
-      ),
+      unwrap: vi.fn().mockImplementation(() => new Promise(() => {})),
     });
 
     render(

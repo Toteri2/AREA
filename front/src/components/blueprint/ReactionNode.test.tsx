@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
 import { ReactFlowProvider } from 'reactflow';
-import { ReactionNode } from './ReactionNode';
+import { describe, expect, it } from 'vitest';
 import type { ReactionNodeData } from '../../shared/src/types';
+import { ReactionNode } from './ReactionNode';
 
 describe('ReactionNode', () => {
   const mockData: ReactionNodeData = {
@@ -16,8 +16,8 @@ describe('ReactionNode', () => {
     return render(
       <ReactFlowProvider>
         <ReactionNode
-          id="test-node"
-          type="reaction"
+          id='test-node'
+          type='reaction'
           data={data}
           selected={selected}
           isConnectable={true}
@@ -32,7 +32,7 @@ describe('ReactionNode', () => {
 
   it('renders reaction node with correct type and label', () => {
     renderNode(mockData);
-    
+
     expect(screen.getByText('Discord Message')).toBeInTheDocument();
     expect(screen.getByText('💬')).toBeInTheDocument();
     expect(screen.getByText('✓ Configured')).toBeInTheDocument();
@@ -40,7 +40,7 @@ describe('ReactionNode', () => {
 
   it('shows to preview when config has to field', () => {
     renderNode(mockData);
-    
+
     expect(screen.getByText('To: #general')).toBeInTheDocument();
   });
 
@@ -50,15 +50,15 @@ describe('ReactionNode', () => {
       isConfigured: false,
       config: {},
     };
-    
+
     renderNode(unconfiguredData);
-    
+
     expect(screen.getByText('Double-click to configure')).toBeInTheDocument();
   });
 
   it('renders with selected class when selected', () => {
     const { container } = renderNode(mockData, true);
-    
+
     const nodeElement = container.querySelector('.blueprint-node');
     expect(nodeElement).toHaveClass('selected');
   });
@@ -70,9 +70,9 @@ describe('ReactionNode', () => {
       isConfigured: false,
       config: {},
     };
-    
+
     renderNode(gmailData);
-    
+
     expect(screen.getByText('Gmail Email')).toBeInTheDocument();
     expect(screen.getByText('📧')).toBeInTheDocument();
   });
@@ -84,9 +84,9 @@ describe('ReactionNode', () => {
       isConfigured: true,
       config: { summary: 'Test issue' },
     };
-    
+
     renderNode(jiraData);
-    
+
     expect(screen.getByText('Jira Issue')).toBeInTheDocument();
     expect(screen.getByText('🎫')).toBeInTheDocument();
   });
@@ -98,9 +98,9 @@ describe('ReactionNode', () => {
       isConfigured: false,
       config: {},
     };
-    
+
     renderNode(unknownData);
-    
+
     expect(screen.getByText('⚡')).toBeInTheDocument();
     expect(screen.getByText('Unknown')).toBeInTheDocument();
   });

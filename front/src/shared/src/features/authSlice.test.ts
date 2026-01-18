@@ -1,7 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { describe, expect, it, vi } from 'vitest';
-import authReducer, { clearToken, loadToken, logout, persistToken } from './authSlice';
 import type { AuthState } from '../types';
+import authReducer, {
+  clearToken,
+  loadToken,
+  logout,
+  persistToken,
+} from './authSlice';
 
 describe('authSlice', () => {
   const initialState: AuthState = {
@@ -68,8 +73,12 @@ describe('authSlice', () => {
         removeToken: vi.fn(),
       };
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const consoleWarnSpy = vi
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
 
       const store = configureStore({
         reducer: { auth: authReducer },
@@ -140,4 +149,3 @@ describe('authSlice', () => {
     });
   });
 });
-

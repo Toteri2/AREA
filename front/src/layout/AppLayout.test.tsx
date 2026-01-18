@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import AppLayout from './AppLayout';
 
 vi.mock('../components', () => ({
-  Navbar: () => <div data-testid="navbar">Navbar</div>,
+  Navbar: () => <div data-testid='navbar'>Navbar</div>,
 }));
 
 describe('AppLayout', () => {

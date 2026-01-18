@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Discord } from './Discord';
 
 vi.mock('../shared/src/web', () => ({
@@ -211,9 +211,7 @@ describe('Discord', () => {
 
     fireEvent.click(screen.getByText('user2/repo2').closest('button')!);
 
-    expect(
-      screen.queryByLabelText('Payload URL')
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Payload URL')).not.toBeInTheDocument();
   });
 
   it('disables create button when creating webhook', () => {

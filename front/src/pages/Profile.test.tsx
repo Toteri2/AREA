@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Profile } from './Profile';
 
 vi.mock('../shared/src/web', async () => {
@@ -22,14 +22,14 @@ vi.mock('../shared/src/web', async () => {
 import {
   useAppDispatch,
   useAppSelector,
-  useGetGithubAuthUrlQuery,
-  useGetMicrosoftAuthUrlQuery,
-  useGetGmailAuthUrlQuery,
-  useGetDiscordAuthUrlQuery,
-  useGetJiraAuthUrlQuery,
-  useGetTwitchAuthUrlQuery,
-  useGetServicesQuery,
   useConnectionQuery,
+  useGetDiscordAuthUrlQuery,
+  useGetGithubAuthUrlQuery,
+  useGetGmailAuthUrlQuery,
+  useGetJiraAuthUrlQuery,
+  useGetMicrosoftAuthUrlQuery,
+  useGetServicesQuery,
+  useGetTwitchAuthUrlQuery,
 } from '../shared/src/web';
 
 describe('Profile component', () => {
@@ -152,18 +152,20 @@ describe('Profile component', () => {
   });
 
   it('shows success message when GitHub account is linked', () => {
-    (useConnectionQuery as unknown as Mock).mockImplementation((params: any) => {
-      if (params?.provider === 'github') {
+    (useConnectionQuery as unknown as Mock).mockImplementation(
+      (params: any) => {
+        if (params?.provider === 'github') {
+          return {
+            isLoading: false,
+            data: { connected: true },
+          };
+        }
         return {
           isLoading: false,
-          data: { connected: true },
+          data: { connected: false },
         };
       }
-      return {
-        isLoading: false,
-        data: { connected: false },
-      };
-    });
+    );
 
     renderProfile();
 
@@ -172,18 +174,20 @@ describe('Profile component', () => {
   });
 
   it('shows success message when Microsoft account is linked', () => {
-    (useConnectionQuery as unknown as Mock).mockImplementation((params: any) => {
-      if (params?.provider === 'microsoft') {
+    (useConnectionQuery as unknown as Mock).mockImplementation(
+      (params: any) => {
+        if (params?.provider === 'microsoft') {
+          return {
+            isLoading: false,
+            data: { connected: true },
+          };
+        }
         return {
           isLoading: false,
-          data: { connected: true },
+          data: { connected: false },
         };
       }
-      return {
-        isLoading: false,
-        data: { connected: false },
-      };
-    });
+    );
 
     renderProfile();
 
@@ -215,7 +219,9 @@ describe('Profile component', () => {
 
   it('handles OAuth error gracefully', async () => {
     const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
-    const consoleErrorMock = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorMock = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     (useGetGithubAuthUrlQuery as unknown as Mock).mockReturnValue({
       refetch: vi.fn().mockResolvedValue({ error: 'API Error' }),
@@ -237,7 +243,9 @@ describe('Profile component', () => {
 
   it('handles unexpected error in OAuth redirect', async () => {
     const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
-    const consoleErrorMock = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorMock = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     (useGetGithubAuthUrlQuery as unknown as Mock).mockReturnValue({
       refetch: vi.fn().mockRejectedValue(new Error('Network error')),
@@ -257,4 +265,3 @@ describe('Profile component', () => {
     consoleErrorMock.mockRestore();
   });
 });
-

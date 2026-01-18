@@ -112,7 +112,9 @@ describe('Login', () => {
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('An unexpected error occurred.')).toBeInTheDocument();
+      expect(
+        screen.getByText('An unexpected error occurred.')
+      ).toBeInTheDocument();
     });
   });
 });

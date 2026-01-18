@@ -1,10 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
-import { GoogleCallback } from './GoogleCallback';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { store } from '../shared/src/web';
+import { GoogleCallback } from './GoogleCallback';
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async (importOriginal) => {
@@ -71,7 +71,9 @@ describe('GoogleCallback', () => {
       </Provider>
     );
 
-    expect(screen.getByText('Redirecting to mobile app...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Redirecting to mobile app...')
+    ).toBeInTheDocument();
     expect(window.location.href).toBe(`area://auth/google?code=${code}`);
   });
 
@@ -91,7 +93,9 @@ describe('GoogleCallback', () => {
       </Provider>
     );
 
-    expect(screen.getByText('Linking your Google account...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Linking your Google account...')
+    ).toBeInTheDocument();
 
     await waitFor(() => {
       expect(mockGoogleAuthValidate).toHaveBeenCalledWith({
@@ -105,7 +109,9 @@ describe('GoogleCallback', () => {
 
     await waitFor(
       () => {
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+        expect(mockNavigate).toHaveBeenCalledWith('/dashboard', {
+          replace: true,
+        });
       },
       { timeout: 1500 }
     );
@@ -129,7 +135,9 @@ describe('GoogleCallback', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Failed to link Google account. See console for details.')
+        screen.getByText(
+          'Failed to link Google account. See console for details.'
+        )
       ).toBeInTheDocument();
     });
 
@@ -168,9 +176,7 @@ describe('GoogleCallback', () => {
     ]);
 
     mockGoogleAuthValidate.mockReturnValue({
-      unwrap: vi.fn().mockImplementation(
-        () => new Promise(() => {})
-      ),
+      unwrap: vi.fn().mockImplementation(() => new Promise(() => {})),
     });
 
     render(

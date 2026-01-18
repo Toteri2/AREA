@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GoogleAuthButton } from './GoogleAuthButton';
 
 vi.mock('../shared/src/web', () => ({
@@ -91,7 +91,7 @@ describe('GoogleAuthButton', () => {
 
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
-    
+
     fireEvent.click(button);
     expect(mockOnError).not.toHaveBeenCalled();
   });

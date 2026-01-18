@@ -1,7 +1,7 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ConfigModal } from './ConfigModal';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ActionNodeData, ReactionNodeData } from '../../shared/src/types';
+import { ConfigModal } from './ConfigModal';
 
 vi.mock('./forms/GithubConfigForm', () => ({
   GithubConfigForm: () => <div>GitHub Config Form</div>,
@@ -35,43 +35,27 @@ describe('ConfigModal', () => {
   const mockAvailableServices = [
     {
       name: 'github',
-      actions: [
-        { name: 'pull_request', description: 'Pull Request' },
-      ],
+      actions: [{ name: 'pull_request', description: 'Pull Request' }],
       reactions: [],
     },
     {
       name: 'gmail',
-      actions: [
-        { name: 'new_email', description: 'New Email' },
-      ],
-      reactions: [
-        { name: 'send_email', description: 'Send Email' },
-      ],
+      actions: [{ name: 'new_email', description: 'New Email' }],
+      reactions: [{ name: 'send_email', description: 'Send Email' }],
     },
     {
       name: 'microsoft',
-      actions: [
-        { name: 'new_email', description: 'New Email' },
-      ],
-      reactions: [
-        { name: 'send_email', description: 'Send Email' },
-      ],
+      actions: [{ name: 'new_email', description: 'New Email' }],
+      reactions: [{ name: 'send_email', description: 'Send Email' }],
     },
     {
       name: 'discord',
-      actions: [
-        { name: 'new_message', description: 'New Message' },
-      ],
-      reactions: [
-        { name: 'send_message', description: 'Send Message' },
-      ],
+      actions: [{ name: 'new_message', description: 'New Message' }],
+      reactions: [{ name: 'send_message', description: 'Send Message' }],
     },
     {
       name: 'twitch',
-      actions: [
-        { name: 'stream_started', description: 'Stream Started' },
-      ],
+      actions: [{ name: 'stream_started', description: 'Stream Started' }],
       reactions: [],
     },
   ];

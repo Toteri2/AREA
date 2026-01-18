@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TwitchCallback } from './TwitchCallback';
 
 const mockNavigate = vi.fn();
@@ -72,8 +72,12 @@ describe('TwitchCallback', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Redirecting to mobile app...')).toBeInTheDocument();
-    expect(window.location.href).toBe(`area://auth/twitch?code=${code}&state=${state}`);
+    expect(
+      screen.getByText('Redirecting to mobile app...')
+    ).toBeInTheDocument();
+    expect(window.location.href).toBe(
+      `area://auth/twitch?code=${code}&state=${state}`
+    );
   });
 
   it('validates Twitch auth and navigates to profile on success', async () => {
@@ -91,7 +95,9 @@ describe('TwitchCallback', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Linking your Twitch account...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Linking your Twitch account...')
+    ).toBeInTheDocument();
 
     await waitFor(() => {
       expect(mockValidateTwitch).toHaveBeenCalledWith({ code, state });
@@ -118,7 +124,9 @@ describe('TwitchCallback', () => {
       unwrap: vi.fn().mockRejectedValue(new Error('Validation failed')),
     });
 
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     render(
       <MemoryRouter>
@@ -128,7 +136,9 @@ describe('TwitchCallback', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Failed to link Twitch account. See console for details.')
+        screen.getByText(
+          'Failed to link Twitch account. See console for details.'
+        )
       ).toBeInTheDocument();
     });
 
@@ -147,9 +157,7 @@ describe('TwitchCallback', () => {
     ]);
 
     mockValidateTwitch.mockReturnValue({
-      unwrap: vi.fn().mockImplementation(
-        () => new Promise(() => {})
-      ),
+      unwrap: vi.fn().mockImplementation(() => new Promise(() => {})),
     });
 
     render(
@@ -166,7 +174,9 @@ describe('TwitchCallback', () => {
     const invalidState = 'invalid-base64';
     window.location.search = `?code=${code}&state=${invalidState}`;
 
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     render(
       <MemoryRouter>
@@ -175,7 +185,9 @@ describe('TwitchCallback', () => {
     );
 
     expect(consoleErrorSpy).toHaveBeenCalled();
-    expect(screen.getByText('Linking your Twitch account...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Linking your Twitch account...')
+    ).toBeInTheDocument();
 
     consoleErrorSpy.mockRestore();
   });

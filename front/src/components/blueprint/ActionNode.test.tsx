@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
 import { ReactFlowProvider } from 'reactflow';
-import { ActionNode } from './ActionNode';
+import { describe, expect, it } from 'vitest';
 import type { ActionNodeData } from '../../shared/src/types';
+import { ActionNode } from './ActionNode';
 
 describe('ActionNode', () => {
   const mockData: ActionNodeData = {
@@ -17,8 +17,8 @@ describe('ActionNode', () => {
     return render(
       <ReactFlowProvider>
         <ActionNode
-          id="test-node"
-          type="action"
+          id='test-node'
+          type='action'
           data={data}
           selected={selected}
           isConnectable={true}
@@ -33,7 +33,7 @@ describe('ActionNode', () => {
 
   it('renders action node with correct service and label', () => {
     renderNode(mockData);
-    
+
     expect(screen.getByText('github')).toBeInTheDocument();
     expect(screen.getByText('On Push')).toBeInTheDocument();
     expect(screen.getByText('✓ Configured')).toBeInTheDocument();
@@ -41,7 +41,7 @@ describe('ActionNode', () => {
 
   it('shows repo preview when config has repo', () => {
     renderNode(mockData);
-    
+
     expect(screen.getByText('Repo: test/repo')).toBeInTheDocument();
   });
 
@@ -51,15 +51,15 @@ describe('ActionNode', () => {
       isConfigured: false,
       config: {},
     };
-    
+
     renderNode(unconfiguredData);
-    
+
     expect(screen.getByText('Double-click to configure')).toBeInTheDocument();
   });
 
   it('renders with selected class when selected', () => {
     const { container } = renderNode(mockData, true);
-    
+
     const nodeElement = container.querySelector('.blueprint-node');
     expect(nodeElement).toHaveClass('selected');
   });
@@ -72,9 +72,9 @@ describe('ActionNode', () => {
       isConfigured: false,
       config: {},
     };
-    
+
     renderNode(gmailData);
-    
+
     expect(screen.getByText('gmail')).toBeInTheDocument();
     expect(screen.getByText('📧')).toBeInTheDocument();
   });
@@ -87,9 +87,9 @@ describe('ActionNode', () => {
       isConfigured: false,
       config: {},
     };
-    
+
     renderNode(unknownData);
-    
+
     expect(screen.getByText('⚡')).toBeInTheDocument();
   });
 
@@ -101,9 +101,9 @@ describe('ActionNode', () => {
       isConfigured: false,
       config: {},
     };
-    
+
     renderNode(dataWithoutLabel);
-    
+
     expect(screen.getByText('pull_request')).toBeInTheDocument();
   });
 });

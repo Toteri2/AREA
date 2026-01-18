@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Register } from './Register';
 
 vi.mock('../shared/src/web', async () => ({
@@ -73,8 +73,6 @@ describe('Register Component', () => {
     expect(mockRegister).not.toHaveBeenCalled();
   });
 
-
-
   it('calls register mutation and navigates on success', async () => {
     mockRegister.mockReturnValue({
       unwrap: vi.fn().mockResolvedValue({ token: 'abc123' }),
@@ -140,42 +138,50 @@ describe('Register Component', () => {
 
   it('shows password requirements when typing', async () => {
     renderRegister();
-    
+
     const passwordInput = screen.getByLabelText('Password');
     fireEvent.change(passwordInput, { target: { value: 'ab' } });
 
     expect(screen.getByText('At least 8 characters')).toBeInTheDocument();
-    expect(screen.getByText('At least one uppercase letter')).toBeInTheDocument();
-    expect(screen.getByText('At least one lowercase letter')).toBeInTheDocument();
+    expect(
+      screen.getByText('At least one uppercase letter')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('At least one lowercase letter')
+    ).toBeInTheDocument();
     expect(screen.getByText('At least one number')).toBeInTheDocument();
-    expect(screen.getByText('At least one special character')).toBeInTheDocument();
+    expect(
+      screen.getByText('At least one special character')
+    ).toBeInTheDocument();
   });
 
   it('validates password meets all requirements', async () => {
     renderRegister();
-    
+
     const passwordInput = screen.getByLabelText('Password');
-    
+
     fireEvent.change(passwordInput, { target: { value: 'weak' } });
     await screen.findByText('At least 8 characters');
-    
+
     fireEvent.change(passwordInput, { target: { value: 'Strong123!' } });
     expect(screen.getByText('At least 8 characters')).toBeInTheDocument();
   });
 
   it('toggles password visibility', () => {
     renderRegister();
-    
+
     const passwordInput = screen.getByLabelText('Password') as HTMLInputElement;
     expect(passwordInput.type).toBe('password');
-    
+
     const toggleButtons = screen.getAllByRole('button');
-    const eyeButton = toggleButtons.find(btn => btn !== screen.getByRole('button', { name: /Register/i }));
-    
+    const eyeButton = toggleButtons.find(
+      (btn) => btn !== screen.getByRole('button', { name: /Register/i })
+    );
+
     if (eyeButton) {
       fireEvent.click(eyeButton);
       expect(passwordInput.type).toBe('text');
-      
+
       fireEvent.click(eyeButton);
       expect(passwordInput.type).toBe('password');
     }
@@ -186,13 +192,22 @@ describe('Register Component', () => {
     mockRegister.mockReturnValue({ unwrap: vi.fn().mockRejectedValue(error) });
 
     renderRegister();
-    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Bob' } });
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'bob@test.com' } });
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'Pass123!' } });
-    fireEvent.change(screen.getByLabelText('Confirm Password'), { target: { value: 'Pass123!' } });
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'Bob' },
+    });
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: 'bob@test.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'Pass123!' },
+    });
+    fireEvent.change(screen.getByLabelText('Confirm Password'), {
+      target: { value: 'Pass123!' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Register' }));
 
-    expect(await screen.findByText('An unexpected error occurred.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('An unexpected error occurred.')
+    ).toBeInTheDocument();
   });
 });
-

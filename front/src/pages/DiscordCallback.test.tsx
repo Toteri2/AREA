@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DiscordCallback } from './DiscordCallback';
 
 const mockNavigate = vi.fn();
@@ -60,7 +60,9 @@ describe('DiscordCallback', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Redirecting to mobile app...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Redirecting to mobile app...')
+    ).toBeInTheDocument();
     expect(window.location.href).toBe(`area://auth/discord?code=${code}`);
   });
 
@@ -131,9 +133,7 @@ describe('DiscordCallback', () => {
     ]);
 
     mockValidateDiscord.mockReturnValue({
-      unwrap: vi.fn().mockImplementation(
-        () => new Promise(() => {})
-      ),
+      unwrap: vi.fn().mockImplementation(() => new Promise(() => {})),
     });
 
     render(

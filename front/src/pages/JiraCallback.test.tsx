@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { JiraCallback } from './JiraCallback';
 
 const mockNavigate = vi.fn();
@@ -60,7 +60,9 @@ describe('JiraCallback', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Redirecting to mobile app...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Redirecting to mobile app...')
+    ).toBeInTheDocument();
     expect(window.location.href).toBe(`area://auth/jira?code=${code}`);
   });
 
@@ -78,7 +80,9 @@ describe('JiraCallback', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Linking your Jira account...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Linking your Jira account...')
+    ).toBeInTheDocument();
 
     await waitFor(() => {
       expect(mockValidateJira).toHaveBeenCalledWith({ code });
@@ -104,7 +108,9 @@ describe('JiraCallback', () => {
       unwrap: vi.fn().mockRejectedValue(new Error('Validation failed')),
     });
 
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     render(
       <MemoryRouter>
@@ -114,7 +120,9 @@ describe('JiraCallback', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Failed to link Jira account. See console for details.')
+        screen.getByText(
+          'Failed to link Jira account. See console for details.'
+        )
       ).toBeInTheDocument();
     });
 
@@ -133,9 +141,7 @@ describe('JiraCallback', () => {
     ]);
 
     mockValidateJira.mockReturnValue({
-      unwrap: vi.fn().mockImplementation(
-        () => new Promise(() => {})
-      ),
+      unwrap: vi.fn().mockImplementation(() => new Promise(() => {})),
     });
 
     render(
@@ -152,7 +158,9 @@ describe('JiraCallback', () => {
     const invalidState = 'invalid-base64';
     window.location.search = `?code=${code}&state=${invalidState}`;
 
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     render(
       <MemoryRouter>
@@ -161,7 +169,9 @@ describe('JiraCallback', () => {
     );
 
     expect(consoleErrorSpy).toHaveBeenCalled();
-    expect(screen.getByText('Linking your Jira account...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Linking your Jira account...')
+    ).toBeInTheDocument();
 
     consoleErrorSpy.mockRestore();
   });
