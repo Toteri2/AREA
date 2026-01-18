@@ -22,9 +22,7 @@ import {
   useDeleteTwitchWebhookMutation,
   useUpdateReactionMutation,
 } from '../../../shared/src/web';
-import {
-  generateUniqueNodeId,
-} from '../utils';
+import { generateUniqueNodeId } from '../utils';
 
 type Webhook = {
   id: number;
@@ -119,7 +117,11 @@ export function useBlueprintGraph(
                   ...n,
                   position: targetNode.position,
                   positionAbsolute: targetNode.positionAbsolute,
-                  data: { ...n.data, reactionId: newReaction.id, isConfigured: true },
+                  data: {
+                    ...n.data,
+                    reactionId: newReaction.id,
+                    isConfigured: true,
+                  },
                   selected: true,
                 };
               }

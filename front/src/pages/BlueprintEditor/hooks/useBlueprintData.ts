@@ -136,7 +136,8 @@ export function useBlueprintData() {
             match = computedNodes.find(
               (n) =>
                 n.type === 'reaction' &&
-                (n.data as ReactionNodeData).reactionId === reactionData.reactionId
+                (n.data as ReactionNodeData).reactionId ===
+                  reactionData.reactionId
             );
           }
         }
@@ -171,14 +172,7 @@ export function useBlueprintData() {
     setEdges(computedEdges);
 
     hasLoadedRef.current = true;
-  }, [
-    computedNodes,
-    computedEdges,
-    isLoading,
-    isSyncing,
-    setNodes,
-    setEdges,
-  ]);
+  }, [computedNodes, computedEdges, isLoading, isSyncing, setNodes, setEdges]);
 
   return {
     nodes,
