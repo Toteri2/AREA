@@ -247,11 +247,23 @@ export const selectBlueprintGraph = createSelector(
       const dagreGraph = new dagre.graphlib.Graph();
       dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-      dagreGraph.setGraph({ rankdir: 'LR' });
+      // Increased spacing to avoid overlaps
+      dagreGraph.setGraph({
+        rankdir: 'LR',
+        ranksep: 100, // Horizontal separation between columns
+        nodesep: 50, // Vertical separation between nodes
+      });
 
       allNodes.forEach((node) => {
-        dagreGraph.setNode(node.id, { width: 280, height: 100 });
+        // Approximate width based on label length, minimum 300px
+        const labelLength = node.data.label
+          ? (node.data.label as string).length
+          : 20;
+        const approximateWidth = Math.max(300, labelLength * 9); // ~9px per char
+
+        dagreGraph.setNode(node.id, { width: approximateWidth, height: 120 });
       });
+
       newEdges.forEach((edge) => {
         dagreGraph.setEdge(edge.source, edge.target);
       });
@@ -261,8 +273,8 @@ export const selectBlueprintGraph = createSelector(
       allNodes.forEach((node) => {
         const nodeWithPosition = dagreGraph.node(node.id);
         node.position = {
-          x: nodeWithPosition.x - 140,
-          y: nodeWithPosition.y - 50,
+          x: nodeWithPosition.x - nodeWithPosition.width / 2,
+          y: nodeWithPosition.y - nodeWithPosition.height / 2,
         };
       });
     }

@@ -111,6 +111,7 @@ export function useBlueprintData() {
       const mergedNodes = [...currentNodes];
       const incomingNodeMap = new Map(computedNodes.map((n) => [n.id, n]));
       const processedIncomingIds = new Set<string>();
+      const idRedirects = new Map<string, string>();
 
       for (let i = 0; i < mergedNodes.length; i++) {
         const currentNode = mergedNodes[i];
@@ -144,6 +145,9 @@ export function useBlueprintData() {
 
         if (match) {
           processedIncomingIds.add(match.id);
+          if (currentNode.id !== match.id) {
+            idRedirects.set(currentNode.id, match.id);
+          }
           mergedNodes[i] = {
             ...match,
             id: match.id,
@@ -167,9 +171,30 @@ export function useBlueprintData() {
         }
       });
 
+      setEdges((currentEdges) => {
+        const mergedEdges = [...computedEdges];
+        const computedTargetIds = new Set(computedEdges.map((e) => e.target));
+
+        currentEdges.forEach((edge) => {
+          if (edge.id.startsWith('edge_local_')) {
+            const newSource = idRedirects.get(edge.source) || edge.source;
+            const newTarget = idRedirects.get(edge.target) || edge.target;
+
+            const updatedEdge = {
+              ...edge,
+              source: newSource,
+              target: newTarget,
+            };
+            if (!computedTargetIds.has(updatedEdge.target)) {
+              mergedEdges.push(updatedEdge);
+            }
+          }
+        });
+        return mergedEdges;
+      });
+
       return validNodes;
     });
-    setEdges(computedEdges);
 
     hasLoadedRef.current = true;
   }, [computedNodes, computedEdges, isLoading, isSyncing, setNodes, setEdges]);
