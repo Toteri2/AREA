@@ -1,8 +1,9 @@
 import { skipToken } from '@reduxjs/toolkit/query';
+import { useNavigate } from 'react-router-dom';
 import {
+  logout,
+  useAppDispatch,
   useAppSelector,
-  // useListDiscordWebhooksQuery,
-  // useListMicrosoftWebhooksQuery,
   useConnectionQuery,
   useGetDiscordAuthUrlQuery,
   useGetGithubAuthUrlQuery,
@@ -38,11 +39,7 @@ function ServiceLinker({
 
   if (!isLinked) {
     return (
-      <button
-        type='button'
-        onClick={onLink}
-        className={`btn-${label.toLowerCase()}`}
-      >
+      <button type='button' onClick={onLink} className='btn-link'>
         Link {label} Account
       </button>
     );
@@ -51,11 +48,7 @@ function ServiceLinker({
   return (
     <div className='service-linked'>
       <p className='linked-status'>✓ {label} Account Linked</p>
-      <button
-        type='button'
-        onClick={onLink}
-        className={`btn-${label.toLowerCase()}-change`}
-      >
+      <button type='button' onClick={onLink} className='btn-link-change'>
         Change Account
       </button>
     </div>
@@ -63,6 +56,14 @@ function ServiceLinker({
 }
 
 function Profile() {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
   const { user } = useAppSelector((state) => state.auth);
 
   const { data: servicesData } = useGetServicesQuery();
@@ -136,6 +137,79 @@ function Profile() {
     }
   };
 
+  const renderServiceLinker = (service: Service) => {
+    switch (service.name) {
+      case 'github':
+        return (
+          <ServiceLinker
+            key='github'
+            label='GitHub'
+            isLoading={githubConnection.isLoading}
+            isLinked={githubConnection.data?.connected === true}
+            onLink={() => handleOAuthRedirect(getGithubAuthUrl, 'GitHub')}
+          />
+        );
+
+      case 'gmail':
+        return (
+          <ServiceLinker
+            key='gmail'
+            label='Gmail'
+            isLoading={gmailConnection.isLoading}
+            isLinked={gmailConnection.data?.connected === true}
+            onLink={() => handleOAuthRedirect(getGmailAuthUrl, 'Gmail')}
+          />
+        );
+
+      case 'microsoft':
+        return (
+          <ServiceLinker
+            key='microsoft'
+            label='Microsoft'
+            isLoading={microsoftConnection.isLoading}
+            isLinked={microsoftConnection.data?.connected === true}
+            onLink={() => handleOAuthRedirect(getMicrosoftAuthUrl, 'Microsoft')}
+          />
+        );
+
+      case 'discord':
+        return (
+          <ServiceLinker
+            key='discord'
+            label='Discord'
+            isLoading={discordConnection.isLoading}
+            isLinked={discordConnection.data?.connected === true}
+            onLink={() => handleOAuthRedirect(getDiscordAuthUrl, 'Discord')}
+          />
+        );
+
+      case 'jira':
+        return (
+          <ServiceLinker
+            key='jira'
+            label='Jira'
+            isLoading={jiraConnection.isLoading}
+            isLinked={jiraConnection.data?.connected === true}
+            onLink={() => handleOAuthRedirect(getJiraAuthUrl, 'Jira')}
+          />
+        );
+
+      case 'twitch':
+        return (
+          <ServiceLinker
+            key='twitch'
+            label='Twitch'
+            isLoading={twitchConnection.isLoading}
+            isLinked={twitchConnection.data?.connected === true}
+            onLink={() => handleOAuthRedirect(getTwitchAuthUrl, 'Twitch')}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className='profile'>
       <h1>Profile</h1>
@@ -143,15 +217,11 @@ function Profile() {
       <div className='profile-card'>
         <div className='profile-info'>
           <div className='info-row'>
-            <span className='info-label'>ID:</span>
-            <span>{user?.id}</span>
-          </div>
-          <div className='info-row'>
-            <span className='info-label'>Name:</span>
+            <span className='info-label'>Name:&ensp;</span>
             <span>{user?.name}</span>
           </div>
           <div className='info-row'>
-            <span className='info-label'>Email:</span>
+            <span className='info-label'>Email:&ensp;</span>
             <span>{user?.email}</span>
           </div>
         </div>
@@ -159,86 +229,20 @@ function Profile() {
         <div className='profile-actions'>
           <h3>Connected Services</h3>
 
-          {services.map((service) => {
-            switch (service.name) {
-              case 'github':
-                return (
-                  <ServiceLinker
-                    key='github'
-                    label='GitHub'
-                    isLoading={githubConnection.isLoading}
-                    isLinked={githubConnection.data?.connected === true}
-                    onLink={() =>
-                      handleOAuthRedirect(getGithubAuthUrl, 'GitHub')
-                    }
-                  />
-                );
+          <div className='services-grid'>
+            {services.map((service) => renderServiceLinker(service))}
+          </div>
+        </div>
 
-              case 'gmail':
-                return (
-                  <ServiceLinker
-                    key='gmail'
-                    label='Gmail'
-                    isLoading={gmailConnection.isLoading}
-                    isLinked={gmailConnection.data?.connected === true}
-                    onLink={() => handleOAuthRedirect(getGmailAuthUrl, 'Gmail')}
-                  />
-                );
-
-              case 'microsoft':
-                return (
-                  <ServiceLinker
-                    key='microsoft'
-                    label='Microsoft'
-                    isLoading={microsoftConnection.isLoading}
-                    isLinked={microsoftConnection.data?.connected === true}
-                    onLink={() =>
-                      handleOAuthRedirect(getMicrosoftAuthUrl, 'Microsoft')
-                    }
-                  />
-                );
-
-              case 'discord':
-                return (
-                  <ServiceLinker
-                    key='discord'
-                    label='Discord'
-                    isLoading={discordConnection.isLoading}
-                    isLinked={discordConnection.data?.connected === true}
-                    onLink={() =>
-                      handleOAuthRedirect(getDiscordAuthUrl, 'Discord')
-                    }
-                  />
-                );
-
-              case 'jira':
-                return (
-                  <ServiceLinker
-                    key='jira'
-                    label='Jira'
-                    isLoading={jiraConnection.isLoading}
-                    isLinked={jiraConnection.data?.connected === true}
-                    onLink={() => handleOAuthRedirect(getJiraAuthUrl, 'Jira')}
-                  />
-                );
-
-              case 'twitch':
-                return (
-                  <ServiceLinker
-                    key='twitch'
-                    label='Twitch'
-                    isLoading={twitchConnection.isLoading}
-                    isLinked={twitchConnection.data?.connected === true}
-                    onLink={() =>
-                      handleOAuthRedirect(getTwitchAuthUrl, 'Twitch')
-                    }
-                  />
-                );
-
-              default:
-                return null;
-            }
-          })}
+        <div className='logout-section'>
+          <h3>Logout</h3>
+          <button
+            type='button'
+            onClick={handleLogout}
+            className='btn-logout-centered'
+          >
+            Disconnect now
+          </button>
         </div>
       </div>
     </div>

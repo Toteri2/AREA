@@ -45,9 +45,17 @@ function Register() {
     0
   );
 
+  const getStrengthText = (strength: number) => {
+    if (strength === 0) return 'No password';
+    if (strength <= 2) return 'Weak';
+    if (strength <= 3) return 'Fair';
+    if (strength <= 4) return 'Good';
+    if (strength <= 5) return 'Strong';
+    return 'Very Strong';
+  };
+
   const isEmailValid = (value: string) =>
     value.length <= 254 &&
-    // /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]{1,63}(\.[a-zA-Z0-9-]{1,63})*\.[a-zA-Z]{2,63}$/.test(value); // strict
     /^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\.)+[a-zA-Z]{2,63}$/.test(
       value
     );
@@ -148,6 +156,28 @@ function Register() {
               </button>
             </div>
 
+            {/* Barre de progression de la force du mot de passe */}
+            {password && (
+              <div className='password-strength-bar'>
+                <div className='password-strength-bar-label'>
+                  <span>Password Strength:</span>
+                  <span
+                    className='strength-text'
+                    data-strength={passwordStrength}
+                  >
+                    {getStrengthText(passwordStrength)}
+                  </span>
+                </div>
+                <div className='password-strength-bar-track'>
+                  <div
+                    className='password-strength-bar-fill'
+                    data-strength={passwordStrength}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Liste des exigences améliorée */}
             <div className='password-requirements'>
               <p>Password requirements for your security:</p>
               <ul>

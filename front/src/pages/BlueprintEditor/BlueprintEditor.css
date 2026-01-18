@@ -55,7 +55,7 @@
 }
 
 .blueprint-sidebar h3 {
-    color: #666;
+    color: #555;
     font-size: 0.85rem;
     font-weight: 600;
     margin: 20px 0 8px 0;
@@ -75,7 +75,7 @@
 }
 
 .sidebar-hint {
-    color: #888;
+    color: #555;
     font-size: 0.8rem;
     margin: 0 0 12px 0;
 }
@@ -436,7 +436,7 @@
 }
 
 .btn-primary:disabled {
-    background: #bdbdbd;
+    background: #acacac;
     cursor: not-allowed;
 }
 
