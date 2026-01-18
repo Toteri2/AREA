@@ -28,12 +28,9 @@ export function ReactionJiraConfigForm({
 
   const [selectedProjectForIssue, setSelectedProjectForIssue] = useState('');
 
-  const updateConfigField = useCallback(
-    (field: string, value: string) => {
-      onChange({ ...config, [field]: value });
-    },
-    [config, onChange]
-  );
+  const updateConfigField = (field: string, value: string) => {
+    onChange({ ...config, [field]: value });
+  };
 
   useEffect(() => {
     if (!config.issueType) {

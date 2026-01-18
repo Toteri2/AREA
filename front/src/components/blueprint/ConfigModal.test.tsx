@@ -90,7 +90,7 @@ describe('ConfigModal', () => {
   it('renders reaction config modal with correct title', () => {
     const reactionData: ReactionNodeData = {
       label: 'Test Reaction',
-      reactionType: 'microsoft.send_email',
+      reactionType: 1,
       reactionName: 'send_email',
       serviceName: 'microsoft',
       config: {},
@@ -418,7 +418,7 @@ describe('ConfigModal', () => {
   it('renders ReactionConfigForm for discord reaction', () => {
     const reactionData: ReactionNodeData = {
       label: 'Test Reaction',
-      reactionType: 'discord.send_message',
+      reactionType: 1,
       reactionName: 'send_message',
       serviceName: 'discord',
       config: {},
@@ -442,7 +442,7 @@ describe('ConfigModal', () => {
   it('renders ReactionConfigForm for gmail reaction', () => {
     const reactionData: ReactionNodeData = {
       label: 'Test Reaction',
-      reactionType: 'gmail.send_email',
+      reactionType: 1,
       reactionName: 'send_email',
       serviceName: 'gmail',
       config: {},
