@@ -69,6 +69,39 @@ describe('JiraCallback', () => {
     expect(window.location.href).toBe(`area://auth/jira?code=${code}`);
   });
 
+  it('handles mobile deep link with correct URL scheme', () => {
+    const code = 'mobile-jira-code';
+    const state = btoa(JSON.stringify({ platform: 'mobile', cloudId: 'cloud123' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    render(
+      <MemoryRouter>
+        <JiraCallback />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByText('Redirecting to mobile app...')
+    ).toBeInTheDocument();
+    expect(window.location.href).toContain('area://auth/jira');
+    expect(window.location.href).toContain(`code=${code}`);
+  });
+
+  it('does not call validateJira when redirecting to mobile', () => {
+    const code = 'jira-mobile-code';
+    const state = btoa(JSON.stringify({ platform: 'mobile' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    render(
+      <MemoryRouter>
+        <JiraCallback />
+      </MemoryRouter>
+    );
+
+    expect(mockValidateJira).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('validates Jira auth and navigates to profile on success', async () => {
     const code = 'test-code';
     window.location.search = `?code=${code}`;

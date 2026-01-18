@@ -79,6 +79,42 @@ describe('GoogleCallback', () => {
     expect(window.location.href).toBe(`area://auth/google?code=${code}`);
   });
 
+  it('handles mobile deep link with correct URL scheme', () => {
+    const code = 'mobile-google-code';
+    const state = btoa(JSON.stringify({ platform: 'mobile', userId: '789' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    render(
+      <Provider store={store}>
+        <MemoryRouter>
+          <GoogleCallback />
+        </MemoryRouter>
+      </Provider>
+    );
+
+    expect(
+      screen.getByText('Redirecting to mobile app...')
+    ).toBeInTheDocument();
+    expect(window.location.href).toContain('area://auth/google');
+    expect(window.location.href).toContain(`code=${code}`);
+  });
+
+  it('does not call googleAuthValidate when redirecting to mobile', () => {
+    const code = 'google-mobile-code';
+    const state = btoa(JSON.stringify({ platform: 'mobile' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    render(
+      <Provider store={store}>
+        <MemoryRouter>
+          <GoogleCallback />
+        </MemoryRouter>
+      </Provider>
+    );
+
+    expect(mockGoogleAuthValidate).not.toHaveBeenCalled();
+  });
+
   it('validates Google auth and navigates to dashboard on success', async () => {
     const code = 'test-code';
     window.location.search = `?code=${code}`;

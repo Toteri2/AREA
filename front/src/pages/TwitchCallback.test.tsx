@@ -83,6 +83,65 @@ describe('TwitchCallback', () => {
     );
   });
 
+  it('handles mobile deep link with correct URL scheme', () => {
+    const code = 'mobile-test-code';
+    const state = btoa(JSON.stringify({ platform: 'mobile', userId: '123' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    render(
+      <MemoryRouter>
+        <TwitchCallback />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByText('Redirecting to mobile app...')
+    ).toBeInTheDocument();
+    expect(window.location.href).toContain('area://auth/twitch');
+    expect(window.location.href).toContain(`code=${code}`);
+    expect(window.location.href).toContain(`state=${state}`);
+  });
+
+  it('does not call validateTwitch when redirecting to mobile', () => {
+    const code = 'test-code';
+    const state = btoa(JSON.stringify({ platform: 'mobile' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    render(
+      <MemoryRouter>
+        <TwitchCallback />
+      </MemoryRouter>
+    );
+
+    expect(mockValidateTwitch).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('handles web platform correctly', async () => {
+    const code = 'test-code';
+    const state = btoa(JSON.stringify({ platform: 'web' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    mockValidateTwitch.mockReturnValue({
+      unwrap: vi.fn().mockResolvedValue({}),
+    });
+
+    render(
+      <MemoryRouter>
+        <TwitchCallback />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(mockValidateTwitch).toHaveBeenCalledWith({
+        code,
+        state: btoa(JSON.stringify({ platform: 'web' })),
+      });
+    });
+
+    expect(window.location.href).not.toContain('area://');
+  });
+
   it('validates Twitch auth and navigates to profile on success', async () => {
     const code = 'test-code';
     const state = 'test-state';

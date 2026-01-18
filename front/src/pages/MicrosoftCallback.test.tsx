@@ -68,6 +68,39 @@ describe('MicrosoftCallback', () => {
     expect(window.location.href).toBe(`area://auth/microsoft?code=${code}`);
   });
 
+  it('handles mobile deep link with correct URL scheme', () => {
+    const code = 'mobile-ms-code';
+    const state = btoa(JSON.stringify({ platform: 'mobile', tenantId: 'xyz789' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    render(
+      <MemoryRouter>
+        <MicrosoftCallback />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByText('Redirecting to mobile app...')
+    ).toBeInTheDocument();
+    expect(window.location.href).toContain('area://auth/microsoft');
+    expect(window.location.href).toContain(`code=${code}`);
+  });
+
+  it('does not call validateMicrosoft when redirecting to mobile', () => {
+    const code = 'ms-mobile-code';
+    const state = btoa(JSON.stringify({ platform: 'mobile' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    render(
+      <MemoryRouter>
+        <MicrosoftCallback />
+      </MemoryRouter>
+    );
+
+    expect(mockValidateMicrosoft).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('validates Microsoft auth and navigates to profile on success', async () => {
     const code = 'ms-code-456';
     window.location.search = `?code=${code}`;

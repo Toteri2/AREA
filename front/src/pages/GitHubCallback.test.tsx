@@ -68,6 +68,61 @@ describe('GitHubCallback', () => {
     expect(window.location.href).toBe(`area://auth/github?code=${code}`);
   });
 
+  it('handles mobile deep link with correct URL scheme', () => {
+    const code = 'mobile-gh-code';
+    const state = btoa(JSON.stringify({ platform: 'mobile', userId: '456' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    render(
+      <MemoryRouter>
+        <GitHubCallback />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByText('Redirecting to mobile app...')
+    ).toBeInTheDocument();
+    expect(window.location.href).toContain('area://auth/github');
+    expect(window.location.href).toContain(`code=${code}`);
+  });
+
+  it('does not call validateGithub when redirecting to mobile', () => {
+    const code = 'gh-code-789';
+    const state = btoa(JSON.stringify({ platform: 'mobile' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    render(
+      <MemoryRouter>
+        <GitHubCallback />
+      </MemoryRouter>
+    );
+
+    expect(mockValidateGithub).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('handles web platform correctly', async () => {
+    const code = 'gh-code-web';
+    const state = btoa(JSON.stringify({ platform: 'web' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    mockValidateGithub.mockReturnValue({
+      unwrap: vi.fn().mockResolvedValue({}),
+    });
+
+    render(
+      <MemoryRouter>
+        <GitHubCallback />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(mockValidateGithub).toHaveBeenCalledWith({ code });
+    });
+
+    expect(window.location.href).not.toContain('area://');
+  });
+
   it('validates GitHub auth and navigates to profile on success', async () => {
     const code = 'gh-code-456';
     window.location.search = `?code=${code}`;

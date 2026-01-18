@@ -68,6 +68,39 @@ describe('GmailCallback', () => {
     expect(window.location.href).toBe(`area://auth/gmail?code=${code}`);
   });
 
+  it('handles mobile deep link with correct URL scheme', () => {
+    const code = 'mobile-gmail-code';
+    const state = btoa(JSON.stringify({ platform: 'mobile', email: 'user@gmail.com' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    render(
+      <MemoryRouter>
+        <GmailCallback />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByText('Redirecting to mobile app...')
+    ).toBeInTheDocument();
+    expect(window.location.href).toContain('area://auth/gmail');
+    expect(window.location.href).toContain(`code=${code}`);
+  });
+
+  it('does not call validateGmail when redirecting to mobile', () => {
+    const code = 'gmail-mobile-code';
+    const state = btoa(JSON.stringify({ platform: 'mobile' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    render(
+      <MemoryRouter>
+        <GmailCallback />
+      </MemoryRouter>
+    );
+
+    expect(mockValidateGmail).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('validates Gmail auth and navigates to profile on success', async () => {
     const code = 'gmail-code-456';
     window.location.search = `?code=${code}`;

@@ -131,4 +131,118 @@ describe('Dashboard', () => {
 
     expect(screen.getByText('Welcome, !')).toBeInTheDocument();
   });
+
+  it('renders dashboard structure suitable for mobile', () => {
+    (useAppSelector as unknown as Mock).mockImplementation((selector) =>
+      selector({
+        auth: {
+          user: { id: '1', name: 'Mobile User', email: 'mobile@test.com' },
+        },
+      })
+    );
+
+    const { container } = render(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>
+    );
+
+    const dashboard = container.querySelector('.dashboard');
+    expect(dashboard).toBeInTheDocument();
+
+    const dashboardLinks = container.querySelector('.dashboard-links');
+    expect(dashboardLinks).toBeInTheDocument();
+  });
+
+  it('all links are accessible for mobile navigation', () => {
+    (useAppSelector as unknown as Mock).mockImplementation((selector) =>
+      selector({
+        auth: {
+          user: { id: '1', name: 'Test', email: 'test@test.com' },
+        },
+      })
+    );
+
+    render(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>
+    );
+
+    const links = screen.getAllByRole('link');
+    expect(links.length).toBeGreaterThan(0);
+
+    links.forEach((link) => {
+      expect(link).toBeInTheDocument();
+      expect(link).toHaveAttribute('href');
+    });
+  });
+
+  it('displays welcome card with user information', () => {
+    (useAppSelector as unknown as Mock).mockImplementation((selector) =>
+      selector({
+        auth: {
+          user: { id: '1', name: 'John Doe', email: 'john@test.com' },
+        },
+      })
+    );
+
+    const { container } = render(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>
+    );
+
+    const welcomeCard = container.querySelector('.welcome-card');
+    expect(welcomeCard).toBeInTheDocument();
+    expect(welcomeCard).toHaveTextContent('Welcome, John Doe!');
+  });
+
+  it('renders dashboard cards with proper structure', () => {
+    (useAppSelector as unknown as Mock).mockImplementation((selector) =>
+      selector({
+        auth: {
+          user: { id: '1', name: 'Test', email: 'test@test.com' },
+        },
+      })
+    );
+
+    const { container } = render(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>
+    );
+
+    const dashboardCards = container.querySelectorAll('.dashboard-card');
+    expect(dashboardCards.length).toBe(2);
+
+    dashboardCards.forEach((card) => {
+      expect(card.tagName).toBe('A');
+      expect(card).toHaveAttribute('href');
+    });
+  });
+
+  it('renders correctly with long user names for mobile display', () => {
+    (useAppSelector as unknown as Mock).mockImplementation((selector) =>
+      selector({
+        auth: {
+          user: {
+            id: '1',
+            name: 'Very Long User Name That Could Overflow',
+            email: 'long@test.com',
+          },
+        },
+      })
+    );
+
+    render(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByText('Welcome, Very Long User Name That Could Overflow!')
+    ).toBeInTheDocument();
+  });
 });

@@ -109,6 +109,75 @@ describe('GoogleAuthButton', () => {
     expect(useGoogleAuthUrlQuery).toHaveBeenCalledWith({ mobile: 'true' });
   });
 
+  it('passes mobile=false by default', () => {
+    (useGoogleAuthUrlQuery as unknown as Mock).mockReturnValue({
+      data: { url: 'https://google.com/auth' },
+      isLoading: false,
+    });
+
+    render(<GoogleAuthButton />);
+
+    expect(useGoogleAuthUrlQuery).toHaveBeenCalledWith({ mobile: 'false' });
+  });
+
+  it('handles different mobile parameter values', () => {
+    (useGoogleAuthUrlQuery as unknown as Mock).mockReturnValue({
+      data: { url: 'https://google.com/auth' },
+      isLoading: false,
+    });
+
+    const { rerender } = render(<GoogleAuthButton mobile='true' />);
+    expect(useGoogleAuthUrlQuery).toHaveBeenCalledWith({ mobile: 'true' });
+
+    rerender(<GoogleAuthButton mobile='false' />);
+    expect(useGoogleAuthUrlQuery).toHaveBeenCalledWith({ mobile: 'false' });
+  });
+
+  it('generates correct auth URL for mobile context', () => {
+    const mobileAuthUrl = 'https://google.com/auth?mobile=true&redirect=app://';
+    (useGoogleAuthUrlQuery as unknown as Mock).mockReturnValue({
+      data: { url: mobileAuthUrl },
+      isLoading: false,
+    });
+
+    render(<GoogleAuthButton mobile='true' />);
+
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+
+    expect(window.location.href).toBe(mobileAuthUrl);
+  });
+
+  it('handles missing auth URL gracefully', () => {
+    const mockOnError = vi.fn();
+    (useGoogleAuthUrlQuery as unknown as Mock).mockReturnValue({
+      data: null,
+      isLoading: false,
+    });
+
+    render(<GoogleAuthButton onError={mockOnError} mobile='true' />);
+
+    const button = screen.getByRole('button');
+    expect(button).toBeDisabled();
+  });
+
+  it('calls onError when auth URL is unavailable and button is clicked', () => {
+    const mockOnError = vi.fn();
+    (useGoogleAuthUrlQuery as unknown as Mock).mockReturnValue({
+      data: { url: null },
+      isLoading: false,
+    });
+
+    render(<GoogleAuthButton onError={mockOnError} />);
+
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+
+    expect(mockOnError).toHaveBeenCalledWith(
+      'Failed to initiate Google authentication.'
+    );
+  });
+
   it('renders Google SVG icon', () => {
     (useGoogleAuthUrlQuery as unknown as Mock).mockReturnValue({
       data: { url: 'https://google.com/auth' },

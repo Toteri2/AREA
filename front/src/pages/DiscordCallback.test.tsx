@@ -68,6 +68,39 @@ describe('DiscordCallback', () => {
     expect(window.location.href).toBe(`area://auth/discord?code=${code}`);
   });
 
+  it('handles mobile deep link with correct URL scheme', () => {
+    const code = 'mobile-discord-code';
+    const state = btoa(JSON.stringify({ platform: 'mobile', guildId: 'abc123' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    render(
+      <MemoryRouter>
+        <DiscordCallback />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByText('Redirecting to mobile app...')
+    ).toBeInTheDocument();
+    expect(window.location.href).toContain('area://auth/discord');
+    expect(window.location.href).toContain(`code=${code}`);
+  });
+
+  it('does not call validateDiscord when redirecting to mobile', () => {
+    const code = 'discord-code-456';
+    const state = btoa(JSON.stringify({ platform: 'mobile' }));
+    window.location.search = `?code=${code}&state=${state}`;
+
+    render(
+      <MemoryRouter>
+        <DiscordCallback />
+      </MemoryRouter>
+    );
+
+    expect(mockValidateDiscord).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('validates Discord auth and navigates to profile on success', async () => {
     const code = 'discord-code-456';
     const state = 'test-state';
