@@ -103,15 +103,10 @@ describe('AuthService', () => {
       ],
     }).compile();
 
-    // @ts-expect-error
     service = module.get<AuthService>(AuthService);
-    // @ts-expect-error
     userRepository = module.get(getRepositoryToken(User));
-    // @ts-expect-error
     providerRepository = module.get(getRepositoryToken(Provider));
-    // @ts-expect-error
     oauthStatesRepository = module.get(getRepositoryToken(OAuthState));
-    // @ts-expect-error
     jwtService = module.get<JwtService>(JwtService);
   });
 
@@ -263,7 +258,7 @@ describe('AuthService', () => {
         accessToken: 'github_token',
       };
 
-      providerRepository.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+      providerRepository.findOne = jest.fn().mockResolvedValue(mockProvider);
 
       const result = await service.getGithubProvider(1);
 
@@ -271,7 +266,7 @@ describe('AuthService', () => {
     });
 
     it('should return null if no provider exists', async () => {
-      providerRepository.findOneBy = jest.fn().mockResolvedValue(null);
+      providerRepository.findOne = jest.fn().mockResolvedValue(null);
 
       const result = await service.getGithubProvider(1);
 
@@ -328,7 +323,7 @@ describe('AuthService', () => {
         accessToken: 'discord_token',
       };
 
-      providerRepository.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+      providerRepository.findOne = jest.fn().mockResolvedValue(mockProvider);
 
       const result = await service.getDiscordProvider(1);
 
@@ -345,7 +340,7 @@ describe('AuthService', () => {
         accessToken: 'microsoft_token',
       };
 
-      providerRepository.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+      providerRepository.findOne = jest.fn().mockResolvedValue(mockProvider);
 
       const result = await service.getMicrosoftProvider(1);
 
@@ -362,7 +357,7 @@ describe('AuthService', () => {
         accessToken: 'gmail_token',
       };
 
-      providerRepository.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+      providerRepository.findOne = jest.fn().mockResolvedValue(mockProvider);
 
       const result = await service.getGmailProvider(1);
 
@@ -379,7 +374,7 @@ describe('AuthService', () => {
         accessToken: 'jira_token',
       };
 
-      providerRepository.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+      providerRepository.findOne = jest.fn().mockResolvedValue(mockProvider);
 
       const result = await service.getJiraProvider(1);
 
@@ -520,7 +515,7 @@ describe('AuthService', () => {
         accessToken: 'discord_token',
       };
 
-      providerRepository.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+      providerRepository.findOne = jest.fn().mockResolvedValue(mockProvider);
 
       const result = await service.getDiscordProvider(1);
 
@@ -537,7 +532,7 @@ describe('AuthService', () => {
         accessToken: 'gmail_token',
       };
 
-      providerRepository.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+      providerRepository.findOne = jest.fn().mockResolvedValue(mockProvider);
 
       const result = await service.getGmailProvider(1);
 
@@ -554,7 +549,7 @@ describe('AuthService', () => {
         accessToken: 'microsoft_token',
       };
 
-      providerRepository.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+      providerRepository.findOne = jest.fn().mockResolvedValue(mockProvider);
 
       const result = await service.getMicrosoftProvider(1);
 
@@ -571,7 +566,7 @@ describe('AuthService', () => {
         accessToken: 'jira_token',
       };
 
-      providerRepository.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+      providerRepository.findOne = jest.fn().mockResolvedValue(mockProvider);
 
       const result = await service.getJiraProvider(1);
 
@@ -1437,7 +1432,7 @@ describe('AuthService', () => {
         accessToken: 'twitch_token',
       };
 
-      providerRepository.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+      providerRepository.findOne = jest.fn().mockResolvedValue(mockProvider);
 
       const result = await service.getTwitchProvider(1);
 

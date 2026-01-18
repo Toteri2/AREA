@@ -20,6 +20,7 @@ describe('GithubController', () => {
     createWebhook: jest.fn(),
     listUserRepositories: jest.fn(),
     getServiceMetadata: jest.fn(),
+    verifyWebhookSignature: jest.fn(),
   };
 
   const mockAuthService = {
@@ -133,6 +134,7 @@ describe('GithubController', () => {
         } as unknown as any,
       ];
 
+      mockGithubService.verifyWebhookSignature.mockReturnValue(true);
       mockHooksRepository.find.mockResolvedValue(hooks);
       mockReactionsService.findByHookId.mockResolvedValue(reactions);
       mockReactionsService.executeReaction.mockResolvedValue(undefined);
@@ -140,9 +142,12 @@ describe('GithubController', () => {
       const result = await controller.webhook(
         mockBody,
         'delivery-123',
-        'hook-123'
+        'hook-123',
+        'sha256=test-signature',
+        {} as any
       );
 
+      expect(mockGithubService.verifyWebhookSignature).toHaveBeenCalled();
       expect(mockHooksRepository.find).toHaveBeenCalledWith({
         where: { webhookId: 'hook-123', service: 'github' },
       });
@@ -158,12 +163,17 @@ describe('GithubController', () => {
     it('should handle webhook event without repository', async () => {
       const mockBody = { action: 'ping' };
 
+      mockGithubService.verifyWebhookSignature.mockReturnValue(true);
+
       const result = await controller.webhook(
         mockBody,
         'delivery-123',
-        'hook-123'
+        'hook-123',
+        'sha256=test-signature',
+        {} as any
       );
 
+      expect(mockGithubService.verifyWebhookSignature).toHaveBeenCalled();
       expect(mockHooksRepository.find).not.toHaveBeenCalled();
       expect(result).toEqual({ success: true });
     });
@@ -184,6 +194,7 @@ describe('GithubController', () => {
         } as unknown as any,
       ];
 
+      mockGithubService.verifyWebhookSignature.mockReturnValue(true);
       mockHooksRepository.find.mockResolvedValue(hooks);
       mockReactionsService.findByHookId.mockResolvedValue(reactions);
       mockReactionsService.executeReaction.mockRejectedValue(
@@ -197,9 +208,12 @@ describe('GithubController', () => {
       const result = await controller.webhook(
         mockBody,
         'delivery-123',
-        'hook-123'
+        'hook-123',
+        'sha256=test-signature',
+        {} as any
       );
 
+      expect(mockGithubService.verifyWebhookSignature).toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalled();
       expect(result).toEqual({ success: true });
 

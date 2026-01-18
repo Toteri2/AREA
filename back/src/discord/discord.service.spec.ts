@@ -324,7 +324,7 @@ describe('DiscordService', () => {
 
       const result = await service.listGuildChannels('token', '123');
 
-      expect(result).toEqual(mockChannels);
+      expect(result).toEqual([{ id: '1', name: 'general', type: 0 }]);
       expect(mockedAxios.get).toHaveBeenCalledWith(
         'https://discord.com/api/v10/guilds/123/channels',
         expect.objectContaining({
