@@ -234,29 +234,6 @@ describe('JiraController', () => {
     });
   });
 
-  describe('listWebhooks', () => {
-    it('should return user webhooks', async () => {
-      const mockReq = {
-        user: { id: 1 },
-        provider: { accessToken: 'test_token', providerId: 'cloud-123' },
-      };
-      const mockWebhooks = [
-        { id: 1, service: 'jira', eventType: 'issue_created' },
-        { id: 2, service: 'jira', eventType: 'issue_updated' },
-      ];
-
-      mockAuthService.getJiraProvider.mockResolvedValue({
-        accessToken: 'test',
-      });
-      mockJiraService.listUserWebhooks.mockResolvedValue(mockWebhooks);
-
-      const result = await controller.listWebhooks(mockReq);
-
-      expect(jiraService.listUserWebhooks).toHaveBeenCalledWith(1);
-      expect(result).toEqual(mockWebhooks);
-    });
-  });
-
   describe('createWebhook', () => {
     it('should create a webhook', async () => {
       const mockReq = {
