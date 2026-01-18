@@ -1,7 +1,7 @@
 export const ApkDownloadButton = ({
-  filePath = '/app-release.apk',
+  filePath = '/client.apk',
   fileName = 'client.apk',
-  label = 'Download app',
+  label = 'Get app',
 }) => {
   return (
     <a

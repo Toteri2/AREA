@@ -156,7 +156,6 @@ function Register() {
               </button>
             </div>
 
-            {/* Barre de progression de la force du mot de passe */}
             {password && (
               <div className='password-strength-bar'>
                 <div className='password-strength-bar-label'>
@@ -177,7 +176,6 @@ function Register() {
               </div>
             )}
 
-            {/* Liste des exigences améliorée */}
             <div className='password-requirements'>
               <p>Password requirements for your security:</p>
               <ul>
