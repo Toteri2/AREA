@@ -61,7 +61,7 @@ describe('Navbar', () => {
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Area')).toBeInTheDocument();
     expect(screen.getByText('Profile')).toBeInTheDocument();
-    expect(screen.getByText('Download app')).toBeInTheDocument();
+    expect(screen.getByText('Get app')).toBeInTheDocument();
   });
 
   it('always shows brand link', () => {

@@ -6,9 +6,9 @@ describe('ApkDownloadButton', () => {
   it('renders with default props', () => {
     render(<ApkDownloadButton />);
 
-    const link = screen.getByRole('link', { name: 'Download app' });
+    const link = screen.getByRole('link', { name: 'Get app' });
     expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute('href', '/app-release.apk');
+    expect(link).toHaveAttribute('href', '/client.apk');
     expect(link).toHaveAttribute('download', 'client.apk');
   });
 
