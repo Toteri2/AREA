@@ -1,17 +1,9 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { logout } from '../shared/src/features/authSlice';
-import { useAppDispatch, useAppSelector } from '../shared/src/web';
+import { Link } from 'react-router-dom';
+import { useAppSelector } from '../shared/src/web';
 import { ApkDownloadButton } from './ApkDownloadButton';
 
 export function Navbar() {
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
-
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
-  };
 
   return (
     <nav className='navbar'>
@@ -25,7 +17,6 @@ export function Navbar() {
             <Link to='/area'>Area</Link>
             <Link to='/profile'>Profile</Link>
             <ApkDownloadButton />
-            <button type='button' onClick={handleLogout}>Logout</button>
           </>
         ) : (
           <>
