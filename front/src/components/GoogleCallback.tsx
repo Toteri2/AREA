@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleAuthValidateMutation } from '../shared/src/web';
 
@@ -7,7 +7,12 @@ export function GoogleCallback() {
   const [status, setStatus] = useState('Validating session...');
   const [googleAuthValidate, { isLoading }] = useGoogleAuthValidateMutation();
 
+  const hasValidated = useRef(false);
+
   useEffect(() => {
+    if (hasValidated.current) return;
+    hasValidated.current = true;
+
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     const state = params.get('state');
@@ -21,7 +26,6 @@ export function GoogleCallback() {
 
     try {
       const decodedState = state ? JSON.parse(atob(state)) : {};
-
       // IF MOBILE: Kick them back to the app
       if (decodedState.platform === 'mobile') {
         setStatus('Redirecting to mobile app...');
