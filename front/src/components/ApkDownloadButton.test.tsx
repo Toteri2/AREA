@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ApkDownloadButton } from './ApkDownloadButton';
 
 describe('ApkDownloadButton', () => {
@@ -93,13 +93,13 @@ describe('ApkDownloadButton', () => {
     render(<ApkDownloadButton />);
 
     const link = screen.getByRole('link');
-    
+
     // Should be inline-block for proper mobile display
     expect(link).toHaveStyle({ display: 'inline-block' });
-    
+
     // Should have adequate padding for touch targets
     expect(link).toHaveStyle({ padding: '10px 16px' });
-    
+
     // Should have rounded corners for modern mobile UI
     expect(link).toHaveStyle({ borderRadius: '6px' });
   });
@@ -129,7 +129,6 @@ describe('ApkDownloadButton', () => {
     );
 
     let link = screen.getByRole('link');
-    const initialStyles = window.getComputedStyle(link);
 
     rerender(
       <ApkDownloadButton
