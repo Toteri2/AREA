@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { toast } from 'react-toastify';
 import type { Connection, Edge, Node } from 'reactflow';
 import { addEdge, useReactFlow } from 'reactflow';
 import type {
@@ -31,6 +32,28 @@ type Webhook = {
   config?: { owner?: string; repo?: string; events?: string[] };
 };
 
+const getErrorMessage = (error: unknown): string => {
+  if (typeof error === 'object' && error !== null) {
+    const err = error as Record<string, unknown>;
+
+    if ('data' in err && typeof err.data === 'object' && err.data !== null) {
+      const errData = err.data as Record<string, unknown>;
+      if ('message' in errData && typeof errData.message === 'string') {
+        return errData.message;
+      }
+    }
+
+    if ('message' in err && typeof err.message === 'string') {
+      return err.message;
+    }
+
+    if ('error' in err && typeof err.error === 'string') {
+      return err.error;
+    }
+  }
+  return 'An unexpected error occurred';
+};
+
 export function useBlueprintGraph(
   nodes: Node<ActionNodeData | ReactionNodeData>[],
   setNodes: React.Dispatch<
@@ -38,7 +61,6 @@ export function useBlueprintGraph(
   >,
   setEdges: React.Dispatch<React.SetStateAction<Edge[]>>,
   webhooks: Webhook[],
-  showStatus: (type: 'success' | 'error', text: string) => void,
   setSelectedNode: (
     node: Node<ActionNodeData | ReactionNodeData> | null
   ) => void,
@@ -76,15 +98,13 @@ export function useBlueprintGraph(
         const reactionData = targetNode.data as ReactionNodeData;
 
         if (!actionData.webhookId) {
-          showStatus(
-            'error',
+          toast.error(
             'Please configure the action first (double-click to set up)'
           );
           return;
         }
         if (!reactionData.isConfigured) {
-          showStatus(
-            'error',
+          toast.error(
             'Please configure the reaction first (double-click to set up)'
           );
           return;
@@ -142,14 +162,14 @@ export function useBlueprintGraph(
             )
           );
 
-          showStatus('success', 'Automation created successfully!');
+          toast.success('Automation created successfully!');
         } catch (error) {
           console.error('Failed to create reaction:', error);
-          showStatus('error', 'Failed to create automation. Please try again.');
+          toast.error(getErrorMessage(error));
         }
       }
     },
-    [nodes, setNodes, setEdges, createReaction, webhooks, showStatus]
+    [nodes, setNodes, setEdges, createReaction, webhooks]
   );
 
   // Delete Node Logic (Shared)
@@ -229,20 +249,15 @@ export function useBlueprintGraph(
         );
         setShowConfigModal(false);
         setSelectedNode(null);
-        showStatus('success', 'Deleted successfully');
+        setShowConfigModal(false);
+        setSelectedNode(null);
+        toast.success('Deleted successfully');
       } catch (error) {
         console.error('Delete failed', error);
-        showStatus('error', 'Failed to delete');
+        toast.error(getErrorMessage(error));
       }
     },
-    [
-      deleteNode,
-      setNodes,
-      setEdges,
-      setShowConfigModal,
-      setSelectedNode,
-      showStatus,
-    ]
+    [deleteNode, setNodes, setEdges, setShowConfigModal, setSelectedNode]
   );
 
   // Delete Handler (Keyboard)
@@ -259,10 +274,10 @@ export function useBlueprintGraph(
         }
         setNodes((nds) => nds.filter((n) => !n.selected));
         setEdges((eds) => eds.filter((e) => !e.selected));
-        showStatus('success', 'Deleted selected nodes');
+        toast.success('Deleted selected nodes');
       }
     },
-    [nodes, deleteNode, setNodes, setEdges, showStatus]
+    [nodes, deleteNode, setNodes, setEdges]
   );
 
   // Save Config
@@ -294,7 +309,7 @@ export function useBlueprintGraph(
               webhookId: webhook.hookId,
               isConfigured: true,
             };
-            showStatus('success', 'GitHub webhook created!');
+            toast.success('GitHub webhook created!');
           } else if (
             actionData.service === 'microsoft' &&
             !actionData.webhookId
@@ -308,7 +323,7 @@ export function useBlueprintGraph(
               webhookId: subscription.id,
               isConfigured: true,
             };
-            showStatus('success', 'Microsoft subscription created!');
+            toast.success('Microsoft subscription created!');
           } else if (actionData.service === 'gmail' && !actionData.webhookId) {
             const subscription = await createGmailSubscription({
               eventType: (actionData.config.eventType as number) || 1,
@@ -319,7 +334,7 @@ export function useBlueprintGraph(
               webhookId: subscription.hookId,
               isConfigured: true,
             };
-            showStatus('success', 'Gmail subscription created!');
+            toast.success('Gmail subscription created!');
           } else if (
             actionData.service === 'discord' &&
             !actionData.webhookId
@@ -337,7 +352,7 @@ export function useBlueprintGraph(
               webhookId: webhook.hookId,
               isConfigured: true,
             };
-            showStatus('success', 'Discord webhook created!');
+            toast.success('Discord webhook created!');
           } else if (actionData.service === 'twitch' && !actionData.webhookId) {
             const webhook = await createTwitchWebhook({
               broadcasterUserId: actionData.config.broadcasterUserId as string,
@@ -348,7 +363,7 @@ export function useBlueprintGraph(
               webhookId: webhook.hookId,
               isConfigured: true,
             };
-            showStatus('success', 'Twitch webhook created!');
+            toast.success('Twitch webhook created!');
           } else if (actionData.service === 'jira' && !actionData.webhookId) {
             const webhook = await createJiraWebhook({
               projectKey: actionData.config.projectKey as string,
@@ -359,11 +374,11 @@ export function useBlueprintGraph(
               webhookId: webhook.hookId,
               isConfigured: true,
             };
-            showStatus('success', 'Jira webhook created!');
+            toast.success('Jira webhook created!');
           }
         } catch (error) {
           console.error(error);
-          showStatus('error', 'Failed to configure action');
+          toast.error(getErrorMessage(error));
           return;
         }
       } else if (selectedNode.type === 'reaction') {
@@ -374,10 +389,10 @@ export function useBlueprintGraph(
               id: reactionData.reactionId,
               config: reactionData.config,
             }).unwrap();
-            showStatus('success', 'Reaction updated!');
+            toast.success('Reaction updated!');
           } catch (error) {
             console.error('Failed to update reaction:', error);
-            showStatus('error', 'Failed to update reaction.');
+            toast.error(getErrorMessage(error));
             return;
           }
         }
@@ -401,7 +416,6 @@ export function useBlueprintGraph(
       setNodes,
       setShowConfigModal,
       setSelectedNode,
-      showStatus,
     ]
   );
 
@@ -467,14 +481,15 @@ export function useBlueprintGraph(
           const reactionId = parseInt(reactionIdMatch[1], 10);
           try {
             await deleteReaction(reactionId).unwrap();
-            showStatus('success', 'Automation removed');
+            toast.success('Automation removed');
           } catch (e) {
             console.error(e);
+            toast.error(getErrorMessage(e));
           }
         }
       }
     },
-    [deleteReaction, showStatus]
+    [deleteReaction]
   );
 
   return {

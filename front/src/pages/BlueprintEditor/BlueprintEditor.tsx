@@ -9,8 +9,10 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { ToastContainer } from 'react-toastify';
 import { ActionNode, ReactionNode } from '../../components/blueprint';
 import { ConfigModal } from '../../components/blueprint/ConfigModal';
+import 'react-toastify/dist/ReactToastify.css';
 import type {
   ActionNodeData,
   ReactionNodeData,
@@ -34,10 +36,6 @@ function BlueprintEditorContent() {
   > | null>(null);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<{
-    type: 'success' | 'error';
-    text: string;
-  } | null>(null);
 
   // 1. Data Hook
   const {
@@ -50,11 +48,6 @@ function BlueprintEditorContent() {
     isLoading,
     webhooks,
   } = useBlueprintData();
-
-  const showStatus = useCallback((type: 'success' | 'error', text: string) => {
-    setStatusMessage({ type, text });
-    setTimeout(() => setStatusMessage(null), 3000);
-  }, []);
 
   // 2. Graph Actions Hook
   const {
@@ -72,7 +65,6 @@ function BlueprintEditorContent() {
     setNodes,
     setEdges,
     webhooks,
-    showStatus,
     setSelectedNode,
     setShowConfigModal
   );
@@ -191,26 +183,19 @@ function BlueprintEditorContent() {
 
   return (
     <div className='blueprint-editor' onKeyDown={onKeyDown} role='application'>
-      {/* Status Message */}
-      {statusMessage && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 80,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            padding: '12px 24px',
-            borderRadius: 8,
-            background:
-              statusMessage.type === 'success' ? '#4caf50' : '#f44336',
-            color: 'white',
-            zIndex: 1000,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-          }}
-        >
-          {statusMessage.text}
-        </div>
-      )}
+      {/* Toast Notification Container */}
+      <ToastContainer
+        position='bottom-right'
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme='light'
+      />
 
       {/* Mobile Toggle Button */}
       <button

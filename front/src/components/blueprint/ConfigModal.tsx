@@ -225,11 +225,13 @@ function ConfigModalComponent({
             Delete
           </button>
           <button type='button' className='btn-secondary' onClick={onClose}>
-            Cancel
+            {isAction && actionData?.webhookId ? 'Close' : 'Cancel'}
           </button>
-          <button type='button' className='btn-primary' onClick={handleSave}>
-            Save
-          </button>
+          {(!isAction || !actionData?.webhookId) && (
+            <button type='button' className='btn-primary' onClick={handleSave}>
+              Save
+            </button>
+          )}
         </div>
       </div>
     </div>
