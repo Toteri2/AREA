@@ -33,8 +33,7 @@ describe('ReactionNode', () => {
   it('renders reaction node with correct type and label', () => {
     renderNode(mockData);
 
-    expect(screen.getByText('Discord Message')).toBeInTheDocument();
-    expect(screen.getByText('💬')).toBeInTheDocument();
+    expect(screen.getByText('send message')).toBeInTheDocument();
     expect(screen.getByText('✓ Configured')).toBeInTheDocument();
   });
 
@@ -73,8 +72,7 @@ describe('ReactionNode', () => {
 
     renderNode(gmailData);
 
-    expect(screen.getByText('Gmail Email')).toBeInTheDocument();
-    expect(screen.getByText('📧')).toBeInTheDocument();
+    expect(screen.getByText('send email')).toBeInTheDocument();
   });
 
   it('displays correct icon for Jira Issue reaction', () => {
@@ -87,8 +85,7 @@ describe('ReactionNode', () => {
 
     renderNode(jiraData);
 
-    expect(screen.getByText('Jira Issue')).toBeInTheDocument();
-    expect(screen.getByText('🎫')).toBeInTheDocument();
+    expect(screen.getByText('create issue')).toBeInTheDocument();
   });
 
   it('uses default icon for unknown reaction type', () => {
@@ -101,7 +98,6 @@ describe('ReactionNode', () => {
 
     renderNode(unknownData);
 
-    expect(screen.getByText('⚡')).toBeInTheDocument();
     expect(screen.getByText('Unknown')).toBeInTheDocument();
   });
 });

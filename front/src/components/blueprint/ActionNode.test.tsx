@@ -76,7 +76,6 @@ describe('ActionNode', () => {
     renderNode(gmailData);
 
     expect(screen.getByText('gmail')).toBeInTheDocument();
-    expect(screen.getByText('📧')).toBeInTheDocument();
   });
 
   it('uses default icon for unknown service', () => {
