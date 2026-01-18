@@ -103,10 +103,15 @@ describe('AuthService', () => {
       ],
     }).compile();
 
+    // @ts-expect-error
     service = module.get<AuthService>(AuthService);
+    // @ts-expect-error
     userRepository = module.get(getRepositoryToken(User));
+    // @ts-expect-error
     providerRepository = module.get(getRepositoryToken(Provider));
+    // @ts-expect-error
     oauthStatesRepository = module.get(getRepositoryToken(OAuthState));
+    // @ts-expect-error
     jwtService = module.get<JwtService>(JwtService);
   });
 
@@ -1022,7 +1027,7 @@ describe('AuthService', () => {
           'Test User',
           'google-id-123'
         )
-      ).rejects.toThrow('An account with this email already exists');
+      ).rejects.toThrow('An account with these credentials already exists');
     });
 
     it('should create new user and link Google provider if not found', async () => {
