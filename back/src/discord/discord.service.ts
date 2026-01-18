@@ -68,10 +68,19 @@ export class DiscordService {
 
   async listUserGuilds(userAccessToken: string) {
     try {
-      const response = await axios.get(`${this.baseUrl}/users/@me/guilds`, {
+      const userGuildsResponse = await axios.get(`${this.baseUrl}/users/@me/guilds`, {
         headers: this.getHeaders(userAccessToken),
       });
-      return this.handleResponse(response);
+      const userGuilds = await this.handleResponse(userGuildsResponse);
+      const botGuildsResponse = await axios.get(`${this.baseUrl}/users/@me/guilds`, {
+        headers: this.getBotHeaders(),
+      });
+      const botGuilds = await this.handleResponse(botGuildsResponse);
+      if (!userGuilds || !botGuilds) {
+        return [];
+      }
+      const botGuildIds = new Set(botGuilds.map((g: any) => g.id));
+      return userGuilds.filter((guild: any) => botGuildIds.has(guild.id));
     } catch (error) {
       handleAxiosError(error, 'Failed to list user guilds');
     }
@@ -85,7 +94,12 @@ export class DiscordService {
           headers: this.getBotHeaders(),
         }
       );
-      return this.handleResponse(response);
+      const channels = await this.handleResponse(response);
+
+      if (!channels) {
+        return [];
+      }
+      return channels.filter((channel: any) => channel.type === 0 || channel.type === 5);
     } catch (error) {
       handleAxiosError(error, 'Failed to list guild channels');
     }
