@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { ReactFlowProvider } from 'reactflow';
 import { describe, expect, it } from 'vitest';
-import type { ActionNodeData } from '../../shared/src/types';
+import type { ActionNodeData, ServiceType } from '../../shared/src/types';
 import { ActionNode } from './ActionNode';
 
 describe('ActionNode', () => {
@@ -81,7 +81,7 @@ describe('ActionNode', () => {
 
   it('uses default icon for unknown service', () => {
     const unknownData: ActionNodeData = {
-      service: 'unknown',
+      service: 'unknown_service' as ServiceType,
       eventType: 'test',
       label: 'Test Action',
       isConfigured: false,

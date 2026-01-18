@@ -44,7 +44,6 @@ export function ReactionJiraConfigForm({
     }
   }, [config.issueType, config.priority, updateConfigField]);
 
-
   const handleProjectSelectForIssue = (projectKey: string) => {
     setSelectedProjectForIssue(projectKey);
     if (projectKey) {
