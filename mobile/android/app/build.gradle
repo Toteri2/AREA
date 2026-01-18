@@ -94,19 +94,17 @@ android {
         }
     }
     
-    // OPTIMISATION: Division par architecture pour réduire drastiquement la taille
     splits {
         abi {
             reset()
             enable true
-            universalApk true  // Génère un APK universel
-            include "arm64-v8a", "x86_64"  // Seulement ces 2 architectures
+            universalApk true
+            include "arm64-v8a", "x86_64"
         }
     }
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
             if (output.filters.isEmpty()) {
-                // APK universel (pas de filtre ABI)
                 output.outputFileName = "app-release.apk"
             }
         }

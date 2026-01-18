@@ -1,17 +1,27 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useDispatch } from 'react-redux';
 import { GoogleAuthButton } from '../components/GoogleAuthButton';
 import type { RootStackParamList } from '../navigation';
-import { useLoginMutation } from '../shared/src/native';
+import { setBaseUrl } from '../shared/src/features/configSlice';
+import {
+  apiSlice,
+  clearToken,
+  logout,
+  useAppSelector,
+  useLoginMutation,
+} from '../shared/src/native';
 import styles from '../style/index';
 
 type LoginNavigationProp = NativeStackNavigationProp<
@@ -26,6 +36,11 @@ export function Login() {
   const navigation = useNavigation<LoginNavigationProp>();
 
   const [login, { isLoading }] = useLoginMutation();
+
+  const dispatch = useDispatch();
+  const baseUrlFromStore = useAppSelector((state) => state.config.baseUrl);
+
+  const [customBaseUrl, setCustomBaseUrl] = useState(baseUrlFromStore);
 
   const handleSubmit = async () => {
     if (!email || !password) return;
@@ -45,24 +60,47 @@ export function Login() {
     }
   };
 
+  const handleLogout = async () => {
+    await dispatch(clearToken());
+    dispatch(apiSlice.util.resetApiState());
+    dispatch(logout());
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  };
+
+  const updateBaseUrl = async () => {
+    if (!customBaseUrl.startsWith('http')) {
+      Alert.alert('Error', 'URL must begin with http or https');
+      return;
+    }
+
+    dispatch(setBaseUrl(customBaseUrl));
+    await AsyncStorage.setItem('baseUrl', customBaseUrl);
+    Alert.alert('Success', 'Base URL updated !');
+    handleLogout();
+  };
+
   return (
-    // <KeyboardAvoidingView
-    //   style={styles.container}
-    //   behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    // >
-    // {/* <ScrollView contentContainerStyle={styles.scrollContent}> */}
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.cardsContainer}>
         <View style={styles.card}>
           <View style={styles.infoSection}>
             <Text style={styles.title}>Login</Text>
+            <Text style={styles.cardDescription}>
+              Please connect you with your email or Google account. You can
+              change the server you want to connect you just below.
+            </Text>
           </View>
+        </View>
 
+        <View style={styles.card}>
           {errorMessage ? (
             <Text style={styles.errorText}>{errorMessage}</Text>
           ) : null}
 
-          <View style={styles.formGroup}>
+          <View style={styles.infoSection}>
             <Text style={styles.label}>Email</Text>
             <TextInput
               style={styles.input}
@@ -76,7 +114,7 @@ export function Login() {
             />
           </View>
 
-          <View style={styles.formGroup}>
+          <View style={styles.infoSection}>
             <Text style={styles.label}>Password</Text>
             <TextInput
               style={styles.input}
@@ -115,8 +153,25 @@ export function Login() {
 
           <GoogleAuthButton onError={setErrorMessage} mobile='true' />
         </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>API Base URL</Text>
+          <Text style={styles.cardDescription}>
+            Change the server where you to want to connect you. Write the API
+            URL
+          </Text>
+          <TextInput
+            style={styles.input}
+            value={customBaseUrl}
+            onChangeText={setCustomBaseUrl}
+            placeholder={customBaseUrl}
+            placeholderTextColor='#888'
+          />
+          <TouchableOpacity style={styles.button} onPress={updateBaseUrl}>
+            <Text style={styles.buttonText}>Update Base URL</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </ScrollView>
-    // </KeyboardAvoidingView>
   );
 }

@@ -1,11 +1,10 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -13,9 +12,17 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { useDispatch } from 'react-redux';
 import { GoogleAuthButton } from '../components/GoogleAuthButton';
 import type { RootStackParamList } from '../navigation';
-import { useRegisterMutation } from '../shared/src/native';
+import { setBaseUrl } from '../shared/src/features/configSlice';
+import {
+  apiSlice,
+  clearToken,
+  logout,
+  useAppSelector,
+  useRegisterMutation,
+} from '../shared/src/native';
 import styles from '../style/index';
 
 type RegisterNavigationProp = NativeStackNavigationProp<
@@ -34,6 +41,11 @@ export function Register() {
 
   const navigation = useNavigation<RegisterNavigationProp>();
   const [register, { isLoading }] = useRegisterMutation();
+
+  const dispatch = useDispatch();
+  const baseUrlFromStore = useAppSelector((state) => state.config.baseUrl);
+
+  const [customBaseUrl, setCustomBaseUrl] = useState(baseUrlFromStore);
 
   // Password requirements
   const requirements = [
@@ -61,6 +73,24 @@ export function Register() {
     (score, req) => score + (req.test(password) ? 1 : 0),
     0
   );
+
+  const getStrengthText = (strength: number) => {
+    if (strength === 0) return 'No password';
+    if (strength <= 2) return 'Weak';
+    if (strength <= 3) return 'Fair';
+    if (strength <= 4) return 'Good';
+    if (strength <= 5) return 'Strong';
+    return 'Very Strong';
+  };
+
+  const getStrengthColor = (strength: number) => {
+    if (strength === 0) return '#666';
+    if (strength <= 2) return '#ff4444';
+    if (strength <= 3) return '#ff9800';
+    if (strength <= 4) return '#ffd700';
+    if (strength <= 5) return '#4caf50';
+    return '#00c853';
+  };
 
   const isEmailValid = (value: string) =>
     value.length <= 254 &&
@@ -105,21 +135,48 @@ export function Register() {
     }
   };
 
-  return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.card}>
-          <Text style={styles.title}>Register</Text>
+  const handleLogout = async () => {
+    await dispatch(clearToken());
+    dispatch(apiSlice.util.resetApiState());
+    dispatch(logout());
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Register' }],
+    });
+  };
 
+  const updateBaseUrl = async () => {
+    if (!customBaseUrl.startsWith('http')) {
+      Alert.alert('Error', 'URL must begin with http or https');
+      return;
+    }
+
+    dispatch(setBaseUrl(customBaseUrl));
+    await AsyncStorage.setItem('baseUrl', customBaseUrl);
+    Alert.alert('Success', 'Base URL updated !');
+    handleLogout();
+  };
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <View style={styles.cardsContainer}>
+        <View style={styles.card}>
+          <View style={styles.infoSection}>
+            <Text style={styles.title}>Register</Text>
+            <Text style={styles.cardDescription}>
+              Please connect you with your email or Google account. You can
+              change the server you want to connect you just below.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.card}>
           {errorMessage ? (
             <Text style={styles.errorText}>{errorMessage}</Text>
           ) : null}
 
           {/* Name */}
-          <View style={styles.formGroup}>
+          <View style={styles.infoSection}>
             <Text style={styles.label}>Name</Text>
             <TextInput
               style={styles.input}
@@ -132,7 +189,7 @@ export function Register() {
           </View>
 
           {/* Email */}
-          <View style={styles.formGroup}>
+          <View style={styles.infoSection}>
             <Text style={styles.label}>Email</Text>
             <TextInput
               style={styles.input}
@@ -147,7 +204,7 @@ export function Register() {
           </View>
 
           {/* Password */}
-          <View style={styles.formGroup}>
+          <View style={styles.infoSection}>
             <Text style={styles.label}>Password</Text>
             <View style={{ position: 'relative' }}>
               <TextInput
@@ -170,23 +227,84 @@ export function Register() {
               </TouchableOpacity>
             </View>
 
-            <View style={{ marginTop: 8 }}>
+            <View style={{ marginTop: 12 }}>
+              {/* Password Strength Bar */}
+              {password ? (
+                <View style={{ marginBottom: 12 }}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      marginBottom: 6,
+                    }}
+                  >
+                    <Text style={{ color: '#888', fontSize: 12 }}>
+                      Password Strength:
+                    </Text>
+                    <Text
+                      style={{
+                        color: getStrengthColor(passwordStrength),
+                        fontSize: 12,
+                        fontWeight: '600',
+                      }}
+                    >
+                      {getStrengthText(passwordStrength)}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      height: 6,
+                      backgroundColor: '#333',
+                      borderRadius: 3,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <View
+                      style={{
+                        height: '100%',
+                        width: `${(passwordStrength / 6) * 100}%`,
+                        backgroundColor: getStrengthColor(passwordStrength),
+                        borderRadius: 3,
+                      }}
+                    />
+                  </View>
+                </View>
+              ) : null}
+
+              {/* Requirements */}
+              <Text style={{ color: '#888', fontSize: 12, marginBottom: 6 }}>
+                Password requirements:
+              </Text>
               {requirements.map((req) => (
-                <Text
+                <View
                   key={req.label}
                   style={{
-                    color: req.test(password) ? 'green' : 'red',
-                    fontSize: 12,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: 4,
                   }}
                 >
-                  {req.label}
-                </Text>
+                  <Icon
+                    name={req.test(password) ? 'check-circle' : 'times-circle'}
+                    size={12}
+                    color={req.test(password) ? '#4caf50' : '#ff4444'}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    style={{
+                      color: req.test(password) ? '#4caf50' : '#ff4444',
+                      fontSize: 11,
+                    }}
+                  >
+                    {req.label}
+                  </Text>
+                </View>
               ))}
             </View>
           </View>
 
           {/* Confirm Password */}
-          <View style={styles.formGroup}>
+          <View style={styles.infoSection}>
             <Text style={styles.label}>Confirm Password</Text>
             <View style={{ position: 'relative' }}>
               <TextInput
@@ -210,7 +328,6 @@ export function Register() {
             </View>
           </View>
 
-          {/* Submit */}
           <TouchableOpacity
             style={[styles.button, isLoading && styles.buttonDisabled]}
             onPress={handleSubmit}
@@ -224,7 +341,7 @@ export function Register() {
           </TouchableOpacity>
 
           <View style={styles.linkContainer}>
-            <Text style={styles.linkText}>Already have an account? </Text>
+            <Text style={styles.link}>Already have an account? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
               <Text style={styles.link}>Login</Text>
             </TouchableOpacity>
@@ -238,7 +355,25 @@ export function Register() {
 
           <GoogleAuthButton onError={setErrorMessage} mobile='true' />
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>API Base URL</Text>
+          <Text style={styles.cardDescription}>
+            Change the server where you to want to connect you. Write the API
+            URL
+          </Text>
+          <TextInput
+            style={styles.input}
+            value={customBaseUrl}
+            onChangeText={setCustomBaseUrl}
+            placeholder={customBaseUrl}
+            placeholderTextColor='#888'
+          />
+          <TouchableOpacity style={styles.button} onPress={updateBaseUrl}>
+            <Text style={styles.buttonText}>Update Base URL</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
   );
 }

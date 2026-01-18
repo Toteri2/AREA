@@ -53,6 +53,7 @@ export const card = StyleSheet.create({
   cardDescription: {
     fontSize: 14,
     color: '#666',
+    textAlign: 'justify',
   },
 
   linkContainer: {
