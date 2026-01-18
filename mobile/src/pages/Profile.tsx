@@ -33,43 +33,36 @@ type Service = { name: string };
 
 type ServiceLinkerProps = {
   label: string;
-  getAuthUrl: () => Promise<any>;
-  connection: { isLoading: boolean; isConnected: boolean };
+  isLoading: boolean;
+  isLinked: boolean;
+  onLink: () => void;
 };
 
-function ServiceLinker({ label, getAuthUrl, connection }: ServiceLinkerProps) {
-  const handleLink = async () => {
-    try {
-      const result = await getAuthUrl();
-      if (result.url) {
-        await Linking.openURL(result.url);
-      } else {
-        Alert.alert('Error', `Could not get ${label} auth URL`);
-      }
-    } catch {
-      Alert.alert('Error', `Unexpected error while linking ${label}`);
-    }
-  };
-
-  if (connection.isLoading) {
+function ServiceLinker({
+  label,
+  isLoading,
+  isLinked,
+  onLink,
+}: ServiceLinkerProps) {
+  if (isLoading) {
     return <ActivityIndicator color='#e94560' style={{ marginVertical: 10 }} />;
   }
 
-  if (!connection.isConnected) {
+  if (isLinked) {
     return (
-      <TouchableOpacity style={styles.button} onPress={handleLink}>
-        <Text style={styles.buttonText}>Link {label} Account</Text>
-      </TouchableOpacity>
+      <View style={styles.serviceLinked}>
+        <Text style={styles.linkedStatus}>✓ {label} Account Linked</Text>
+        <TouchableOpacity style={styles.changeButton} onPress={onLink}>
+          <Text style={styles.changeButtonText}>Change Account</Text>
+        </TouchableOpacity>
+      </View>
     );
   }
 
   return (
-    <View style={styles.linkedContainer}>
-      <Text style={styles.linkedText}>✓ {label} Account Linked</Text>
-      <TouchableOpacity style={styles.changeButton} onPress={handleLink}>
-        <Text style={styles.changeButtonText}>Change</Text>
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity style={styles.linkButton} onPress={onLink}>
+      <Text style={styles.linkButtonText}>Link {label} Account</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -85,88 +78,110 @@ export function Profile() {
   const services: Service[] = servicesData?.server?.services ?? [];
   const serviceNames = new Set(services.map((s) => s.name));
 
+  const { refetch: getGithubAuthUrl } = useGetGithubAuthUrlQuery(
+    serviceNames.has('github') ? { mobile: true } : { skip: true }
+  );
+  const { refetch: getGmailAuthUrl } = useGetGmailAuthUrlQuery(
+    serviceNames.has('gmail') ? { mobile: true } : { skip: true }
+  );
+  const { refetch: getMicrosoftAuthUrl } = useGetMicrosoftAuthUrlQuery(
+    serviceNames.has('microsoft') ? { mobile: true } : { skip: true }
+  );
+  const { refetch: getDiscordAuthUrl } = useGetDiscordAuthUrlQuery(
+    serviceNames.has('discord') ? { mobile: true } : { skip: true }
+  );
+  const { refetch: getJiraAuthUrl } = useGetJiraAuthUrlQuery(
+    serviceNames.has('jira') ? { mobile: true } : { skip: true }
+  );
+  const { refetch: getTwitchAuthUrl } = useGetTwitchAuthUrlQuery(
+    serviceNames.has('twitch') ? { mobile: true } : { skip: true }
+  );
+
   const githubConnection = useConnectionQuery(
     serviceNames.has('github') ? { provider: 'github' } : undefined
   );
-  const githubAuthQuery = useGetGithubAuthUrlQuery(
-    serviceNames.has('github') ? undefined : { skip: true }
-  );
-
   const gmailConnection = useConnectionQuery(
     serviceNames.has('gmail') ? { provider: 'gmail' } : undefined
   );
-  const gmailAuthQuery = useGetGmailAuthUrlQuery(
-    serviceNames.has('gmail') ? undefined : { skip: true }
-  );
-
   const microsoftConnection = useConnectionQuery(
     serviceNames.has('microsoft') ? { provider: 'microsoft' } : undefined
   );
-  const microsoftAuthQuery = useGetMicrosoftAuthUrlQuery(
-    serviceNames.has('microsoft') ? undefined : { skip: true }
-  );
-
   const discordConnection = useConnectionQuery(
     serviceNames.has('discord') ? { provider: 'discord' } : undefined
   );
-  const discordAuthQuery = useGetDiscordAuthUrlQuery(
-    serviceNames.has('discord') ? undefined : { skip: true }
-  );
-
-  const twitchConnection = useConnectionQuery(
-    serviceNames.has('twitch') ? { provider: 'twitch' } : undefined
-  );
-  const twitchAuthQuery = useGetTwitchAuthUrlQuery(
-    serviceNames.has('twitch') ? undefined : { skip: true }
-  );
-
   const jiraConnection = useConnectionQuery(
     serviceNames.has('jira') ? { provider: 'jira' } : undefined
   );
-  const jiraAuthQuery = useGetJiraAuthUrlQuery(
-    serviceNames.has('jira') ? undefined : { skip: true }
+  const twitchConnection = useConnectionQuery(
+    serviceNames.has('twitch') ? { provider: 'twitch' } : undefined
   );
 
-  const getAuthMapping: Record<string, any> = {
+  const handleOAuthRedirect = async (
+    getUrl: () => Promise<{ data?: { url: string }; error?: unknown }>,
+    label: string
+  ) => {
+    try {
+      const result = await getUrl();
+      if (result.data?.url) {
+        await Linking.openURL(result.data.url);
+      } else {
+        Alert.alert('Error', `Could not get ${label} auth URL`);
+      }
+    } catch {
+      Alert.alert('Error', `Unexpected error while linking ${label}`);
+    }
+  };
+
+  const serviceConfig: Record<
+    string,
+    {
+      label: string;
+      connection: typeof githubConnection;
+      getAuthUrl: () => Promise<any>;
+    }
+  > = {
     github: {
-      getAuthUrl: async () => (await githubAuthQuery.refetch()).data,
+      label: 'GitHub',
       connection: githubConnection,
+      getAuthUrl: getGithubAuthUrl,
     },
     gmail: {
-      getAuthUrl: async () => (await gmailAuthQuery.refetch()).data,
+      label: 'Gmail',
       connection: gmailConnection,
+      getAuthUrl: getGmailAuthUrl,
     },
     microsoft: {
-      getAuthUrl: async () => (await microsoftAuthQuery.refetch()).data,
+      label: 'Microsoft',
       connection: microsoftConnection,
+      getAuthUrl: getMicrosoftAuthUrl,
     },
     discord: {
-      getAuthUrl: async () => (await discordAuthQuery.refetch()).data,
+      label: 'Discord',
       connection: discordConnection,
-    },
-    twitch: {
-      getAuthUrl: async () => (await twitchAuthQuery.refetch()).data,
-      connection: twitchConnection,
+      getAuthUrl: getDiscordAuthUrl,
     },
     jira: {
-      getAuthUrl: async () => (await jiraAuthQuery.refetch()).data,
+      label: 'Jira',
       connection: jiraConnection,
+      getAuthUrl: getJiraAuthUrl,
+    },
+    twitch: {
+      label: 'Twitch',
+      connection: twitchConnection,
+      getAuthUrl: getTwitchAuthUrl,
     },
   };
 
   const handleLogout = async () => {
-    // Clear token from storage
     await dispatch(clearToken());
-    // Reset API cache to clear all cached data
     dispatch(apiSlice.util.resetApiState());
-    // Clear auth state
     dispatch(logout());
-    // Navigate to login
     navigation.reset({
       index: 0,
       routes: [{ name: 'Login' }],
     });
   };
+
   const updateBaseUrl = async () => {
     if (!customBaseUrl.startsWith('http')) {
       Alert.alert('Error', 'URL must begin with http or https');
@@ -198,16 +213,18 @@ export function Profile() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Connected Services</Text>
           {services.map((service) => {
-            const mapping = getAuthMapping[service.name];
-            if (!mapping) return null;
+            const config = serviceConfig[service.name];
+            if (!config) return null;
+
             return (
               <ServiceLinker
                 key={service.name}
-                label={
-                  service.name.charAt(0).toUpperCase() + service.name.slice(1)
+                label={config.label}
+                isLoading={config.connection.isLoading}
+                isLinked={config.connection.data?.connected === true}
+                onLink={() =>
+                  handleOAuthRedirect(config.getAuthUrl, config.label)
                 }
-                getAuthUrl={mapping.getAuthUrl}
-                connection={mapping.connection}
               />
             );
           })}

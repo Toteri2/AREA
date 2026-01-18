@@ -1,4 +1,4 @@
-import { ActivityIndicator, View, Linking } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useAppSelector } from '../shared/src/native';
 import styles from '../style/index';
