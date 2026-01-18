@@ -1,4 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// @ts-expect-error
+declare const __DEV__: boolean;
+
 import { loadToken } from './features/authSlice';
 import { setBaseUrl } from './features/configSlice';
 import type { TokenStorage } from './storage';
@@ -12,6 +16,7 @@ const nativeStorage: TokenStorage = {
 
 export const store = createStore({
   storage: nativeStorage,
+  devTools: __DEV__,
 });
 
 const initializeBaseUrl = async () => {

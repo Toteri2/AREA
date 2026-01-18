@@ -28,13 +28,17 @@ const logoutMiddleware: Middleware = (store) => (next) => (action) => {
 };
 
 // Redux Store (will break the app easily on modification)
-export const createStore = (config: { storage: TokenStorage }) => {
+export const createStore = (config: {
+  storage: TokenStorage;
+  devTools?: boolean;
+}) => {
   return configureStore({
     reducer: {
       [apiSlice.reducerPath]: apiSlice.reducer,
       auth: authReducer,
       config: configReducer,
     },
+    devTools: config.devTools ?? false,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         thunk: {

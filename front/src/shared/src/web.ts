@@ -11,6 +11,7 @@ const webStorage: TokenStorage = {
 
 export const store = createStore({
   storage: webStorage,
+  devTools: import.meta.env.DEV,
 });
 
 // Validate production configuration
