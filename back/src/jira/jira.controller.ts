@@ -45,10 +45,27 @@ export class JiraController {
     status: 200,
     description: 'Webhook processed successfully.',
   })
-  async handleWebhook(@Body() webhookData: JiraWebhookDto, @Res() res) {
+  async handleWebhook(
+    @Body() webhookData: JiraWebhookDto,
+    @Req() req,
+    @Res() res
+  ) {
     try {
-      console.log('Jira webhook received:', webhookData.webhookEvent);
+      const providedSecret = req.query.secret;
+      if (!providedSecret) {
+        return res
+          .status(HttpStatus.UNAUTHORIZED)
+          .send({ error: 'Missing webhook secret' });
+      }
+      const expectedSecret = this.configService.getOrThrow<string>(
+        'JIRA_WEBHOOK_SECRET'
+      );
 
+      if (providedSecret !== expectedSecret) {
+        return res
+          .status(HttpStatus.UNAUTHORIZED)
+          .send({ error: 'Invalid webhook secret' });
+      }
       const hooks = await this.hooksRepository.find({
         where: { service: 'jira' },
       });

@@ -42,10 +42,7 @@ export class GmailController {
     status: 200,
     description: 'Webhook event received successfully.',
   })
-  async webhook(
-    @Body() body: any,
-    @Res() res
-  ) {
+  async webhook(@Body() body: any, @Res() res) {
     try {
       if (body.message?.data) {
         const decodedData = JSON.parse(

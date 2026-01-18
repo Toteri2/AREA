@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
+import * as crypto from 'crypto';
 import { AuthService } from 'src/auth/auth.service';
 import { Hook } from 'src/shared/entities/hook.entity';
 import { handleAxiosError } from 'src/shared/utils/axios.handler';
@@ -12,7 +14,8 @@ export class JiraService {
   constructor(
     @InjectRepository(Hook)
     private hookRepository: Repository<Hook>,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService
   ) {}
 
   async listUserWebhooks(userId: number): Promise<any> {
@@ -30,6 +33,10 @@ export class JiraService {
     userId: number
   ): Promise<any> {
     try {
+      const webhookSecret = this.configService.getOrThrow<string>(
+        'JIRA_WEBHOOK_SECRET'
+      );
+      const fullWebhookUrl = `${webhookUrl}?secret=${webhookSecret}`;
       const projectResponse = await axios.get(
         `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/project/${body.projectKey}`,
         {
@@ -42,7 +49,7 @@ export class JiraService {
 
       const projectName = projectResponse.data.name;
       const webhookData = {
-        url: webhookUrl,
+        url: fullWebhookUrl,
         webhooks: [
           {
             jqlFilter: `project = ${body.projectKey}`,
@@ -99,6 +106,7 @@ export class JiraService {
         message: 'Jira webhook created successfully',
       };
     } catch (error) {
+      console.log('Jira webhook creation error details:', error);
       console.error(
         'Error creating Jira webhook:',
         error.response?.data || error.message
@@ -227,6 +235,27 @@ export class JiraService {
       return response.data;
     } catch (error) {
       handleAxiosError(error, 'Failed to list project issues');
+    }
+  }
+
+  verifyJiraWebhookSecret(providedSecret: string): boolean {
+    if (!providedSecret) {
+      return false;
+    }
+
+    try {
+      const jiraWebhookSecret = this.configService.get<string>(
+        'JIRA_WEBHOOK_SECRET'
+      );
+      if (!jiraWebhookSecret) {
+        return true;
+      }
+      return crypto.timingSafeEqual(
+        Buffer.from(providedSecret),
+        Buffer.from(jiraWebhookSecret)
+      );
+    } catch {
+      return false;
     }
   }
 }
