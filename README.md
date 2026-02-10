@@ -1,4 +1,4 @@
-# AREA - Action-REAction Platform
+# AREA - Action-REAction Platform (FORK)
 
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
 [![NestJS](https://img.shields.io/badge/NestJS-11.0.1-blue.svg)](https://nestjs.com/)
