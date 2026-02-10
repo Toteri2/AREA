@@ -1,0 +1,632 @@
+.blueprint-editor {
+    display: flex;
+    position: fixed;
+    top: 72px;
+    /* Below navbar */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #f5f5f5;
+    outline: none;
+    z-index: 1;
+}
+
+/* Sidebar */
+.blueprint-sidebar {
+    width: 280px;
+    background: #ffffff;
+    border-right: 1px solid #e0e0e0;
+    padding: 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Prevent horizontal scroll */
+    flex-shrink: 0;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+
+    /* Firefox scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: #d0d0d0 #f5f5f5;
+}
+
+/* Chrome/Safari/Edge scrollbar styling */
+.blueprint-sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.blueprint-sidebar::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 4px;
+}
+
+.blueprint-sidebar::-webkit-scrollbar-thumb {
+    background: #d0d0d0;
+    border-radius: 4px;
+}
+
+.blueprint-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #b0b0b0;
+}
+
+.blueprint-sidebar h2 {
+    color: #333;
+    margin: 0 0 20px 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.blueprint-sidebar h3 {
+    color: #555;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: 20px 0 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.blueprint-sidebar h4 {
+    color: #444;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin: 12px 0 6px 0;
+}
+
+.sidebar-section {
+    margin-bottom: 24px;
+}
+
+.sidebar-hint {
+    color: #555;
+    font-size: 0.8rem;
+    margin: 0 0 12px 0;
+}
+
+.sidebar-service {
+    margin-bottom: 12px;
+}
+
+/* Sidebar Blocks */
+.sidebar-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    margin: 4px 0;
+    border-radius: 6px;
+    cursor: grab;
+    font-size: 0.9rem;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.sidebar-block:active {
+    cursor: grabbing;
+}
+
+.sidebar-block.action {
+    background: rgba(76, 175, 80, 0.08);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    color: #2e7d32;
+}
+
+.sidebar-block.action:hover {
+    background: rgba(76, 175, 80, 0.15);
+    border-color: rgba(76, 175, 80, 0.5);
+    transform: translateX(2px);
+}
+
+.sidebar-block.reaction {
+    background: rgba(33, 150, 243, 0.08);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    color: #1565c0;
+}
+
+.sidebar-block.reaction:hover {
+    background: rgba(33, 150, 243, 0.15);
+    border-color: rgba(33, 150, 243, 0.5);
+    transform: translateX(2px);
+}
+
+.block-icon {
+    font-size: 1.1rem;
+}
+
+/* Canvas */
+.blueprint-canvas {
+    flex: 1;
+    height: 100%;
+    background: #fafafa;
+}
+
+/* Custom Node Styles */
+.blueprint-node {
+    min-width: 200px;
+    background: #ffffff;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.blueprint-node:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.blueprint-node.selected {
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+}
+
+.blueprint-node.action {
+    border-color: #4caf50;
+}
+
+.blueprint-node.action.selected {
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+.blueprint-node.reaction {
+    border-color: #2196f3;
+}
+
+.blueprint-node.reaction.selected {
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+}
+
+.node-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+    border-radius: 6px 6px 0 0;
+}
+
+.node-icon {
+    font-size: 1.2rem;
+}
+
+.node-service,
+.node-type {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+}
+
+.node-content {
+    padding: 10px 14px;
+}
+
+.node-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.node-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-top: 4px;
+}
+
+.node-badge.unconfigured {
+    background: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffcc80;
+}
+
+.node-badge.configured {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.node-config-preview {
+    display: block;
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Node Handles */
+.node-handle {
+    width: 14px !important;
+    height: 14px !important;
+    border: 3px solid #ffffff !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.node-handle.source {
+    background: #4caf50 !important;
+}
+
+.node-handle.target {
+    background: #2196f3 !important;
+}
+
+/* Info Panel */
+.blueprint-info-panel {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 320px;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.blueprint-info-panel h3 {
+    color: #333;
+    margin: 0 0 16px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.blueprint-info-panel p {
+    color: #666;
+    margin: 8px 0;
+    font-size: 0.9rem;
+}
+
+.blueprint-info-panel p strong {
+    color: #333;
+}
+
+/* Configuration Modal */
+.config-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.config-modal {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.config-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #fafafa;
+    border-radius: 12px 12px 0 0;
+}
+
+.config-modal-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.config-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.config-modal-close:hover {
+    color: #333;
+}
+
+.config-modal-body {
+    padding: 24px;
+}
+
+.config-modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    border-top: 1px solid #e0e0e0;
+    background: #fafafa;
+    border-radius: 0 0 12px 12px;
+}
+
+/* Form Styles in Modal */
+.config-form-group {
+    margin-bottom: 20px;
+}
+
+.config-form-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 6px;
+}
+
+.config-form-group input,
+.config-form-group select,
+.config-form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.15s ease;
+}
+
+.config-form-group input:focus,
+.config-form-group select:focus,
+.config-form-group textarea:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.config-form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.config-form-group small {
+    display: block;
+    color: #888;
+    font-size: 0.8rem;
+    margin-top: 4px;
+}
+
+.config-form-group .checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.config-form-group .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    color: #444;
+    cursor: pointer;
+}
+
+.config-form-group .checkbox-label input {
+    width: auto;
+}
+
+/* Buttons */
+.btn-primary {
+    background: #1976d2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.btn-primary:hover {
+    background: #1565c0;
+}
+
+.btn-primary:disabled {
+    background: #acacac;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: #ffffff;
+    color: #666;
+    border: 1px solid #ddd;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-secondary:hover {
+    background: #f5f5f5;
+    border-color: #ccc;
+}
+
+.btn-danger {
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.btn-danger:hover {
+    background: #d32f2f;
+}
+
+/* React Flow Overrides for Light Theme */
+.react-flow__background {
+    background-color: #fafafa !important;
+}
+
+.react-flow__controls {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.react-flow__controls-button {
+    background: #ffffff;
+    border-bottom: 1px solid #e0e0e0;
+    color: #666;
+    fill: #666;
+}
+
+.react-flow__controls-button:hover {
+    background: #f5f5f5;
+}
+
+.react-flow__controls-button svg {
+    fill: #666;
+}
+
+.react-flow__minimap {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+/* Edges */
+.react-flow__edge-path {
+    stroke: #9e9e9e !important;
+    stroke-width: 2px;
+}
+
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge:hover .react-flow__edge-path {
+    stroke: #1976d2 !important;
+    stroke-width: 3px;
+}
+
+/* Loading state */
+.loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #666;
+}
+
+/* Error message */
+.error-message {
+    background: #ffebee;
+    color: #c62828;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+}
+
+/* Success message */
+.success-message {
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+}
+
+/* Mobile Responsiveness */
+.mobile-sidebar-toggle {
+    display: none;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1100;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-size: 1.2rem;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+}
+
+@media (max-width: 768px) {
+    .blueprint-editor {
+        top: 0;
+        /* Full screen on mobile */
+        flex-direction: column;
+    }
+
+    .mobile-sidebar-toggle {
+        display: flex;
+    }
+
+    .blueprint-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 80%;
+        max-width: 300px;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1000;
+        box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .blueprint-sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* Overlay when sidebar is open */
+    .blueprint-sidebar.open::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 100%;
+        width: 100vw;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        display: block;
+    }
+
+    .blueprint-info-panel {
+        width: 90%;
+        right: 5%;
+        top: 60px;
+        /* Below toggle button */
+        max-height: 30vh;
+        overflow-y: auto;
+    }
+
+    .config-modal {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    /* Hide all React Flow controls on mobile to prevent overlap and clutter */
+    .react-flow__controls {
+        display: none !important;
+    }
+}.service-icon {
+    margin-right: 8px;
+    display: inline-flex;
+    vertical-align: middle;
+}
