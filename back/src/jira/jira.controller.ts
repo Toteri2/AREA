@@ -1,0 +1,278 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+  Param,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { InjectRepository } from '@nestjs/typeorm';
+import { AuthService } from 'src/auth/auth.service';
+import { ProviderGuard, RequireProvider } from 'src/auth/guards/provider.guard';
+import { ReactionsService } from 'src/reactions/reactions.service';
+import { Hook } from 'src/shared/entities/hook.entity';
+import { ProviderType } from 'src/shared/enums/provider.enum';
+import { Repository } from 'typeorm';
+import { CreateJiraWebhookDto } from './dto/create_jira_webhook.dto';
+import { JiraWebhookDto } from './dto/jira-webhook.dto';
+import { JiraService } from './jira.service';
+
+@Controller('jira')
+@ApiTags('jira')
+export class JiraController {
+  constructor(
+    private readonly jiraService: JiraService,
+    private readonly authService: AuthService,
+    private readonly reactionsService: ReactionsService,
+    private readonly configService: ConfigService,
+    @InjectRepository(Hook)
+    private hooksRepository: Repository<Hook>
+  ) {}
+
+  @Post('webhook')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Receive Jira webhook events' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook processed successfully.',
+  })
+  async handleWebhook(
+    @Body() webhookData: JiraWebhookDto,
+    @Req() req,
+    @Res() res
+  ) {
+    try {
+      const providedSecret = req.query.secret;
+      if (!providedSecret) {
+        return res
+          .status(HttpStatus.UNAUTHORIZED)
+          .send({ error: 'Missing webhook secret' });
+      }
+      const expectedSecret = this.configService.getOrThrow<string>(
+        'JIRA_WEBHOOK_SECRET'
+      );
+
+      if (providedSecret !== expectedSecret) {
+        return res
+          .status(HttpStatus.UNAUTHORIZED)
+          .send({ error: 'Invalid webhook secret' });
+      }
+      const hooks = await this.hooksRepository.find({
+        where: { service: 'jira' },
+      });
+
+      for (const hook of hooks) {
+        try {
+          const reactions = await this.reactionsService.findByHookId(hook.id);
+
+          for (const reaction of reactions) {
+            try {
+              await this.reactionsService.executeReaction(
+                reaction,
+                webhookData,
+                hook.userId
+              );
+            } catch (error) {
+              console.error(
+                `Failed to execute reaction ${reaction.id}:`,
+                error
+              );
+            }
+          }
+        } catch (error) {
+          console.error(`Error processing hook ${hook.id}:`, error);
+        }
+      }
+
+      return res.status(HttpStatus.OK).send({ success: true });
+    } catch (error) {
+      console.error('Error handling Jira webhook:', error.message);
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send({ error: 'Failed to process webhook' });
+    }
+  }
+
+  @Get('webhook')
+  @ApiOperation({ summary: 'List all Jira webhooks for the current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhooks retrieved successfully.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Jira account not linked.',
+  })
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
+  @RequireProvider(ProviderType.JIRA)
+  async getAllWebhooks(@Req() req) {
+    const userId = req.user.id;
+    return this.jiraService.listUserWebhooks(userId);
+  }
+
+  @Get('webhook/:hookId')
+  @ApiOperation({ summary: 'Get details of a specific webhook' })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook details retrieved successfully.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Jira account not linked.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Hook not found.',
+  })
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
+  @RequireProvider(ProviderType.JIRA)
+  async getWebhookDetails(@Req() req, @Param('hookId') hookId: number) {
+    const userId = req.user.id;
+    const hook = await this.hooksRepository.findOne({
+      where: { id: hookId, userId: userId, service: 'jira' },
+    });
+
+    if (!hook) {
+      throw new NotFoundException('Hook not found');
+    }
+
+    return hook;
+  }
+
+  @Post('create-webhook')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a Jira webhook' })
+  @ApiResponse({
+    status: 201,
+    description: 'The webhook has been successfully created.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid webhook data.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Jira account not linked.',
+  })
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
+  @RequireProvider(ProviderType.JIRA)
+  async createWebhook(@Req() req, @Body() body: CreateJiraWebhookDto) {
+    const userId = req.user.id;
+
+    const webhookUrl =
+      this.configService.getOrThrow<string>('JIRA_WEBHOOK_URL');
+    const accessToken = await this.authService.getValidJiraToken(userId);
+
+    return this.jiraService.createWebhook(
+      body,
+      accessToken,
+      req.provider.providerId,
+      webhookUrl,
+      userId
+    );
+  }
+
+  @Delete('webhook/:hookId')
+  @ApiOperation({ summary: 'Delete a Jira webhook' })
+  @ApiResponse({
+    status: 200,
+    description: 'The webhook has been successfully deleted.',
+  })
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
+  @RequireProvider(ProviderType.JIRA)
+  async deleteWebhook(@Req() req, @Param('hookId') hookId: number) {
+    try {
+      const userId = req.user.id;
+      const accessToken = await this.authService.getValidJiraToken(userId);
+
+      const hook = await this.hooksRepository.findOne({
+        where: { id: hookId, userId: userId, service: 'jira' },
+      });
+
+      if (!hook) {
+        throw new NotFoundException('Hook not found');
+      }
+
+      await this.jiraService.deleteWebhook(
+        hook.webhookId,
+        accessToken,
+        req.provider.providerId
+      );
+      return { message: 'Webhook deleted successfully' };
+    } catch (error) {
+      console.error('Error deleting webhook:', error);
+      throw error;
+    }
+  }
+
+  @Get('projects')
+  @ApiOperation({ summary: 'List all Jira projects accessible by the user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Projects retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
+  @RequireProvider(ProviderType.JIRA)
+  async listProjects(@Req() req) {
+    const userId = req.user.id;
+    try {
+      const projects = await this.jiraService.listProjects(userId);
+      return projects;
+    } catch (error) {
+      console.error('Error fetching Jira projects:', error.message);
+      throw error;
+    }
+  }
+
+  @Get('issue/:issueKey')
+  @ApiOperation({ summary: 'Get details of a specific Jira issue' })
+  @ApiResponse({
+    status: 200,
+    description: 'Issue details retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
+  @RequireProvider(ProviderType.JIRA)
+  async getIssue(@Req() req, @Param('issueKey') issueKey: string) {
+    const userId = req.user.id;
+
+    try {
+      const issue = await this.jiraService.getIssue(userId, issueKey);
+      return issue;
+    } catch (error) {
+      console.error('Error fetching Jira issue:', error.message);
+      throw error;
+    }
+  }
+
+  @Get(':projectKey/issues')
+  @ApiOperation({ summary: 'List all issues for a specific Jira project' })
+  @ApiResponse({
+    status: 200,
+    description: 'Issues retrieved successfully.',
+  })
+  @UseGuards(AuthGuard('jwt'), ProviderGuard)
+  @RequireProvider(ProviderType.JIRA)
+  async listProjectIssues(@Req() req, @Param('projectKey') projectKey: string) {
+    const userId = req.user.id;
+
+    try {
+      const issues = await this.jiraService.listProjectIssues(
+        userId,
+        projectKey
+      );
+      return issues;
+    } catch (error) {
+      console.error('Error fetching Jira project issues:', error.message);
+      throw error;
+    }
+  }
+}
